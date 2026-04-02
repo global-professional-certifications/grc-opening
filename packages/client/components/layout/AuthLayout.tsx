@@ -54,7 +54,8 @@ function JobSeekerPanel() {
   return (
     <div style={{
       display: "flex", flexDirection: "column",
-      padding: "1.5rem 1.25rem",
+      // Fluid padding so the panel breathes proportionally at every zoom level
+      padding: "clamp(1.25rem, 3vh, 2rem) clamp(1.25rem, 2vw, 2rem)",
       background: "var(--right-bg)",
       position: "relative", overflow: "hidden",
       height: "100vh",
@@ -69,8 +70,8 @@ function JobSeekerPanel() {
         borderRadius: "50%", pointerEvents: "none",
       }} />
 
-      {/* Headline at top */}
-      <div style={{ paddingTop: "2.5rem", position: "relative", zIndex: 10 }}>
+      {/* Headline — proportional top spacing so it stays near top at all zoom levels */}
+      <div style={{ paddingTop: "clamp(0.75rem, 3vh, 2rem)", position: "relative", zIndex: 10 }}>
         <div className="headline-fade">
           <p style={{
             fontSize: "clamp(1.6rem, 2.8vw, 2.6rem)", fontWeight: 900,
@@ -90,24 +91,30 @@ function JobSeekerPanel() {
         </div>
       </div>
 
-      {/* Badges centered in remaining space */}
+      {/*
+       * Badges — fluid top margin keeps them anchored proportionally
+       * below the headline instead of floating in a flex-1 void.
+       * marginTop auto on stats handles the rest of the vertical space.
+       */}
       <div style={{
         position: "relative", zIndex: 10,
-        display: "flex", flexDirection: "column", justifyContent: "center",
-        gap: 10, flex: 1, paddingTop: "1rem",
+        display: "flex", flexDirection: "column",
+        gap: "clamp(8px, 1.2vh, 12px)",
+        maxWidth: 380,
+        marginTop: "clamp(1.5rem, 5vh, 3.5rem)",
       }}>
         <BadgeCard label="CERTIFIED" title="CISA Analyst" />
         <BadgeCard label="GOVERNANCE" title="ISO 27001 Auditor" />
         <BadgeCard label="RISK MANAGEMENT" title="CRISC Professional" />
       </div>
 
-      {/* Stats pinned to bottom */}
+      {/* Stats — auto top margin absorbs remaining vertical space proportionally */}
       <div style={{ position: "relative", zIndex: 10, marginTop: "auto" }}>
-        <div style={{ height: 1, background: "var(--stat-divider)", marginBottom: "1rem" }} />
+        <div style={{ height: 1, background: "var(--stat-divider)", marginBottom: "clamp(0.5rem, 1.5vh, 1rem)" }} />
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr" }}>
           {[{ num: "5k+", label: "OPENINGS" }, { num: "200+", label: "TOP FIRMS" }, { num: "15+", label: "DOMAINS" }].map(s => (
             <div key={s.label}>
-              <p style={{ fontSize: "1.3rem", fontWeight: 800, color: "var(--stat-num)", marginBottom: 2 }}>{s.num}</p>
+              <p style={{ fontSize: "clamp(1.1rem, 1.8vh, 1.3rem)", fontWeight: 800, color: "var(--stat-num)", marginBottom: 2 }}>{s.num}</p>
               <p style={{ fontSize: "0.52rem", fontWeight: 700, letterSpacing: "0.1em", color: "var(--stat-label)" }}>{s.label}</p>
             </div>
           ))}
@@ -122,7 +129,7 @@ function EmployerPanel() {
   return (
     <div style={{
       display: "flex", flexDirection: "column",
-      padding: "1.5rem 1.25rem",
+      padding: "clamp(1.25rem, 3vh, 2rem) clamp(1.25rem, 2vw, 2rem)",
       background: "var(--right-bg)",
       position: "relative", overflow: "hidden",
       height: "100vh",
@@ -182,13 +189,13 @@ function EmployerPanel() {
           </span>
         </div>
 
-        <p style={{ fontSize: "0.75rem", color: "var(--right-subtext)", lineHeight: 1.6, marginBottom: "1.25rem" }}>
+        <p style={{ fontSize: "0.75rem", color: "var(--right-subtext)", lineHeight: 1.6, marginBottom: "clamp(0.75rem, 2vh, 1.25rem)" }}>
           Stop sifting through generic resumes. Access a curated database of verified Risk and Compliance experts ready for their next challenge.
         </p>
 
         {/* Stats Card */}
         <div style={{
-          background: "rgba(0,0,0,0.2)", border: "1px solid var(--badge-border)",
+          background: "var(--stats-card-bg)", border: "1px solid var(--stats-card-border)",
           borderRadius: 14, padding: "1rem 1.25rem",
           display: "grid", gridTemplateColumns: "1fr 1fr 1fr",
         }}>
@@ -211,7 +218,7 @@ function EmployerPanel() {
 //Logo (form side)
 function Logo() {
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: "1.25rem" }}>
+    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: "0.75rem" }}>
       <div style={{
         width: 28, height: 28, borderRadius: 7,
         background: "rgba(0,212,178,0.15)", border: "1.5px solid var(--brand)",
@@ -230,15 +237,17 @@ function Logo() {
 export function AuthLayout({ children, role = "job_seeker" }: AuthLayoutProps) {
   return (
     <div className="auth-layout">
-      {/* Left (30%): banner */}
-      {role === "employer" ? <EmployerPanel /> : <JobSeekerPanel />}
-
-      {/* Right (70%): form */}
+      {/* Left (60%): form */}
       <div className="left-panel">
         <div className="form-card">
           <Logo />
           {children}
         </div>
+      </div>
+
+      {/* Right (40%): marketing panel — key triggers panel-enter animation on role switch */}
+      <div key={role} className="auth-right-panel panel-enter">
+        {role === "employer" ? <EmployerPanel /> : <JobSeekerPanel />}
       </div>
     </div>
   );
