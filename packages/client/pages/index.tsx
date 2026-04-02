@@ -1,8 +1,8 @@
 import React, { useState } from "react";
-import { AuthLayout } from "../../components/layout/AuthLayout";
-import { RegistrationForm } from "../../modules/auth/RegistrationForm";
+import { AuthLayout } from "../components/layout/AuthLayout";
+import { RegistrationForm } from "../modules/auth/RegistrationForm";
 
-export default function Register() {
+export default function HomeRegister() {
   const [role, setRole] = useState<"job_seeker" | "employer">("job_seeker");
 
   return (
