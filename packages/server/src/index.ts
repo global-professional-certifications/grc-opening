@@ -1,6 +1,7 @@
 import express from 'express';
 import { corsMiddleware } from './middleware/cors';
 import healthRouter from './routes/health';
+import authRouter from './routes/auth.routes';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -15,6 +16,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Routes
 app.use('/health', healthRouter);
+app.use('/auth', authRouter);
 
 // Start server
 app.listen(PORT, () => {
