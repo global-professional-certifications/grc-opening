@@ -79,7 +79,8 @@ export const registerUser = async (req: Request, res: Response): Promise<void> =
           email,
           passwordHash,
           role: requestedRole,
-          emailVerified: false,
+          //------------------
+          emailVerified: true,
         },
       });
 
@@ -108,5 +109,56 @@ export const registerUser = async (req: Request, res: Response): Promise<void> =
   } catch (error) {
     console.error('Registration error:', error);
     res.status(500).json({ error: 'Internal server error during registration' });
+  }
+};
+
+export const loginUser = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      res.status(400).json({ error: 'Email and password are required' });
+      return;
+    }
+
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) {
+      res.status(401).json({ error: 'Invalid credentials' });
+      return;
+    }
+
+    const passwordMatch = await bcrypt.compare(password, user.passwordHash);
+    if (!passwordMatch) {
+      res.status(401).json({ error: 'Invalid credentials' });
+      return;
+    }
+
+    // Since we validated JWT_SECRET inside config/env.ts, we know it exists securely
+    const jwtSecret = process.env.JWT_SECRET as string;
+
+    // Create the token explicitly trusting the Database values over the client
+    const token = await import('jsonwebtoken').then(jwt => jwt.sign(
+      {
+        id: user.id,
+        role: user.role,
+        email_verified: user.emailVerified,
+      },
+      jwtSecret,
+      { expiresIn: '7d' } // Expire tokens after 7 days
+    ));
+
+    res.status(200).json({
+      message: 'Login successful',
+      token,
+      user: {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        emailVerified: user.emailVerified
+      }
+    });
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({ error: 'Internal server error during login' });
   }
 };
