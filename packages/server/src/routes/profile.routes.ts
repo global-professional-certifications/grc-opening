@@ -1,10 +1,10 @@
 import { Router } from 'express';
 import { requireRole, validateJWT } from '../middleware/auth.middleware';
-import { 
-  getSeekerProfile, 
-  updateSeekerProfile, 
-  getEmployerProfile, 
-  updateEmployerProfile 
+import {
+  getSeekerProfile,
+  updateSeekerProfile,
+  getEmployerProfile,
+  updateEmployerProfile
 } from '../controllers/profile.controller';
 
 const router: Router = Router();
