@@ -15,6 +15,8 @@ import type { ProfileFormData } from "../../components/profile/types";
 const USE_MOCK = true;
 // ────────────────────────────────────────────────────────────────────────────
 
+const PROFILE_STORAGE_KEY = "grc_profile_data";
+
 const SYNE = { fontFamily: "'Syne', sans-serif" };
 const MONO = { fontFamily: "'JetBrains Mono', monospace" };
 
@@ -116,6 +118,21 @@ export default function ProfilePage() {
   }
 
   useEffect(() => {
+    // Check localStorage first — if data exists, use it immediately
+    try {
+      const saved = localStorage.getItem(PROFILE_STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved) as ProfileFormData;
+        setFormData(parsed);
+        setOriginal(parsed);
+        setLoading(false);
+        return;
+      }
+    } catch {
+      // ignore parse errors, fall through to API/mock data
+    }
+
+    // No local data — fetch from API (or mock)
     loadProfile()
       .then((api) => {
         const mapped = mapApiToForm(api);
@@ -133,18 +150,26 @@ export default function ProfilePage() {
       .finally(() => setLoading(false));
   }, []);
 
+  // Auto-save every change to localStorage so data survives page refresh
+  useEffect(() => {
+    if (loading) return;
+    localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(formData));
+  }, [formData, loading]);
+
   const handleChange = useCallback((updates: Partial<ProfileFormData>) => {
     setFormData((prev) => ({ ...prev, ...updates }));
   }, []);
 
   function handleCancel() {
     setFormData(original);
+    localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(original));
   }
 
   async function handleSave() {
     setSaving(true);
     try {
       // TODO: Call PATCH /profile when server endpoint is available
+      localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(formData));
       setOriginal(formData);
     } finally {
       setSaving(false);

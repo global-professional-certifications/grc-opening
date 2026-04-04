@@ -1,8 +1,14 @@
 import React, { useState } from "react";
+import { useRouter } from "next/router";
 import { Input } from "../../../components/forms/Input";
 import { Select } from "../../../components/forms/Select";
 import { Button } from "../../../components/ui/Button";
 import { PasswordStrength } from "./PasswordStrength";
+
+// TODO: Replace with real apiFetch("/auth/register", ...) once backend is ready.
+function mockRegister(_email: string): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, 800));
+}
 
 const INDUSTRIES = [
   { value: "", label: "Select Industry" },
@@ -86,9 +92,12 @@ function validate(data: Fields): Partial<Fields> {
 }
 
 export function EmployerForm() {
+  const router = useRouter();
   const [fields, setFields] = useState<Fields>(EMPTY);
   const [errors, setErrors] = useState<Partial<Fields>>({});
   const [submitted, setSubmitted] = useState(false);
+  const [apiError, setApiError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   function set(key: keyof Fields, value: string) {
     const next = { ...fields, [key]: value };
@@ -96,14 +105,24 @@ export function EmployerForm() {
     if (submitted) setErrors(validate(next));
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSubmitted(true);
     const errs = validate(fields);
     setErrors(errs);
     if (Object.keys(errs).length > 0) return;
-    // TODO: Call POST /auth/register/employer when API endpoint is ready
-    console.log("Employer signup:", { ...fields, password: "[REDACTED]" });
+
+    setApiError("");
+    setLoading(true);
+    try {
+      await mockRegister(fields.workEmail);
+      sessionStorage.setItem("grc_pending_verification_email", fields.workEmail);
+      router.push("/verify-email");
+    } catch (err: unknown) {
+      setApiError(err instanceof Error ? err.message : "Registration failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -170,8 +189,19 @@ export function EmployerForm() {
         />
       </div>
 
-      <Button type="submit" fullWidth>
-        Create Account <ArrowIcon />
+      {apiError && (
+        <p style={{ fontSize: "0.8rem", color: "#f87171", display: "flex", alignItems: "center", gap: 6,
+          background: "rgba(248,113,113,0.08)", border: "1px solid rgba(248,113,113,0.2)",
+          borderRadius: 8, padding: "8px 14px" }}>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          {apiError}
+        </p>
+      )}
+
+      <Button type="submit" fullWidth disabled={loading} style={{ opacity: loading ? 0.7 : 1 }}>
+        {loading ? "Creating account…" : <> Create Account <ArrowIcon /> </>}
       </Button>
 
       <p style={{ textAlign: "center", fontSize: "0.7rem", color: "var(--text-muted)", lineHeight: 1.6 }}>
