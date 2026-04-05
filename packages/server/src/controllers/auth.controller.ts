@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { PrismaClient, Role } from '@prisma/client';
 import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
 import { sendOtpEmail } from '../services/email.service';
 
 const prisma = new PrismaClient();
@@ -121,15 +122,14 @@ export const registerUser = async (req: Request, res: Response): Promise<void> =
     const saltRounds = 12;
     const passwordHash = await bcrypt.hash(password, saltRounds);
 
-    // 5. Create user and profile in a transaction
+    // 5. Create user and profile in a transaction (emailVerified starts false)
     const user = await prisma.$transaction(async (tx) => {
       const created = await tx.user.create({
         data: {
           email,
           passwordHash,
           role: requestedRole,
-          //------------------
-          emailVerified: true,
+          emailVerified: false,
         },
       });
 
@@ -147,7 +147,12 @@ export const registerUser = async (req: Request, res: Response): Promise<void> =
     });
 
     // 6. Generate OTP and send verification email
-    await issueAndSendOtp(user.id, email);
+    try {
+      await issueAndSendOtp(user.id, email);
+    } catch (emailError) {
+      console.error('OTP email failed (user still created):', emailError);
+      // User is created — let them request a resend from the verify-email page
+    }
 
     res.status(201).json({
       message: 'Registration successful! Please check your email for a verification code.',
@@ -158,14 +163,6 @@ export const registerUser = async (req: Request, res: Response): Promise<void> =
   }
 };
 
-<<<<<<< HEAD
-export const loginUser = async (req: Request, res: Response): Promise<void> => {
-  try {
-    const { email, password } = req.body;
-
-    if (!email || !password) {
-      res.status(400).json({ error: 'Email and password are required' });
-=======
 // ─────────────────────────────────────────────────────────
 // POST /auth/send-otp   { email }
 // ─────────────────────────────────────────────────────────
@@ -174,51 +171,11 @@ export const sendOtp = async (req: Request, res: Response): Promise<void> => {
     const { email } = req.body;
     if (!email) {
       res.status(400).json({ error: 'email is required' });
->>>>>>> origin/ayush
       return;
     }
 
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
-<<<<<<< HEAD
-      res.status(401).json({ error: 'Invalid credentials' });
-      return;
-    }
-
-    const passwordMatch = await bcrypt.compare(password, user.passwordHash);
-    if (!passwordMatch) {
-      res.status(401).json({ error: 'Invalid credentials' });
-      return;
-    }
-
-    // Since we validated JWT_SECRET inside config/env.ts, we know it exists securely
-    const jwtSecret = process.env.JWT_SECRET as string;
-
-    // Create the token explicitly trusting the Database values over the client
-    const token = await import('jsonwebtoken').then(jwt => jwt.sign(
-      {
-        id: user.id,
-        role: user.role,
-        email_verified: user.emailVerified,
-      },
-      jwtSecret,
-      { expiresIn: '7d' } // Expire tokens after 7 days
-    ));
-
-    res.status(200).json({
-      message: 'Login successful',
-      token,
-      user: {
-        id: user.id,
-        email: user.email,
-        role: user.role,
-        emailVerified: user.emailVerified
-      }
-    });
-  } catch (error) {
-    console.error('Login error:', error);
-    res.status(500).json({ error: 'Internal server error during login' });
-=======
       // Don't reveal whether the email exists
       res.status(200).json({ message: 'If that email is registered, a code has been sent.' });
       return;
@@ -285,16 +242,82 @@ export const verifyEmail = async (req: Request, res: Response): Promise<void> =>
       return;
     }
 
+    // Generate token first — if this fails, the user stays unverified and can retry
+    const jwtSecret = process.env.JWT_SECRET as string;
+    const token = jwt.sign(
+      { id: user.id, role: user.role, email_verified: true },
+      jwtSecret,
+      { expiresIn: '7d' }
+    );
+
     // Mark email as verified and clean up OTP records
     await prisma.$transaction([
       prisma.user.update({ where: { id: user.id }, data: { emailVerified: true } }),
       prisma.emailVerification.deleteMany({ where: { userId: user.id } }),
     ]);
 
-    res.status(200).json({ message: 'Email verified successfully.' });
+    res.status(200).json({
+      message: 'Email verified successfully.',
+      token,
+      user: { id: user.id, email: user.email, role: user.role, emailVerified: true },
+    });
   } catch (error) {
     console.error('Verify email error:', error);
     res.status(500).json({ error: 'Internal server error' });
->>>>>>> origin/ayush
+  }
+};
+
+// ─────────────────────────────────────────────────────────
+// POST /auth/login
+// ─────────────────────────────────────────────────────────
+export const loginUser = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      res.status(400).json({ error: 'Email and password are required' });
+      return;
+    }
+
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) {
+      res.status(401).json({ error: 'Invalid credentials' });
+      return;
+    }
+
+    const passwordMatch = await bcrypt.compare(password, user.passwordHash);
+    if (!passwordMatch) {
+      res.status(401).json({ error: 'Invalid credentials' });
+      return;
+    }
+
+    if (!user.emailVerified) {
+      res.status(403).json({ error: 'Please verify your email before logging in.' });
+      return;
+    }
+
+    // Since we validated JWT_SECRET inside config/env.ts, we know it exists securely
+    const jwtSecret = process.env.JWT_SECRET as string;
+
+    // Create the token explicitly trusting the Database values over the client
+    const token = jwt.sign(
+      { id: user.id, role: user.role, email_verified: user.emailVerified },
+      jwtSecret,
+      { expiresIn: '7d' }
+    );
+
+    res.status(200).json({
+      message: 'Login successful',
+      token,
+      user: {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        emailVerified: user.emailVerified,
+      },
+    });
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({ error: 'Internal server error during login' });
   }
 };

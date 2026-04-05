@@ -2,31 +2,13 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/router";
 import { OtpInput } from "../../components/auth/OtpInput";
 import { Button } from "../../components/ui/Button";
+import { apiFetch } from "../../lib/api";
+import { setToken, setStoredUser, markVisited } from "../../lib/auth";
+import { useUser } from "../../contexts/UserContext";
 
 // ─── Constants ───────────────────────────────────────────
 const RESEND_COOLDOWN = 60; // seconds
 const REDIRECT_DELAY = 3000; // ms before dashboard redirect
-
-// ─── Mock API placeholders ────────────────────────────────
-// TODO: Replace these with real apiFetch calls once the backend is ready.
-
-/** Simulates OTP verification (1.5 s delay). Typing "000000" triggers an error state for testing. */
-function mockVerifyOtp(_email: string, otp: string): Promise<void> {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      if (otp === "000000") {
-        reject(new Error("Invalid or expired code."));
-      } else {
-        resolve();
-      }
-    }, 1500);
-  });
-}
-
-/** Simulates resending an OTP (1 s delay, always succeeds). */
-function mockSendOtp(_email: string): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, 1000));
-}
 
 // ─── Icons ───────────────────────────────────────────────
 function MailIcon() {
@@ -83,11 +65,45 @@ function ConnectorLine() {
 
 // ─── Success Screen ──────────────────────────────────────
 
-function SuccessScreen() {
+interface VerifyResponse {
+  token: string;
+  user: { id: string; email: string; role: string; emailVerified: boolean };
+}
+
+function SuccessScreen({ authData }: { authData: VerifyResponse }) {
   const router = useRouter();
+  const { setUser } = useUser();
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
+    if (!authData.token || !authData.user) return;
+
+    // Store token immediately so apiFetch can use it
+    setToken(authData.token);
+    markVisited(authData.user.id);
+
+    // Fetch real profile to get firstName/lastName for the greeting
+    const profileEndpoint = authData.user.role === 'EMPLOYER'
+      ? '/profile/employer'
+      : '/profile/seeker';
+
+    apiFetch<{ profile: { firstName?: string; lastName?: string; companyName?: string; headline?: string } }>(profileEndpoint)
+      .then(res => {
+        const enriched = {
+          ...authData.user,
+          firstName: res.profile.firstName ?? res.profile.companyName ?? '',
+          lastName: res.profile.lastName ?? '',
+          headline: res.profile.headline ?? '',
+        };
+        setStoredUser(enriched);
+        setUser(enriched);
+      })
+      .catch(() => {
+        // fallback: store without name
+        setStoredUser(authData.user);
+        setUser(authData.user);
+      });
+
     const start = Date.now();
     const id = setInterval(() => {
       const elapsed = Date.now() - start;
@@ -95,14 +111,14 @@ function SuccessScreen() {
     }, 50);
 
     const redirect = setTimeout(() => {
-      router.push("/dashboard");
+      router.push("/dashboard/profile");
     }, REDIRECT_DELAY);
 
     return () => {
       clearInterval(id);
       clearTimeout(redirect);
     };
-  }, [router]);
+  }, [router, authData, setUser]);
 
   return (
     <div style={{ textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: 24 }}>
@@ -156,7 +172,7 @@ function SuccessScreen() {
 
 interface OtpScreenProps {
   email: string;
-  onSuccess: () => void;
+  onSuccess: (authData: VerifyResponse) => void;
 }
 
 function OtpScreen({ email, onSuccess }: OtpScreenProps) {
@@ -189,8 +205,11 @@ function OtpScreen({ email, onSuccess }: OtpScreenProps) {
     setError("");
     setLoading(true);
     try {
-      await mockVerifyOtp(email, otp);
-      onSuccess();
+      const res = await apiFetch<VerifyResponse>("/auth/verify-email", {
+        method: "POST",
+        body: JSON.stringify({ email, otp }),
+      });
+      onSuccess(res);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Invalid or expired code.");
     } finally {
@@ -204,7 +223,10 @@ function OtpScreen({ email, onSuccess }: OtpScreenProps) {
     setResendMessage("");
     setError("");
     try {
-      await mockSendOtp(email);
+      await apiFetch("/auth/send-otp", {
+        method: "POST",
+        body: JSON.stringify({ email }),
+      });
       setResendMessage("A new code has been sent to your inbox.");
       setOtp("");
       setResendCooldown(RESEND_COOLDOWN);
@@ -355,11 +377,11 @@ interface EmailVerificationFlowProps {
 }
 
 export function EmailVerificationFlow({ email }: EmailVerificationFlowProps) {
-  const [verified, setVerified] = useState(false);
+  const [authData, setAuthData] = useState<VerifyResponse | null>(null);
 
-  if (verified) {
-    return <SuccessScreen />;
+  if (authData) {
+    return <SuccessScreen authData={authData} />;
   }
 
-  return <OtpScreen email={email} onSuccess={() => setVerified(true)} />;
+  return <OtpScreen email={email} onSuccess={(data) => setAuthData(data)} />;
 }

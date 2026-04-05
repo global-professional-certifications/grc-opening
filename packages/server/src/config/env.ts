@@ -2,11 +2,9 @@ export const validateEnv = (): void => {
   const requiredVariables = [
     'DATABASE_URL',
     'JWT_SECRET',
-    'GOOGLE_CLIENT_ID',
-    'GOOGLE_CLIENT_SECRET',
-    'SENDGRID_API_KEY',
-    'AWS_S3_BUCKET',
     'APP_URL',
+    // Resend — required for OTP email delivery
+    'RESEND_API_KEY',
   ];
 
   const missingVariables = requiredVariables.filter((varName) => !process.env[varName]);

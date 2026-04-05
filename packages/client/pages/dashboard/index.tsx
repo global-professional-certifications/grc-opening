@@ -6,6 +6,7 @@ import { RecentApplications } from "../../modules/dashboard/RecentApplications";
 import { ProfileCompletion } from "../../modules/dashboard/ProfileCompletion";
 import { GRCInsight } from "../../modules/dashboard/GRCInsight";
 import { useDashboardTheme } from "../../contexts/DashboardThemeContext";
+import { useUser } from "../../contexts/UserContext";
 
 // ── Sun Icon (shown in dark mode → click to go light) ────────
 function SunIcon() {
@@ -29,14 +30,23 @@ function MoonIcon() {
   );
 }
 
+function getGreeting() {
+  const h = new Date().getHours();
+  if (h < 12) return "Good morning";
+  if (h < 17) return "Good afternoon";
+  return "Good evening";
+}
+
 function DashboardHeader() {
   const { theme, toggleTheme } = useDashboardTheme();
+  const { user } = useUser();
+  const firstName = user?.firstName || user?.email?.split("@")[0] || "there";
 
   return (
     <header className="flex items-center justify-between">
       <div>
         <h2 className="text-3xl font-semibold" style={{ fontFamily: "'Syne', sans-serif", color: "var(--db-text)" }}>
-          Good morning, Sarah 👋
+          {getGreeting()}, {firstName} 👋
         </h2>
         <p className="mt-1 text-sm" style={{ color: "var(--db-text-muted)" }}>
           Here&apos;s what&apos;s happening with your compliance applications today.

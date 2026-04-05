@@ -1,8 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { DashboardLayout } from "../../components/layout/DashboardLayout";
 import { apiFetch } from "../../lib/api";
-import { fetchMockProfile, mapApiToForm } from "../../lib/mockProfile";
-import type { ApiProfile } from "../../lib/mockProfile";
 import { ProfileCompletionBar, calcCompletion } from "../../components/profile/ProfileCompletionBar";
 import { ResumeSection } from "../../components/profile/ResumeSection";
 import { PersonalInfoSection } from "../../components/profile/PersonalInfoSection";
@@ -11,11 +9,43 @@ import { WorkExperienceSection } from "../../components/profile/WorkExperienceSe
 import { SkillsSection } from "../../components/profile/SkillsSection";
 import type { ProfileFormData } from "../../components/profile/types";
 
-// ─── Toggle this flag to switch between mock and real API ───────────────────
-const USE_MOCK = true;
-// ────────────────────────────────────────────────────────────────────────────
-
 const PROFILE_STORAGE_KEY = "grc_profile_data";
+
+interface RealApiProfile {
+  profile: {
+    firstName: string;
+    lastName: string;
+    headline: string | null;
+    bio: string | null;
+    resumeUrl: string | null;
+    skills: { id: string; name: string }[];
+    user: { email: string };
+  };
+}
+
+function mapRealApiToForm(api: RealApiProfile): ProfileFormData {
+  const p = api.profile;
+  return {
+    firstName: p.firstName,
+    lastName: p.lastName,
+    professionalTitle: p.headline ?? "",
+    email: p.user.email,
+    location: "",
+    linkedInUrl: "",
+    summary: p.bio ?? "",
+    workExperience: [],
+    coreCompetencies: p.skills.map(s => s.name),
+    certifications: [],
+    resumeUrl: p.resumeUrl,
+    resumeFileName: p.resumeUrl ? "Resume.pdf" : null,
+    avatarUrl: null,
+  };
+}
+
+async function loadProfile(): Promise<ProfileFormData> {
+  const res = await apiFetch<RealApiProfile>("/profile/seeker");
+  return mapRealApiToForm(res);
+}
 
 const SYNE = { fontFamily: "'Syne', sans-serif" };
 const MONO = { fontFamily: "'JetBrains Mono', monospace" };
@@ -35,11 +65,6 @@ const EMPTY_PROFILE: ProfileFormData = {
   resumeFileName: null,
   avatarUrl: null,
 };
-
-async function loadProfile(): Promise<ApiProfile> {
-  if (USE_MOCK) return fetchMockProfile();
-  return apiFetch<ApiProfile>("/profile");
-}
 
 function SkeletonBlock({ className }: { className: string }) {
   return (
@@ -118,24 +143,28 @@ export default function ProfilePage() {
   }
 
   useEffect(() => {
-    // Check localStorage first — if data exists, use it immediately
+    // Check localStorage first — if data exists and is not stale mock data, use it
     try {
       const saved = localStorage.getItem(PROFILE_STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved) as ProfileFormData;
-        setFormData(parsed);
-        setOriginal(parsed);
-        setLoading(false);
-        return;
+        // Discard stale mock data (Sarah Jenkins placeholder)
+        if (parsed.firstName !== "Sarah") {
+          setFormData(parsed);
+          setOriginal(parsed);
+          setLoading(false);
+          return;
+        }
+        localStorage.removeItem(PROFILE_STORAGE_KEY);
       }
     } catch {
-      // ignore parse errors, fall through to API/mock data
+      // ignore parse errors, fall through to API data
     }
 
     // No local data — fetch from API (or mock)
     loadProfile()
       .then((api) => {
-        const mapped = mapApiToForm(api);
+        const mapped = api as ProfileFormData;
         setFormData(mapped);
         setOriginal(mapped);
       })
@@ -215,24 +244,6 @@ export default function ProfilePage() {
           </a>
         )}
       </header>
-
-      {/* ── Mock badge ───────────────────────────────────────────── */}
-      {USE_MOCK && (
-        <div
-          className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold w-fit"
-          style={{
-            background: "rgba(245,158,11,0.12)",
-            border: "1px solid rgba(245,158,11,0.3)",
-            color: "#f59e0b",
-            ...MONO,
-          }}
-        >
-          <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
-            science
-          </span>
-          Mock data active — set USE_MOCK = false to connect real API
-        </div>
-      )}
 
       {/* ── Loading ──────────────────────────────────────────────── */}
       {loading && <ProfileSkeleton />}

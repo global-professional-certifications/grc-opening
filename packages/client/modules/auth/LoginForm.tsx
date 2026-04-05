@@ -1,6 +1,10 @@
 import React, { useState } from "react";
+import { useRouter } from "next/router";
 import { Input } from "../../components/forms/Input";
 import { Button } from "../../components/ui/Button";
+import { apiFetch } from "../../lib/api";
+import { setToken, setStoredUser, isFirstLogin, markVisited } from "../../lib/auth";
+import { useUser } from "../../contexts/UserContext";
 
 // ── Icons ────────────────────────────────────────
 
@@ -50,9 +54,98 @@ function GoogleIcon() {
 
 // ── Login Form ───────────────────────────────────
 
-export function LoginForm() {
+interface LoginResponse {
+  token: string;
+  user: { id: string; email: string; role: string; emailVerified: boolean };
+}
+
+interface SeekerProfileResponse {
+  profile: { firstName: string; lastName: string; headline?: string };
+}
+
+interface EmployerProfileResponse {
+  profile: { companyName: string };
+}
+
+interface LoginFormProps {
+  onRoleChange?: (role: "job_seeker" | "employer") => void;
+}
+
+export function LoginForm({ onRoleChange }: LoginFormProps) {
+  const router = useRouter();
+  const { setUser } = useUser();
+
+  const [activeRole, setActiveRole] = useState<"job_seeker" | "employer">("job_seeker");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [remember, setRemember] = useState(false);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  function handleRoleSwitch(role: "job_seeker" | "employer") {
+    setActiveRole(role);
+    onRoleChange?.(role);
+  }
+
+  const verified = router.query.verified === "true";
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!email || !password) {
+      setError("Email and password are required");
+      return;
+    }
+    setError("");
+    setLoading(true);
+
+    try {
+      // 1. Login
+      const res = await apiFetch<LoginResponse>("/auth/login", {
+        method: "POST",
+        body: JSON.stringify({ email, password }),
+      });
+
+      setToken(res.token);
+
+      // 2. Fetch the user's name from their profile
+      let firstName = "";
+      let lastName = "";
+      let headline = "";
+
+      try {
+        if (res.user.role === "JOB_SEEKER") {
+          const profileRes = await apiFetch<SeekerProfileResponse>("/profile/seeker");
+          firstName = profileRes.profile.firstName;
+          lastName = profileRes.profile.lastName;
+          headline = profileRes.profile.headline ?? "";
+        } else if (res.user.role === "EMPLOYER") {
+          const profileRes = await apiFetch<EmployerProfileResponse>("/profile/employer");
+          firstName = profileRes.profile.companyName;
+        }
+      } catch {
+        // Profile fetch failed — use email prefix as fallback
+        firstName = email.split("@")[0];
+      }
+
+      // 3. Store user in context + localStorage
+      const storedUser = { ...res.user, firstName, lastName, headline };
+      setUser(storedUser);
+      setStoredUser(storedUser);
+
+      // First visit → profile setup; returning users → dashboard
+      if (isFirstLogin(res.user.id)) {
+        markVisited(res.user.id);
+        router.push("/dashboard/profile");
+      } else {
+        router.push("/dashboard");
+      }
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Login failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
     <div style={{ width: "100%" }}>
@@ -64,7 +157,6 @@ export function LoginForm() {
           border: "1.5px solid rgba(0, 212, 178, 0.4)",
           display: "flex", alignItems: "center", justifyContent: "center",
         }}>
-          {/* Stacked layers icon */}
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--brand)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <polygon points="12 2 2 7 12 12 22 7 12 2" />
             <polyline points="2 17 12 22 22 17" />
@@ -87,16 +179,56 @@ export function LoginForm() {
         </p>
       </div>
 
-      {/* Form */}
-      <form onSubmit={e => e.preventDefault()} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      {/* Role toggle */}
+      <div style={{
+        display: "flex", background: "var(--bg-card)",
+        border: "1px solid var(--border)", borderRadius: 10,
+        padding: 4, marginBottom: "0.25rem",
+      }}>
+        {(["job_seeker", "employer"] as const).map((r) => (
+          <button
+            key={r}
+            type="button"
+            onClick={() => handleRoleSwitch(r)}
+            style={{
+              flex: 1, padding: "7px 0",
+              borderRadius: 7, border: "none",
+              fontSize: "0.8rem", fontWeight: 700,
+              cursor: "pointer",
+              transition: "all 0.18s ease",
+              background: activeRole === r ? "var(--brand)" : "transparent",
+              color: activeRole === r ? "#03120f" : "var(--text-muted)",
+            }}
+          >
+            {r === "job_seeker" ? "Job Seeker" : "Employer"}
+          </button>
+        ))}
+      </div>
 
-        {/* Email */}
+      {/* Email verified banner */}
+      {verified && (
+        <p style={{
+          fontSize: "0.82rem", color: "#34d399",
+          background: "rgba(52,211,153,0.08)",
+          border: "1px solid rgba(52,211,153,0.25)",
+          borderRadius: 8, padding: "8px 14px",
+          marginBottom: 16, textAlign: "center",
+        }}>
+          ✓ Email verified! You can now sign in.
+        </p>
+      )}
+
+      {/* Form */}
+      <form onSubmit={handleSubmit} noValidate style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+
         <Input
           label="Email Address"
           type="email"
           placeholder="name@company.com"
           id="login-email"
           icon={<MailIcon />}
+          value={email}
+          onChange={e => setEmail(e.target.value)}
         />
 
         {/* Password with show/hide */}
@@ -115,6 +247,8 @@ export function LoginForm() {
               placeholder="••••••••"
               className="grc-input"
               style={{ paddingLeft: 42, paddingRight: 42 }}
+              value={password}
+              onChange={e => setPassword(e.target.value)}
             />
             <button
               type="button"
@@ -142,55 +276,57 @@ export function LoginForm() {
               id="remember-me"
               checked={remember}
               onChange={e => setRemember(e.target.checked)}
-              style={{
-                width: 16, height: 16, borderRadius: 4,
-                accentColor: "var(--brand)", cursor: "pointer",
-              }}
+              style={{ width: 16, height: 16, borderRadius: 4, accentColor: "var(--brand)", cursor: "pointer" }}
             />
             Remember me
           </label>
-          <a
-            href="#"
-            style={{
-              fontSize: "0.825rem", color: "var(--brand)",
-              fontWeight: 600, textDecoration: "none",
-            }}
-          >
+          <a href="#" style={{ fontSize: "0.825rem", color: "var(--brand)", fontWeight: 600, textDecoration: "none" }}>
             Forgot Password?
           </a>
         </div>
 
-        {/* Sign In button */}
-        <Button type="submit" fullWidth>
-          Sign In
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M5 12h14" /><path d="m12 5 7 7-7 7" />
-          </svg>
+        {error && (
+          <p style={{
+            fontSize: "0.8rem", color: "#f87171",
+            background: "rgba(248,113,113,0.08)",
+            border: "1px solid rgba(248,113,113,0.2)",
+            borderRadius: 8, padding: "8px 14px",
+            display: "flex", alignItems: "center", gap: 6,
+          }}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+            {error}
+          </p>
+        )}
+
+        <Button type="submit" fullWidth disabled={loading} style={{ opacity: loading ? 0.7 : 1 }}>
+          {loading ? "Signing in…" : (
+            <>
+              Sign In
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M5 12h14" /><path d="m12 5 7 7-7 7" />
+              </svg>
+            </>
+          )}
         </Button>
 
-        {/* OR divider */}
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <div style={{ flex: 1, height: 1, background: "var(--border)" }} />
-          <span style={{
-            fontSize: "0.6rem", fontWeight: 700, letterSpacing: "0.1em",
-            color: "var(--text-muted)", whiteSpace: "nowrap",
-          }}>OR</span>
+          <span style={{ fontSize: "0.6rem", fontWeight: 700, letterSpacing: "0.1em", color: "var(--text-muted)", whiteSpace: "nowrap" }}>OR</span>
           <div style={{ flex: 1, height: 1, background: "var(--border)" }} />
         </div>
 
-        {/* Google */}
-        <Button variant="outline" fullWidth>
+        <Button variant="outline" fullWidth type="button">
           <GoogleIcon /> Continue with Google
         </Button>
 
-        {/* Footer link */}
         <p style={{ textAlign: "center", fontSize: "0.825rem", color: "var(--text-secondary)" }}>
           New to GRC Openings?{" "}
           <a href="/auth/register" style={{ color: "var(--brand)", fontWeight: 600, textDecoration: "none" }}>
             Create an account →
           </a>
         </p>
-
       </form>
     </div>
   );

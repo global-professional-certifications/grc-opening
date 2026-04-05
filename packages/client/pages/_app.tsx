@@ -1,6 +1,7 @@
 import '../styles/globals.css'
 import type { AppProps } from 'next/app'
 import { useState, useEffect } from 'react'
+import { UserProvider } from '../contexts/UserContext'
 
 export default function App({ Component, pageProps }: AppProps) {
   const [theme, setTheme] = useState<'light' | 'dark'>('light')
@@ -12,7 +13,7 @@ export default function App({ Component, pageProps }: AppProps) {
   const toggleTheme = () => setTheme(prev => prev === 'light' ? 'dark' : 'light')
 
   return (
-    <>
+    <UserProvider>
       {/* Global Theme Toggle */}
       <button className="theme-toggle" onClick={toggleTheme} aria-label="Toggle theme">
         {theme === 'light' ? (
@@ -36,6 +37,6 @@ export default function App({ Component, pageProps }: AppProps) {
         )}
       </button>
       <Component {...pageProps} theme={theme} />
-    </>
+    </UserProvider>
   )
 }

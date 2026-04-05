@@ -1,21 +1,13 @@
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || 'smtp.gmail.com',
-  port: Number(process.env.SMTP_PORT) || 587,
-  secure: false,
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-});
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function sendOtpEmail(to: string, otp: string): Promise<void> {
-  const fromName = process.env.SMTP_FROM_NAME || 'GRC Openings';
-  const fromAddress = process.env.SMTP_USER || 'noreply@grcopenings.com';
+  const fromName = process.env.RESEND_FROM_NAME || 'GRC Openings';
+  const fromAddress = process.env.RESEND_FROM_ADDRESS || 'onboarding@resend.dev';
 
-  await transporter.sendMail({
-    from: `"${fromName}" <${fromAddress}>`,
+  await resend.emails.send({
+    from: `${fromName} <${fromAddress}>`,
     to,
     subject: 'Verify your GRC Openings account',
     html: `

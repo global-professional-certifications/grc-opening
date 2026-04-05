@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/router";
 import { DashboardThemeProvider, useDashboardTheme } from "../../contexts/DashboardThemeContext";
+import { useUser } from "../../contexts/UserContext";
 
 const SYNE  = { fontFamily: "'Syne', sans-serif" };
 const MONO  = { fontFamily: "'JetBrains Mono', monospace" };
@@ -18,9 +19,44 @@ function NavItem({ href, icon, label }: { href: string; icon: string; label: str
 }
 
 function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
-  // theme state is still needed for the toggle button icon in DashboardHeader
   const { theme } = useDashboardTheme();
-  void theme; // consumed by children (DashboardHeader), not needed here directly
+  void theme;
+  const { user, logout } = useUser();
+  const router = useRouter();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  const displayName = user
+    ? [user.firstName, user.lastName].filter(Boolean).join(" ") || user.email
+    : "—";
+  const displaySub = user?.headline || (user?.role === "EMPLOYER" ? "Employer" : "GRC Professional");
+  const initials = user
+    ? ((user.firstName?.[0] ?? "") + (user.lastName?.[0] ?? "")).toUpperCase() || user.email[0].toUpperCase()
+    : "?";
+
+  // Redirect to login if no token (catches back-button after logout)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const token = localStorage.getItem("grc_token");
+    if (!token) router.replace("/auth/login");
+  }, [router]);
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+    }
+    if (menuOpen) document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [menuOpen]);
+
+  function handleLogout() {
+    logout();
+    // replace() so the dashboard is removed from history — back button won't return to it
+    router.replace("/auth/login");
+  }
 
   return (
     // No data-db-theme here — the blocking script + DashboardThemeProvider
@@ -74,28 +110,64 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
           </nav>
 
           {/* User block */}
-          <div className="p-6" style={{ borderTop: "1px solid var(--db-sidebar-border)", background: "var(--db-sidebar-user-bg)" }}>
-            <div className="flex items-center gap-3 mb-4">
-              <img
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuBgqq7VJMmA2mUFKdSQAuNlrsk2eX2OqQx4Dyi7OR5vpuBQ2OosxVCVCx4nrsYZzinJyuC7LfNqNm085_gjjLGoq90K0UewQRZAK4KtJjsPxqV42sdatzm5gKrAOVj37K_Z-dyQegljNnjkuVQGkPyvB2Nnz-xvh4xi6VgG2PYnr8_NizxMxOCIeTnvsUZowJCVc7yoZRGTmOR6eCLweH0ehBcBZviA5oyxa41zQ8NkO4Jpqi5bL1jo-_sEmAj0ac5IH1r5RGatMn1r"
-                alt="User Avatar" className="w-10 h-10 rounded-full object-cover flex-shrink-0"
-                style={{ border: "2px solid var(--db-primary-20)" }}
-              />
-              <div className="overflow-hidden">
-                <p className="text-sm font-bold truncate" style={{ color: "var(--db-sidebar-user-text)" }}>Sarah Johnson</p>
-                <p className="text-xs" style={{ ...MONO, color: "var(--db-sidebar-user-sub)" }}>Senior GRC Analyst</p>
+          <div className="p-4" style={{ borderTop: "1px solid var(--db-sidebar-border)", background: "var(--db-sidebar-user-bg)", position: "relative" }} ref={menuRef}>
+            {/* Logout popup — appears above the user block */}
+            {menuOpen && (
+              <div
+                style={{
+                  position: "absolute", bottom: "calc(100% + 8px)", left: 16, right: 16,
+                  background: "var(--db-card)", border: "1px solid var(--db-border)",
+                  borderRadius: 12, boxShadow: "0 -8px 24px rgba(0,0,0,0.12)",
+                  overflow: "hidden", zIndex: 100,
+                }}
+              >
+                <div style={{ padding: "10px 14px 8px", borderBottom: "1px solid var(--db-border)" }}>
+                  <p style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--db-text)", marginBottom: 2 }}>{displayName}</p>
+                  <p style={{ fontSize: "0.7rem", color: "var(--db-text-muted)", ...MONO }}>{user?.email}</p>
+                </div>
+                <button
+                  onClick={handleLogout}
+                  style={{
+                    display: "flex", alignItems: "center", gap: 8,
+                    width: "100%", padding: "10px 14px",
+                    background: "none", border: "none", cursor: "pointer",
+                    fontSize: "0.82rem", fontWeight: 600,
+                    color: "#ef4444", textAlign: "left",
+                    transition: "background 0.15s",
+                  }}
+                  onMouseEnter={e => (e.currentTarget.style.background = "rgba(239,68,68,0.08)")}
+                  onMouseLeave={e => (e.currentTarget.style.background = "none")}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: 16 }}>logout</span>
+                  Sign out
+                </button>
               </div>
-            </div>
-            <div className="space-y-2">
-              <div className="flex justify-between text-[10px] uppercase" style={MONO}>
-                <span style={{ color: "var(--db-sidebar-user-sub)" }}>Profile Progress</span>
-                <span style={{ color: "var(--db-primary)" }}>72%</span>
+            )}
+
+            {/* Clickable user row */}
+            <button
+              onClick={() => setMenuOpen(o => !o)}
+              style={{
+                display: "flex", alignItems: "center", gap: 10,
+                width: "100%", background: "none", border: "none",
+                cursor: "pointer", borderRadius: 10, padding: "6px 8px",
+                transition: "background 0.15s",
+              }}
+              onMouseEnter={e => (e.currentTarget.style.background = "var(--db-border)")}
+              onMouseLeave={e => (e.currentTarget.style.background = "none")}
+            >
+              <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0"
+                style={{ background: "var(--db-primary)", color: "#03120f", fontWeight: 700, fontSize: "0.8rem", border: "2px solid var(--db-primary-20)" }}>
+                {initials}
               </div>
-              <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: "var(--db-sidebar-progress)" }}>
-                <div className="h-full rounded-full"
-                  style={{ width: "72%", background: "var(--db-primary)", boxShadow: "0 0 6px var(--db-primary-50)" }} />
+              <div className="overflow-hidden flex-1 text-left">
+                <p className="text-sm font-bold truncate" style={{ color: "var(--db-sidebar-user-text)" }}>{displayName}</p>
+                <p className="text-xs truncate" style={{ ...MONO, color: "var(--db-sidebar-user-sub)" }}>{displaySub}</p>
               </div>
-            </div>
+              <span className="material-symbols-outlined" style={{ fontSize: 16, color: "var(--db-text-muted)", flexShrink: 0, transform: menuOpen ? "rotate(180deg)" : "none", transition: "transform 0.2s" }}>
+                expand_less
+              </span>
+            </button>
           </div>
         </aside>
 

@@ -4,11 +4,7 @@ import { Input } from "../../../components/forms/Input";
 import { Select } from "../../../components/forms/Select";
 import { Button } from "../../../components/ui/Button";
 import { PasswordStrength } from "./PasswordStrength";
-
-// TODO: Replace with real apiFetch("/auth/register", ...) once backend is ready.
-function mockRegister(_email: string): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, 800));
-}
+import { apiFetch } from "../../../lib/api";
 
 const INDUSTRIES = [
   { value: "", label: "Select Industry" },
@@ -96,7 +92,6 @@ export function EmployerForm() {
   const [fields, setFields] = useState<Fields>(EMPTY);
   const [errors, setErrors] = useState<Partial<Fields>>({});
   const [submitted, setSubmitted] = useState(false);
-  const [apiError, setApiError] = useState("");
   const [loading, setLoading] = useState(false);
 
   function set(key: keyof Fields, value: string) {
@@ -112,14 +107,31 @@ export function EmployerForm() {
     setErrors(errs);
     if (Object.keys(errs).length > 0) return;
 
-    setApiError("");
     setLoading(true);
     try {
-      await mockRegister(fields.workEmail);
+      await apiFetch("/auth/register", {
+        method: "POST",
+        body: JSON.stringify({
+          email: fields.workEmail,
+          password: fields.password,
+          confirmPassword: fields.confirmPassword,
+          role: "EMPLOYER",
+          companyName: fields.companyName,
+        }),
+      });
       sessionStorage.setItem("grc_pending_verification_email", fields.workEmail);
       router.push("/verify-email");
     } catch (err: unknown) {
-      setApiError(err instanceof Error ? err.message : "Registration failed. Please try again.");
+      const msg = err instanceof Error ? err.message : "Registration failed. Please try again.";
+      if (msg.toLowerCase().includes("email")) {
+        setErrors(prev => ({ ...prev, workEmail: msg }));
+      } else if (msg.toLowerCase().includes("password")) {
+        setErrors(prev => ({ ...prev, confirmPassword: msg }));
+      } else if (msg.toLowerCase().includes("company")) {
+        setErrors(prev => ({ ...prev, companyName: msg }));
+      } else {
+        setErrors(prev => ({ ...prev, workEmail: msg }));
+      }
     } finally {
       setLoading(false);
     }
@@ -189,16 +201,6 @@ export function EmployerForm() {
         />
       </div>
 
-      {apiError && (
-        <p style={{ fontSize: "0.8rem", color: "#f87171", display: "flex", alignItems: "center", gap: 6,
-          background: "rgba(248,113,113,0.08)", border: "1px solid rgba(248,113,113,0.2)",
-          borderRadius: 8, padding: "8px 14px" }}>
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-          </svg>
-          {apiError}
-        </p>
-      )}
 
       <Button type="submit" fullWidth disabled={loading} style={{ opacity: loading ? 0.7 : 1 }}>
         {loading ? "Creating account…" : <> Create Account <ArrowIcon /> </>}
