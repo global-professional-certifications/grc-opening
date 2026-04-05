@@ -1,8 +1,12 @@
 import { Request, Response } from 'express';
 import { PrismaClient, Role } from '@prisma/client';
 import bcrypt from 'bcrypt';
+import { sendOtpEmail } from '../services/email.service';
 
 const prisma = new PrismaClient();
+
+const OTP_TTL_MS = 10 * 60 * 1000; // 10 minutes
+const OTP_RESEND_COOLDOWN_MS = 60 * 1000; // 1 minute
 
 // Helper to check if domain is blocked
 const isEmailDomainBlocked = (email: string): boolean => {
@@ -18,6 +22,51 @@ const isEmailDomainBlocked = (email: string): boolean => {
   return blocklist.includes(domain);
 };
 
+/** Generate a cryptographically random 6-digit OTP */
+function generateOtp(): string {
+  const digits = Math.floor(100000 + Math.random() * 900000);
+  return String(digits);
+}
+
+/**
+ * Create (or replace) an OTP record for a user and send the email.
+ * Returns early if a non-expired OTP was sent within the cooldown window.
+ */
+async function issueAndSendOtp(userId: string, email: string): Promise<{ cooldown: boolean }> {
+  // Check for a recent OTP still within the resend cooldown
+  const recent = await prisma.emailVerification.findFirst({
+    where: {
+      userId,
+      createdAt: { gte: new Date(Date.now() - OTP_RESEND_COOLDOWN_MS) },
+    },
+    orderBy: { createdAt: 'desc' },
+  });
+
+  if (recent) {
+    return { cooldown: true };
+  }
+
+  // Delete all previous OTPs for this user
+  await prisma.emailVerification.deleteMany({ where: { userId } });
+
+  const otp = generateOtp();
+  const otpHash = await bcrypt.hash(otp, 10);
+
+  await prisma.emailVerification.create({
+    data: {
+      userId,
+      otpHash,
+      expiresAt: new Date(Date.now() + OTP_TTL_MS),
+    },
+  });
+
+  await sendOtpEmail(email, otp);
+  return { cooldown: false };
+}
+
+// ─────────────────────────────────────────────────────────
+// POST /auth/register
+// ─────────────────────────────────────────────────────────
 export const registerUser = async (req: Request, res: Response): Promise<void> => {
   try {
     const { email, password, confirmPassword, role, firstName, lastName, companyName } = req.body;
@@ -73,8 +122,8 @@ export const registerUser = async (req: Request, res: Response): Promise<void> =
     const passwordHash = await bcrypt.hash(password, saltRounds);
 
     // 5. Create user and profile in a transaction
-    await prisma.$transaction(async (tx) => {
-      const user = await tx.user.create({
+    const user = await prisma.$transaction(async (tx) => {
+      const created = await tx.user.create({
         data: {
           email,
           passwordHash,
@@ -86,25 +135,22 @@ export const registerUser = async (req: Request, res: Response): Promise<void> =
 
       if (requestedRole === Role.EMPLOYER) {
         await tx.employerProfile.create({
-          data: {
-            userId: user.id,
-            companyName,
-          },
+          data: { userId: created.id, companyName },
         });
       } else {
         await tx.seekerProfile.create({
-          data: {
-            userId: user.id,
-            firstName,
-            lastName,
-          },
+          data: { userId: created.id, firstName, lastName },
         });
       }
+
+      return created;
     });
 
-    // 6. Return standard 201 response (No JWT issued until email is verified)
+    // 6. Generate OTP and send verification email
+    await issueAndSendOtp(user.id, email);
+
     res.status(201).json({
-      message: 'Registration successful! Please check your email to verify your account.',
+      message: 'Registration successful! Please check your email for a verification code.',
     });
   } catch (error) {
     console.error('Registration error:', error);
@@ -112,17 +158,29 @@ export const registerUser = async (req: Request, res: Response): Promise<void> =
   }
 };
 
+<<<<<<< HEAD
 export const loginUser = async (req: Request, res: Response): Promise<void> => {
   try {
     const { email, password } = req.body;
 
     if (!email || !password) {
       res.status(400).json({ error: 'Email and password are required' });
+=======
+// ─────────────────────────────────────────────────────────
+// POST /auth/send-otp   { email }
+// ─────────────────────────────────────────────────────────
+export const sendOtp = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      res.status(400).json({ error: 'email is required' });
+>>>>>>> origin/ayush
       return;
     }
 
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
+<<<<<<< HEAD
       res.status(401).json({ error: 'Invalid credentials' });
       return;
     }
@@ -160,5 +218,83 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({ error: 'Internal server error during login' });
+=======
+      // Don't reveal whether the email exists
+      res.status(200).json({ message: 'If that email is registered, a code has been sent.' });
+      return;
+    }
+
+    if (user.emailVerified) {
+      res.status(400).json({ error: 'Email is already verified.' });
+      return;
+    }
+
+    const { cooldown } = await issueAndSendOtp(user.id, email);
+
+    if (cooldown) {
+      res.status(429).json({ error: 'Please wait before requesting another code.' });
+      return;
+    }
+
+    res.status(200).json({ message: 'Verification code sent.' });
+  } catch (error) {
+    console.error('Send OTP error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+// ─────────────────────────────────────────────────────────
+// POST /auth/verify-email   { email, otp }
+// ─────────────────────────────────────────────────────────
+export const verifyEmail = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { email, otp } = req.body;
+    if (!email || !otp) {
+      res.status(400).json({ error: 'email and otp are required' });
+      return;
+    }
+
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) {
+      res.status(400).json({ error: 'Invalid or expired code.' });
+      return;
+    }
+
+    if (user.emailVerified) {
+      res.status(400).json({ error: 'Email is already verified.' });
+      return;
+    }
+
+    // Find the latest non-expired OTP for this user
+    const record = await prisma.emailVerification.findFirst({
+      where: {
+        userId: user.id,
+        expiresAt: { gt: new Date() },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    if (!record) {
+      res.status(400).json({ error: 'Invalid or expired code.' });
+      return;
+    }
+
+    const valid = await bcrypt.compare(otp, record.otpHash);
+    if (!valid) {
+      res.status(400).json({ error: 'Invalid or expired code.' });
+      return;
+    }
+
+    // Mark email as verified and clean up OTP records
+    await prisma.$transaction([
+      prisma.user.update({ where: { id: user.id }, data: { emailVerified: true } }),
+      prisma.emailVerification.deleteMany({ where: { userId: user.id } }),
+    ]);
+
+    res.status(200).json({ message: 'Email verified successfully.' });
+  } catch (error) {
+    console.error('Verify email error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+>>>>>>> origin/ayush
   }
 };
