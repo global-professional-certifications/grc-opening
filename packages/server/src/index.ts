@@ -19,6 +19,15 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Routes
+app.get('/', (req, res) => {
+  res.json({
+    message: 'Welcome to the GRC Openings API',
+    status: 'online',
+    version: '1.0.0',
+    documentation: 'https://github.com/grc-opening/grc-opening' // Placeholder for future docs
+  });
+});
+
 app.use('/health', healthRouter);
 app.use('/auth', authRouter);
 app.use('/profile', profileRouter);

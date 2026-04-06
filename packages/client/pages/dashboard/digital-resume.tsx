@@ -1,13 +1,63 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { DashboardLayout } from "../../components/layout/DashboardLayout";
-import { fetchMockProfile, mapApiToForm } from "../../lib/mockProfile";
-import type { ApiProfile } from "../../lib/mockProfile";
 import { apiFetch } from "../../lib/api";
+import { getStoredUser } from "../../lib/auth";
 import type { ProfileFormData } from "../../components/profile/types";
 
-// Keep in sync with profile.tsx
-const USE_MOCK = true;
+interface ApiProfilePayload {
+  profile: {
+    firstName: string;
+    lastName: string;
+    headline: string | null;
+    bio: string | null;
+    location: string | null;
+    linkedInUrl: string | null;
+    avatarUrl: string | null;
+    resumeUrl: string | null;
+    skills: { id: string; name: string }[];
+    workExperiences: {
+      id: string;
+      title: string;
+      company: string;
+      location: string | null;
+      startDate: string;
+      endDate: string | null;
+      current: boolean;
+      description: string | null;
+    }[];
+    certifications: { id: string; name: string }[];
+    user: { email: string };
+  };
+}
+
+function mapApiToForm(api: ApiProfilePayload): ProfileFormData {
+  const p = api.profile;
+  return {
+    firstName: p.firstName,
+    lastName: p.lastName,
+    professionalTitle: p.headline ?? "",
+    email: p.user.email,
+    location: p.location ?? "",
+    linkedInUrl: p.linkedInUrl ?? "",
+    summary: p.bio ?? "",
+    workExperience: p.workExperiences.map((wx) => ({
+      id: wx.id,
+      title: wx.title,
+      company: wx.company,
+      location: wx.location ?? "",
+      startDate: wx.startDate,
+      endDate: wx.endDate ?? "",
+      current: wx.current,
+      description: wx.description ?? "",
+    })),
+    coreCompetencies: p.skills.map((s) => s.name),
+    certifications: p.certifications.map((c) => ({ id: c.id, name: c.name })),
+    resumeUrl: p.resumeUrl,
+    resumeFileName: p.resumeUrl ? "Resume.pdf" : null,
+    avatarUrl: p.avatarUrl,
+  };
+}
 
 const SYNE = { fontFamily: "'Syne', sans-serif" };
 const MONO = { fontFamily: "'JetBrains Mono', monospace" };
@@ -28,19 +78,38 @@ const EMPTY: ProfileFormData = {
   avatarUrl: null,
 };
 
-async function loadProfile(): Promise<ApiProfile> {
-  if (USE_MOCK) return fetchMockProfile();
-  return apiFetch<ApiProfile>("/profile");
-}
-
 export default function DigitalResumePage() {
   const router = useRouter();
   const [profile, setProfile] = useState<ProfileFormData>(EMPTY);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadProfile()
-      .then((api) => setProfile(mapApiToForm(api)))
+    const userId = getStoredUser()?.id ?? null;
+    const storageKey = userId ? `grc_profile_${userId}` : null;
+
+    // Fast path: load from user-scoped cache
+    if (storageKey) {
+      try {
+        const cached = localStorage.getItem(storageKey);
+        if (cached) {
+          setProfile(JSON.parse(cached) as ProfileFormData);
+          setLoading(false);
+          return;
+        }
+      } catch {
+        // ignore parse errors, fall through to API
+      }
+    }
+
+    // No cache — fetch from API
+    apiFetch<ApiProfilePayload>("/profile/seeker")
+      .then((res) => {
+        const mapped = mapApiToForm(res);
+        setProfile(mapped);
+        if (storageKey) {
+          localStorage.setItem(storageKey, JSON.stringify(mapped));
+        }
+      })
       .finally(() => setLoading(false));
   }, []);
 
@@ -103,7 +172,7 @@ export default function DigitalResumePage() {
           >
             {/* Avatar */}
             <div
-              className="w-20 h-20 rounded-full flex items-center justify-center text-2xl font-bold flex-shrink-0"
+              className="w-20 h-20 rounded-full flex items-center justify-center text-2xl font-bold shrink-0"
               style={{
                 background: "var(--db-primary-20)",
                 color: "var(--db-primary)",
@@ -194,7 +263,7 @@ export default function DigitalResumePage() {
                       {/* Timeline dot */}
                       <div className="flex flex-col items-center pt-1">
                         <div
-                          className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                          className="w-2.5 h-2.5 rounded-full shrink-0"
                           style={{ background: "var(--db-primary)" }}
                         />
                         <div

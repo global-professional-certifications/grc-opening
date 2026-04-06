@@ -7,7 +7,7 @@ import { setToken, setStoredUser, markVisited } from "../../lib/auth";
 import { useUser } from "../../contexts/UserContext";
 
 // ─── Constants ───────────────────────────────────────────
-const RESEND_COOLDOWN = 60; // seconds
+const RESEND_COOLDOWN = 44; // seconds (issue #42)
 const REDIRECT_DELAY = 3000; // ms before dashboard redirect
 
 // ─── Icons ───────────────────────────────────────────────
@@ -223,7 +223,7 @@ function OtpScreen({ email, onSuccess }: OtpScreenProps) {
     setResendMessage("");
     setError("");
     try {
-      await apiFetch("/auth/send-otp", {
+      await apiFetch("/auth/resend-verification", {
         method: "POST",
         body: JSON.stringify({ email }),
       });

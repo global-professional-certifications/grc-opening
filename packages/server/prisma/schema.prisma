@@ -46,6 +46,7 @@ model User {
   passwordHash  String
   emailVerified Boolean  @default(false) @map("email_verified")
   role          Role     @default(JOB_SEEKER)
+  lastVerificationSentAt DateTime? @map("last_verification_sent_at")
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
@@ -53,6 +54,7 @@ model User {
   seekerProfile       SeekerProfile?
   employerProfile     EmployerProfile?
   emailVerifications  EmailVerification[]
+  passwordResets      PasswordReset[]
 
   @@map("users")
 }
@@ -69,33 +71,85 @@ model EmailVerification {
   @@map("email_verifications")
 }
 
+model PasswordReset {
+  id        String    @id @default(uuid())
+  userId    String    @map("user_id")
+  tokenHash String    @map("token_hash")
+  expiresAt DateTime  @map("expires_at")
+  usedAt    DateTime? @map("used_at") // null = unused; non-null = already burned
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("password_resets")
+}
+
 model SeekerProfile {
-  id        String   @id @default(uuid())
-  userId    String   @unique @map("user_id")
-  firstName String   @map("first_name")
-  lastName  String   @map("last_name")
-  headline  String?
-  bio       String?
-  resumeUrl String?  @map("resume_url")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id           String   @id @default(uuid())
+  userId       String   @unique @map("user_id")
+  firstName    String   @map("first_name")
+  lastName     String   @map("last_name")
+  headline     String?
+  country      String?
+  bio          String?
+  resumeUrl    String?  @map("resume_url")
+  location     String?
+  linkedInUrl  String?  @map("linked_in_url")
+  avatarUrl    String?  @map("avatar_url")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
 
   // Relations
-  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  skills       Skill[] // Implicit many-to-many
-  applications Application[]
-  savedJobs    SavedJob[]
+  user             User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skills           Skill[]               // Implicit many-to-many
+  applications     Application[]
+  savedJobs        SavedJob[]
+  workExperiences  WorkExperience[]
+  certifications   SeekerCertification[]
 
   @@map("seeker_profiles")
+}
+
+model WorkExperience {
+  id          String   @id @default(uuid())
+  seekerId    String   @map("seeker_id")
+  title       String
+  company     String
+  location    String?
+  startDate   String   @map("start_date")
+  endDate     String?  @map("end_date")
+  current     Boolean  @default(false)
+  description String?
+  sortOrder   Int      @map("sort_order")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  seeker SeekerProfile @relation(fields: [seekerId], references: [id], onDelete: Cascade)
+
+  @@map("work_experiences")
+}
+
+model SeekerCertification {
+  id        String   @id @default(uuid())
+  seekerId  String   @map("seeker_id")
+  name      String
+  sortOrder Int      @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  seeker SeekerProfile @relation(fields: [seekerId], references: [id], onDelete: Cascade)
+
+  @@map("seeker_certifications")
 }
 
 model EmployerProfile {
   id          String   @id @default(uuid())
   userId      String   @unique @map("user_id")
-  companyName String   @map("company_name")
-  description String?
-  website     String?
-  logoUrl     String?  @map("logo_url")
+  companyName        String   @map("company_name")
+  representativeName String?  @map("representative_name")
+  industry           String?
+  companySize        String?  @map("company_size")
+  description        String?
+  website            String?
+  logoUrl            String?  @map("logo_url")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 

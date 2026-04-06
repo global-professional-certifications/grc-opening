@@ -117,6 +117,10 @@ export function EmployerForm() {
           confirmPassword: fields.confirmPassword,
           role: "EMPLOYER",
           companyName: fields.companyName,
+          representativeName: fields.yourName,
+          industry: fields.industry,
+          companySize: fields.companySize,
+          website: fields.companyWebsite,
         }),
       });
       sessionStorage.setItem("grc_pending_verification_email", fields.workEmail);
