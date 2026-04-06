@@ -113,6 +113,8 @@ export function CandidateForm() {
           role: "JOB_SEEKER",
           firstName,
           lastName,
+          professionalTitle: fields.professionalTitle,
+          country: fields.country,
         }),
       });
       sessionStorage.setItem("grc_pending_verification_email", fields.email);

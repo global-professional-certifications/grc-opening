@@ -15,6 +15,8 @@ export const getSeekerProfile = async (req: Request, res: Response): Promise<voi
       include: {
         user: { select: { email: true, emailVerified: true, role: true } },
         skills: true,
+        workExperiences: { orderBy: { sortOrder: 'asc' } },
+        certifications: { orderBy: { sortOrder: 'asc' } },
       }
     });
 
@@ -33,7 +35,7 @@ export const getSeekerProfile = async (req: Request, res: Response): Promise<voi
 export const updateSeekerProfile = async (req: Request, res: Response): Promise<void> => {
   try {
     const userId = req.user!.id;
-    const { firstName, lastName, headline, bio } = req.body;
+    const { firstName, lastName, headline, bio, location, linkedInUrl, avatarUrl, country, workExperiences, certifications } = req.body;
 
     const profile = await prisma.seekerProfile.findUnique({ where: { userId } });
     if (!profile) {
@@ -41,14 +43,61 @@ export const updateSeekerProfile = async (req: Request, res: Response): Promise<
       return;
     }
 
-    const updatedProfile = await prisma.seekerProfile.update({
+    await prisma.$transaction(async (tx) => {
+      await tx.seekerProfile.update({
+        where: { userId },
+        data: {
+          ...(firstName && { firstName }),
+          ...(lastName && { lastName }),
+          ...(headline !== undefined && { headline }),
+          ...(bio !== undefined && { bio }),
+          ...(location !== undefined && { location }),
+          ...(linkedInUrl !== undefined && { linkedInUrl }),
+          ...(avatarUrl !== undefined && { avatarUrl }),
+          ...(country !== undefined && { country }),
+        },
+      });
+
+      if (workExperiences !== undefined) {
+        await tx.workExperience.deleteMany({ where: { seekerId: profile.id } });
+        if (workExperiences.length > 0) {
+          await tx.workExperience.createMany({
+            data: workExperiences.map((wx: any, idx: number) => ({
+              seekerId: profile.id,
+              title: wx.title,
+              company: wx.company,
+              location: wx.location ?? null,
+              startDate: wx.startDate,
+              endDate: wx.endDate || null,
+              current: wx.current,
+              description: wx.description ?? null,
+              sortOrder: idx,
+            })),
+          });
+        }
+      }
+
+      if (certifications !== undefined) {
+        await tx.seekerCertification.deleteMany({ where: { seekerId: profile.id } });
+        if (certifications.length > 0) {
+          await tx.seekerCertification.createMany({
+            data: certifications.map((cert: any, idx: number) => ({
+              seekerId: profile.id,
+              name: cert.name,
+              sortOrder: idx,
+            })),
+          });
+        }
+      }
+    });
+
+    const updatedProfile = await prisma.seekerProfile.findUnique({
       where: { userId },
-      data: {
-        ...(firstName && { firstName }),
-        ...(lastName && { lastName }),
-        // Allow clearing strings by checking undefined rather than truthy
-        ...(headline !== undefined && { headline }),
-        ...(bio !== undefined && { bio }),
+      include: {
+        user: { select: { email: true, emailVerified: true, role: true } },
+        skills: true,
+        workExperiences: { orderBy: { sortOrder: 'asc' } },
+        certifications: { orderBy: { sortOrder: 'asc' } },
       },
     });
 
@@ -88,7 +137,7 @@ export const getEmployerProfile = async (req: Request, res: Response): Promise<v
 export const updateEmployerProfile = async (req: Request, res: Response): Promise<void> => {
   try {
     const userId = req.user!.id;
-    const { companyName, description, website } = req.body;
+    const { companyName, description, website, representativeName, industry, companySize } = req.body;
 
     const profile = await prisma.employerProfile.findUnique({ where: { userId } });
     if (!profile) {
@@ -102,6 +151,9 @@ export const updateEmployerProfile = async (req: Request, res: Response): Promis
         ...(companyName && { companyName }),
         ...(description !== undefined && { description }),
         ...(website !== undefined && { website }),
+        ...(representativeName !== undefined && { representativeName }),
+        ...(industry !== undefined && { industry }),
+        ...(companySize !== undefined && { companySize }),
       },
     });
 

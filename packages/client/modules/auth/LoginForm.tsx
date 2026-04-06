@@ -103,7 +103,11 @@ export function LoginForm({ onRoleChange }: LoginFormProps) {
       // 1. Login
       const res = await apiFetch<LoginResponse>("/auth/login", {
         method: "POST",
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ 
+          email, 
+          password, 
+          role: activeRole === "employer" ? "EMPLOYER" : "JOB_SEEKER" 
+        }),
       });
 
       setToken(res.token);
@@ -280,7 +284,7 @@ export function LoginForm({ onRoleChange }: LoginFormProps) {
             />
             Remember me
           </label>
-          <a href="#" style={{ fontSize: "0.825rem", color: "var(--brand)", fontWeight: 600, textDecoration: "none" }}>
+          <a href="/auth/forgot-password" style={{ fontSize: "0.825rem", color: "var(--brand)", fontWeight: 600, textDecoration: "none" }}>
             Forgot Password?
           </a>
         </div>

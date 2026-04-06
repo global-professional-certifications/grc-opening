@@ -43,7 +43,15 @@ export function markVisited(userId: string): void {
   localStorage.setItem(`grc_visited_${userId}`, '1');
 }
 
+export function clearProfileCache(userId: string): void {
+  localStorage.removeItem(`grc_profile_${userId}`);
+}
+
 export function logout(): void {
+  const user = getStoredUser();
   localStorage.removeItem('grc_token');
   localStorage.removeItem('grc_user');
+  if (user?.id) {
+    clearProfileCache(user.id);
+  }
 }

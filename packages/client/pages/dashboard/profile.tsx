@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { DashboardLayout } from "../../components/layout/DashboardLayout";
 import { apiFetch } from "../../lib/api";
+import { getStoredUser } from "../../lib/auth";
 import { ProfileCompletionBar, calcCompletion } from "../../components/profile/ProfileCompletionBar";
 import { ResumeSection } from "../../components/profile/ResumeSection";
 import { PersonalInfoSection } from "../../components/profile/PersonalInfoSection";
@@ -9,42 +10,63 @@ import { WorkExperienceSection } from "../../components/profile/WorkExperienceSe
 import { SkillsSection } from "../../components/profile/SkillsSection";
 import type { ProfileFormData } from "../../components/profile/types";
 
-const PROFILE_STORAGE_KEY = "grc_profile_data";
-
-interface RealApiProfile {
+interface ApiProfilePayload {
   profile: {
     firstName: string;
     lastName: string;
     headline: string | null;
     bio: string | null;
+    location: string | null;
+    linkedInUrl: string | null;
+    avatarUrl: string | null;
     resumeUrl: string | null;
     skills: { id: string; name: string }[];
+    workExperiences: {
+      id: string;
+      title: string;
+      company: string;
+      location: string | null;
+      startDate: string;
+      endDate: string | null;
+      current: boolean;
+      description: string | null;
+    }[];
+    certifications: { id: string; name: string }[];
     user: { email: string };
   };
 }
 
-function mapRealApiToForm(api: RealApiProfile): ProfileFormData {
+function mapApiToForm(api: ApiProfilePayload): ProfileFormData {
   const p = api.profile;
   return {
     firstName: p.firstName,
     lastName: p.lastName,
     professionalTitle: p.headline ?? "",
     email: p.user.email,
-    location: "",
-    linkedInUrl: "",
+    location: p.location ?? "",
+    linkedInUrl: p.linkedInUrl ?? "",
     summary: p.bio ?? "",
-    workExperience: [],
-    coreCompetencies: p.skills.map(s => s.name),
-    certifications: [],
+    workExperience: p.workExperiences.map((wx) => ({
+      id: wx.id,
+      title: wx.title,
+      company: wx.company,
+      location: wx.location ?? "",
+      startDate: wx.startDate,
+      endDate: wx.endDate ?? "",
+      current: wx.current,
+      description: wx.description ?? "",
+    })),
+    coreCompetencies: p.skills.map((s) => s.name),
+    certifications: p.certifications.map((c) => ({ id: c.id, name: c.name })),
     resumeUrl: p.resumeUrl,
     resumeFileName: p.resumeUrl ? "Resume.pdf" : null,
-    avatarUrl: null,
+    avatarUrl: p.avatarUrl,
   };
 }
 
-async function loadProfile(): Promise<ProfileFormData> {
-  const res = await apiFetch<RealApiProfile>("/profile/seeker");
-  return mapRealApiToForm(res);
+async function loadProfileFromApi(): Promise<ProfileFormData> {
+  const res = await apiFetch<ApiProfilePayload>("/profile/seeker");
+  return mapApiToForm(res);
 }
 
 const SYNE = { fontFamily: "'Syne', sans-serif" };
@@ -83,7 +105,7 @@ function ProfileSkeleton() {
         style={{ background: "var(--db-card)", border: "1px solid var(--db-border)" }}
       >
         <div className="flex items-center gap-5">
-          <SkeletonBlock className="w-20 h-20 rounded-full flex-shrink-0" />
+          <SkeletonBlock className="w-20 h-20 rounded-full shrink-0" />
           <div className="flex-1 space-y-2.5">
             <SkeletonBlock className="h-6 w-48" />
             <SkeletonBlock className="h-4 w-36" />
@@ -120,6 +142,9 @@ function ProfileSkeleton() {
 }
 
 export default function ProfilePage() {
+  const userId = getStoredUser()?.id ?? null;
+  const storageKey = userId ? `grc_profile_${userId}` : null;
+
   const [formData, setFormData] = useState<ProfileFormData>(EMPTY_PROFILE);
   const [original, setOriginal] = useState<ProfileFormData>(EMPTY_PROFILE);
   const [loading, setLoading] = useState(true);
@@ -143,30 +168,30 @@ export default function ProfilePage() {
   }
 
   useEffect(() => {
-    // Check localStorage first — if data exists and is not stale mock data, use it
-    try {
-      const saved = localStorage.getItem(PROFILE_STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved) as ProfileFormData;
-        // Discard stale mock data (Sarah Jenkins placeholder)
-        if (parsed.firstName !== "Sarah") {
+    // Check localStorage first (user-scoped cache)
+    if (storageKey) {
+      try {
+        const cached = localStorage.getItem(storageKey);
+        if (cached) {
+          const parsed = JSON.parse(cached) as ProfileFormData;
           setFormData(parsed);
           setOriginal(parsed);
           setLoading(false);
           return;
         }
-        localStorage.removeItem(PROFILE_STORAGE_KEY);
+      } catch {
+        // ignore parse errors, fall through to API
       }
-    } catch {
-      // ignore parse errors, fall through to API data
     }
 
-    // No local data — fetch from API (or mock)
-    loadProfile()
-      .then((api) => {
-        const mapped = api as ProfileFormData;
-        setFormData(mapped);
-        setOriginal(mapped);
+    // No local cache — fetch from API
+    loadProfileFromApi()
+      .then((data) => {
+        setFormData(data);
+        setOriginal(data);
+        if (storageKey) {
+          localStorage.setItem(storageKey, JSON.stringify(data));
+        }
       })
       .catch((err: Error) => {
         if (
@@ -179,27 +204,46 @@ export default function ProfilePage() {
       .finally(() => setLoading(false));
   }, []);
 
-  // Auto-save every change to localStorage so data survives page refresh
-  useEffect(() => {
-    if (loading) return;
-    localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(formData));
-  }, [formData, loading]);
-
   const handleChange = useCallback((updates: Partial<ProfileFormData>) => {
     setFormData((prev) => ({ ...prev, ...updates }));
   }, []);
 
   function handleCancel() {
     setFormData(original);
-    localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(original));
   }
 
   async function handleSave() {
     setSaving(true);
     try {
-      // TODO: Call PATCH /profile when server endpoint is available
-      localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(formData));
-      setOriginal(formData);
+      const res = await apiFetch<ApiProfilePayload>("/profile/seeker", {
+        method: "PATCH",
+        body: JSON.stringify({
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          headline: formData.professionalTitle,
+          bio: formData.summary,
+          location: formData.location,
+          linkedInUrl: formData.linkedInUrl,
+          workExperiences: formData.workExperience.map((wx) => ({
+            title: wx.title,
+            company: wx.company,
+            location: wx.location,
+            startDate: wx.startDate,
+            endDate: wx.endDate,
+            current: wx.current,
+            description: wx.description,
+          })),
+          certifications: formData.certifications.map((c) => ({ name: c.name })),
+        }),
+      });
+      const saved = mapApiToForm(res);
+      setFormData(saved);
+      setOriginal(saved);
+      if (storageKey) {
+        localStorage.setItem(storageKey, JSON.stringify(saved));
+      }
+    } catch (err) {
+      console.error("Save failed:", err);
     } finally {
       setSaving(false);
     }
@@ -274,7 +318,7 @@ export default function ProfilePage() {
             <div className="flex items-center gap-5">
               {/* Avatar — click to upload photo */}
               <div
-                className="relative w-20 h-20 rounded-full flex-shrink-0 cursor-pointer group"
+                className="relative w-20 h-20 rounded-full shrink-0 cursor-pointer group"
                 onClick={() => avatarInputRef.current?.click()}
                 title="Upload profile photo"
               >
@@ -345,7 +389,7 @@ export default function ProfilePage() {
                       className="flex items-center gap-1 text-xs min-w-0"
                       style={{ color: "var(--db-text-muted)", maxWidth: 240 }}
                     >
-                      <span className="material-symbols-outlined flex-shrink-0" style={{ fontSize: 13 }}>
+                      <span className="material-symbols-outlined shrink-0" style={{ fontSize: 13 }}>
                         location_on
                       </span>
                       <span className="truncate">{formData.location}</span>
@@ -363,7 +407,7 @@ export default function ProfilePage() {
                       className="flex items-center gap-1 text-xs hover:underline min-w-0"
                       style={{ ...MONO, color: "var(--db-text-muted)", maxWidth: 220 }}
                     >
-                      <span className="material-symbols-outlined flex-shrink-0" style={{ fontSize: 13 }}>
+                      <span className="material-symbols-outlined shrink-0" style={{ fontSize: 13 }}>
                         link
                       </span>
                       <span className="truncate">
@@ -421,7 +465,7 @@ export default function ProfilePage() {
         >
           <div className="flex items-center gap-2">
             <span
-              className="w-2 h-2 rounded-full flex-shrink-0"
+              className="w-2 h-2 rounded-full shrink-0"
               style={{ background: "#f59e0b" }}
             />
             <span className="text-sm font-medium" style={{ color: "var(--db-text-muted)" }}>
