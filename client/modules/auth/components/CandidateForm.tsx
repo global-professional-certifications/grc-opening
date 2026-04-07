@@ -17,7 +17,9 @@ const COUNTRIES = [
 ];
 
 interface Fields {
-  fullName: string;
+  firstName: string;
+  middleName: string;
+  lastName: string;
   professionalTitle: string;
   email: string;
   password: string;
@@ -26,7 +28,9 @@ interface Fields {
 }
 
 const EMPTY: Fields = {
-  fullName: "",
+  firstName: "",
+  middleName: "",
+  lastName: "",
   professionalTitle: "",
   email: "",
   password: "",
@@ -64,11 +68,8 @@ function ArrowIcon() {
 
 function validate(data: Fields): Partial<Fields> {
   const errs: Partial<Fields> = {};
-  if (!data.fullName.trim()) {
-    errs.fullName = "Full name is required";
-  } else if (data.fullName.trim().split(/\s+/).filter(Boolean).length < 2) {
-    errs.fullName = "Please enter your full name (first and last name)";
-  }
+  if (!data.firstName.trim()) errs.firstName = "First name is required";
+  if (!data.lastName.trim()) errs.lastName = "Last name is required";
   if (!data.professionalTitle.trim()) errs.professionalTitle = "Professional title is required";
   if (!data.email.trim()) errs.email = "Email address is required";
   else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) errs.email = "Enter a valid email address";
@@ -102,8 +103,6 @@ export function CandidateForm() {
 
     setLoading(true);
     try {
-      const [firstName, ...rest] = fields.fullName.trim().split(" ");
-      const lastName = rest.join(" ") || firstName;
       await apiFetch("/auth/register", {
         method: "POST",
         body: JSON.stringify({
@@ -111,8 +110,9 @@ export function CandidateForm() {
           password: fields.password,
           confirmPassword: fields.confirmPassword,
           role: "JOB_SEEKER",
-          firstName,
-          lastName,
+          firstName: fields.firstName,
+          middleName: fields.middleName,
+          lastName: fields.lastName,
           professionalTitle: fields.professionalTitle,
           country: fields.country,
         }),
@@ -126,7 +126,7 @@ export function CandidateForm() {
       } else if (msg.toLowerCase().includes("password")) {
         setErrors(prev => ({ ...prev, confirmPassword: msg }));
       } else {
-        setErrors(prev => ({ ...prev, fullName: msg }));
+        setErrors(prev => ({ ...prev, firstName: msg }));
       }
     } finally {
       setLoading(false);
@@ -135,18 +135,29 @@ export function CandidateForm() {
 
   return (
     <form onSubmit={handleSubmit} noValidate style={{ display: "flex", flexDirection: "column", gap: "clamp(10px, 1.2vh, 14px)" }}>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
         <Input
-          label="Full Name" placeholder="Alex Rivera" id="fullName"
-          value={fields.fullName} onChange={e => set("fullName", e.target.value)}
-          error={errors.fullName}
+          label="First Name" placeholder="Alex" id="firstName"
+          value={fields.firstName} onChange={e => set("firstName", e.target.value)}
+          error={errors.firstName}
         />
         <Input
-          label="Professional Title" placeholder="GRC Analyst" id="title"
-          value={fields.professionalTitle} onChange={e => set("professionalTitle", e.target.value)}
-          error={errors.professionalTitle}
+          label="Middle Name" placeholder="(Optional)" id="middleName"
+          value={fields.middleName} onChange={e => set("middleName", e.target.value)}
+          error={errors.middleName}
+        />
+        <Input
+          label="Last Name" placeholder="Rivera" id="lastName"
+          value={fields.lastName} onChange={e => set("lastName", e.target.value)}
+          error={errors.lastName}
         />
       </div>
+
+      <Input
+        label="Professional Title" placeholder="GRC Analyst" id="title"
+        value={fields.professionalTitle} onChange={e => set("professionalTitle", e.target.value)}
+        error={errors.professionalTitle}
+      />
 
       <Input
         label="Email Address" type="email" placeholder="name@company.com" id="email"

@@ -61,22 +61,12 @@ function Field({ label, value, onChange, type = "text", placeholder, colSpan }: 
 interface Props {
   data: Pick<
     ProfileFormData,
-    "firstName" | "lastName" | "professionalTitle" | "email" | "location" | "linkedInUrl"
+    "firstName" | "middleName" | "lastName" | "professionalTitle" | "email" | "location" | "linkedInUrl"
   >;
   onChange: (updates: Partial<ProfileFormData>) => void;
 }
 
 export function PersonalInfoSection({ data, onChange }: Props) {
-  const fullName = `${data.firstName} ${data.lastName}`.trim();
-
-  function handleFullNameChange(v: string) {
-    const parts = v.split(" ");
-    onChange({
-      firstName: parts[0] ?? "",
-      lastName: parts.slice(1).join(" ") ?? "",
-    });
-  }
-
   return (
     <div
       className="db-card db-card-hover rounded-2xl p-6 space-y-5"
@@ -95,12 +85,26 @@ export function PersonalInfoSection({ data, onChange }: Props) {
       </div>
 
       <div className="grid grid-cols-2 gap-4">
-        <Field
-          label="Full Name"
-          value={fullName}
-          onChange={handleFullNameChange}
-          placeholder="Sarah Jenkins"
-        />
+        <div className="col-span-2 grid grid-cols-3 gap-4">
+          <Field
+            label="First Name"
+            value={data.firstName}
+            onChange={(v) => onChange({ firstName: v })}
+            placeholder="Sarah"
+          />
+          <Field
+            label="Middle Name"
+            value={data.middleName}
+            onChange={(v) => onChange({ middleName: v })}
+            placeholder="Ann"
+          />
+          <Field
+            label="Last Name"
+            value={data.lastName}
+            onChange={(v) => onChange({ lastName: v })}
+            placeholder="Jenkins"
+          />
+        </div>
         <Field
           label="Professional Title"
           value={data.professionalTitle}

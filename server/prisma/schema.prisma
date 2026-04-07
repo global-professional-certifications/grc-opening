@@ -88,6 +88,7 @@ model SeekerProfile {
   id           String   @id @default(uuid())
   userId       String   @unique @map("user_id")
   firstName    String   @map("first_name")
+  middleName   String?  @map("middle_name")
   lastName     String   @map("last_name")
   headline     String?
   country      String?
@@ -143,8 +144,10 @@ model SeekerCertification {
 model EmployerProfile {
   id          String   @id @default(uuid())
   userId      String   @unique @map("user_id")
-  companyName        String   @map("company_name")
-  representativeName String?  @map("representative_name")
+  companyName              String   @map("company_name")
+  representativeFirstName  String   @map("representative_first_name")
+  representativeMiddleName String?  @map("representative_middle_name")
+  representativeLastName   String   @map("representative_last_name")
   industry           String?
   companySize        String?  @map("company_size")
   description        String?

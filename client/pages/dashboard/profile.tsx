@@ -13,6 +13,7 @@ import type { ProfileFormData } from "../../components/profile/types";
 interface ApiProfilePayload {
   profile: {
     firstName: string;
+    middleName: string | null;
     lastName: string;
     headline: string | null;
     bio: string | null;
@@ -40,6 +41,7 @@ function mapApiToForm(api: ApiProfilePayload): ProfileFormData {
   const p = api.profile;
   return {
     firstName: p.firstName,
+    middleName: p.middleName ?? "",
     lastName: p.lastName,
     professionalTitle: p.headline ?? "",
     email: p.user.email,
@@ -74,6 +76,7 @@ const MONO = { fontFamily: "'JetBrains Mono', monospace" };
 
 const EMPTY_PROFILE: ProfileFormData = {
   firstName: "",
+  middleName: "",
   lastName: "",
   professionalTitle: "",
   email: "",
@@ -219,6 +222,7 @@ export default function ProfilePage() {
         method: "PATCH",
         body: JSON.stringify({
           firstName: formData.firstName,
+          middleName: formData.middleName,
           lastName: formData.lastName,
           headline: formData.professionalTitle,
           bio: formData.summary,
@@ -250,7 +254,7 @@ export default function ProfilePage() {
   }
 
   const { pct: completionPct } = calcCompletion(formData);
-  const fullName = [formData.firstName, formData.lastName].filter(Boolean).join(" ");
+  const fullName = [formData.firstName, formData.middleName, formData.lastName].filter(Boolean).join(" ");
   const initials = (formData.firstName?.[0] ?? "") + (formData.lastName?.[0] ?? "");
 
   return (

@@ -8,6 +8,7 @@ import type { ProfileFormData } from "../../components/profile/types";
 interface ApiProfilePayload {
   profile: {
     firstName: string;
+    middleName: string | null;
     lastName: string;
     headline: string | null;
     bio: string | null;
@@ -35,6 +36,7 @@ function mapApiToForm(api: ApiProfilePayload): ProfileFormData {
   const p = api.profile;
   return {
     firstName: p.firstName,
+    middleName: p.middleName ?? "",
     lastName: p.lastName,
     professionalTitle: p.headline ?? "",
     email: p.user.email,
@@ -64,6 +66,7 @@ const MONO = { fontFamily: "'JetBrains Mono', monospace" };
 
 const EMPTY: ProfileFormData = {
   firstName: "",
+  middleName: "",
   lastName: "",
   professionalTitle: "",
   email: "",
@@ -113,7 +116,7 @@ export default function DigitalResumePage() {
       .finally(() => setLoading(false));
   }, []);
 
-  const fullName = [profile.firstName, profile.lastName].filter(Boolean).join(" ");
+  const fullName = [profile.firstName, profile.middleName, profile.lastName].filter(Boolean).join(" ");
   const initials = (profile.firstName?.[0] ?? "") + (profile.lastName?.[0] ?? "");
 
   return (

@@ -70,8 +70,8 @@ export const registerUser = async (req: Request, res: Response): Promise<void> =
   try {
     const {
       email: rawEmail, password, confirmPassword, role,
-      firstName, lastName, country, professionalTitle,
-      companyName, representativeName, industry, companySize, website
+      firstName, middleName, lastName, country, professionalTitle,
+      companyName, representativeFirstName, representativeMiddleName, representativeLastName, industry, companySize, website
     } = req.body;
     const email = (rawEmail as string)?.trim().toLowerCase();
 
@@ -104,8 +104,8 @@ export const registerUser = async (req: Request, res: Response): Promise<void> =
 
     // Role-specific validation
     if (requestedRole === Role.EMPLOYER) {
-      if (!companyName) {
-        res.status(400).json({ error: 'companyName is required for employers' });
+      if (!companyName || !representativeFirstName || !representativeLastName) {
+        res.status(400).json({ error: 'companyName, first name, and last name are required for employers' });
         return;
       }
       if (isEmailDomainBlocked(email)) {
@@ -114,7 +114,7 @@ export const registerUser = async (req: Request, res: Response): Promise<void> =
       }
     } else if (requestedRole === Role.JOB_SEEKER) {
       if (!firstName || !lastName) {
-        res.status(400).json({ error: 'firstName and lastName are required for job seekers' });
+        res.status(400).json({ error: 'First name and last name are required for job seekers' });
         return;
       }
     }
@@ -129,11 +129,20 @@ export const registerUser = async (req: Request, res: Response): Promise<void> =
 
       if (requestedRole === Role.EMPLOYER) {
         await tx.employerProfile.create({
-          data: { userId: created.id, companyName, representativeName, industry, companySize, website },
+          data: { 
+            userId: created.id, 
+            companyName, 
+            representativeFirstName, 
+            representativeMiddleName, 
+            representativeLastName, 
+            industry, 
+            companySize, 
+            website 
+          },
         });
       } else {
         await tx.seekerProfile.create({
-          data: { userId: created.id, firstName, lastName, country, headline: professionalTitle },
+          data: { userId: created.id, firstName, middleName, lastName, country, headline: professionalTitle },
         });
       }
 

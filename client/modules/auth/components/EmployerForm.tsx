@@ -34,7 +34,9 @@ const FREE_EMAIL_DOMAINS = [
 
 interface Fields {
   companyName: string;
-  yourName: string;
+  firstName: string;
+  middleName: string;
+  lastName: string;
   workEmail: string;
   password: string;
   confirmPassword: string;
@@ -45,7 +47,9 @@ interface Fields {
 
 const EMPTY: Fields = {
   companyName: "",
-  yourName: "",
+  firstName: "",
+  middleName: "",
+  lastName: "",
   workEmail: "",
   password: "",
   confirmPassword: "",
@@ -70,7 +74,8 @@ function isFreeEmailDomain(email: string): boolean {
 function validate(data: Fields): Partial<Fields> {
   const errs: Partial<Fields> = {};
   if (!data.companyName.trim()) errs.companyName = "Company name is required";
-  if (!data.yourName.trim()) errs.yourName = "Your name is required";
+  if (!data.firstName.trim()) errs.firstName = "First name is required";
+  if (!data.lastName.trim()) errs.lastName = "Last name is required";
   if (!data.workEmail.trim()) {
     errs.workEmail = "Work email is required";
   } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.workEmail)) {
@@ -117,7 +122,9 @@ export function EmployerForm() {
           confirmPassword: fields.confirmPassword,
           role: "EMPLOYER",
           companyName: fields.companyName,
-          representativeName: fields.yourName,
+          representativeFirstName: fields.firstName,
+          representativeMiddleName: fields.middleName,
+          representativeLastName: fields.lastName,
           industry: fields.industry,
           companySize: fields.companySize,
           website: fields.companyWebsite,
@@ -143,16 +150,27 @@ export function EmployerForm() {
 
   return (
     <form onSubmit={handleSubmit} noValidate style={{ display: "flex", flexDirection: "column", gap: "clamp(10px, 1.2vh, 14px)" }}>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+      <Input
+        label="Company Name" placeholder="e.g. Acme GRC" id="companyName"
+        value={fields.companyName} onChange={e => set("companyName", e.target.value)}
+        error={errors.companyName}
+      />
+
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
         <Input
-          label="Company Name" placeholder="e.g. Acme GRC" id="companyName"
-          value={fields.companyName} onChange={e => set("companyName", e.target.value)}
-          error={errors.companyName}
+          label="First Name" placeholder="John" id="firstName"
+          value={fields.firstName} onChange={e => set("firstName", e.target.value)}
+          error={errors.firstName}
         />
         <Input
-          label="Your Name" placeholder="John Doe" id="yourName"
-          value={fields.yourName} onChange={e => set("yourName", e.target.value)}
-          error={errors.yourName}
+          label="Middle Name" placeholder="(Optional)" id="middleName"
+          value={fields.middleName} onChange={e => set("middleName", e.target.value)}
+          error={errors.middleName}
+        />
+        <Input
+          label="Last Name" placeholder="Doe" id="lastName"
+          value={fields.lastName} onChange={e => set("lastName", e.target.value)}
+          error={errors.lastName}
         />
       </div>
 
