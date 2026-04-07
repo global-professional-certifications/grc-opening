@@ -38,8 +38,16 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (typeof window === "undefined") return;
     const token = localStorage.getItem("grc_token");
-    if (!token) router.replace("/auth/login");
-  }, [router]);
+    if (!token) {
+      router.replace("/auth/login");
+      return;
+    }
+    
+    // Redirect employers away from seeker pages
+    if (user?.role === "EMPLOYER" && !router.pathname.startsWith("/employer")) {
+      router.replace("/employer/dashboard");
+    }
+  }, [router, user]);
 
   // Close menu when clicking outside
   useEffect(() => {

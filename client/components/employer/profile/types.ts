@@ -1,4 +1,4 @@
-﻿export interface EmployerProfileData {
+export interface EmployerProfileData {
   // Company identity
   companyName: string;
   industry: string;
@@ -80,10 +80,10 @@ export const INDUSTRY_OPTIONS = [
 ];
 
 export const COMPANY_SIZE_OPTIONS = [
-  "1ΓÇô10 employees",
-  "11ΓÇô50 employees",
-  "51ΓÇô200 employees",
-  "201ΓÇô500 employees",
-  "501ΓÇô1,000 employees",
+  "1-10 employees",
+  "11-50 employees",
+  "51-200 employees",
+  "201-500 employees",
+  "501-1,000 employees",
   "1,000+ employees",
 ];

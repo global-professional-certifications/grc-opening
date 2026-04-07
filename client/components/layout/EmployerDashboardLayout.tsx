@@ -1,6 +1,7 @@
-﻿import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { DashboardThemeProvider, useDashboardTheme } from "../../contexts/DashboardThemeContext";
+import { useUser } from "../../contexts/UserContext";
 
 const SYNE    = { fontFamily: "'Syne', sans-serif" };
 const MONO    = { fontFamily: "'JetBrains Mono', monospace" };
@@ -21,6 +22,32 @@ function EmployerDashboardLayoutInner({ children }: { children: React.ReactNode 
   const { theme } = useDashboardTheme();
   void theme;
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { user } = useUser();
+  const router = useRouter();
+
+  // Derive display values from real user context
+  const companyName = user?.firstName || "—";
+  const initials = companyName
+    .split(" ")
+    .map((w: string) => w[0] ?? "")
+    .join("")
+    .toUpperCase()
+    .slice(0, 2) || "?";
+
+  // Guard: Redirect non-employers or unauthenticated users
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const token = localStorage.getItem("grc_token");
+    if (!token) {
+      router.replace("/auth/login");
+      return;
+    }
+    
+    // Redirect seekers away from employer pages
+    if (user && user.role !== "EMPLOYER") {
+      router.replace("/dashboard");
+    }
+  }, [router, user]);
 
   return (
     <div className="min-h-screen overflow-x-hidden" style={MANROPE}>
@@ -44,9 +71,9 @@ function EmployerDashboardLayoutInner({ children }: { children: React.ReactNode 
           }}
         >
           {/* Logo */}
-          <div className="p-6 flex items-center gap-3 flex-shrink-0">
+          <div className="p-6 flex items-center gap-3 shrink-0">
             <div
-              className="w-8 h-8 rounded flex items-center justify-center flex-shrink-0"
+              className="w-8 h-8 rounded flex items-center justify-center shrink-0"
               style={{ background: "var(--db-primary)" }}
             >
               <span className="material-symbols-outlined" style={{ fontSize: 18, color: "var(--db-primary-text)" }}>
@@ -111,7 +138,7 @@ function EmployerDashboardLayoutInner({ children }: { children: React.ReactNode 
 
           {/* Company block */}
           <div
-            className="p-5 flex-shrink-0"
+            className="p-5 shrink-0"
             style={{
               borderTop: "1px solid var(--db-sidebar-border)",
               background: "var(--db-sidebar-user-bg)",
@@ -119,7 +146,7 @@ function EmployerDashboardLayoutInner({ children }: { children: React.ReactNode 
           >
             <div className="flex items-center gap-3">
               <div
-                className="w-10 h-10 rounded-lg flex items-center justify-center text-xs font-bold flex-shrink-0"
+                className="w-10 h-10 rounded-lg flex items-center justify-center text-xs font-bold shrink-0"
                 style={{
                   background: "var(--db-primary-10)",
                   color: "var(--db-primary)",
@@ -127,14 +154,14 @@ function EmployerDashboardLayoutInner({ children }: { children: React.ReactNode 
                   ...MONO,
                 }}
               >
-                TC
+                {initials}
               </div>
               <div className="overflow-hidden">
                 <p className="text-sm font-bold truncate" style={{ color: "var(--db-sidebar-user-text)" }}>
-                  TechCorp Recruitment
+                  {companyName}
                 </p>
                 <p className="text-[10px] uppercase tracking-wide" style={{ ...MONO, color: "var(--db-primary)" }}>
-                  Professional Tier
+                  Employer
                 </p>
               </div>
             </div>

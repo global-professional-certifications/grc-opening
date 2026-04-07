@@ -1,67 +1,53 @@
-﻿import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { apiFetch } from "../../../lib/api";
 
 const MONO = { fontFamily: "'JetBrains Mono', monospace" };
 const SYNE = { fontFamily: "'Syne', sans-serif" };
 
-type JobStatus = "active" | "closed";
+// Map Prisma JobStatus enum to the frontend type
+type JobStatus = "PUBLISHED" | "CLOSED" | "DRAFT";
+
+interface Certification {
+  id: string;
+  name: string;
+}
 
 interface Job {
   id: string;
   title: string;
-  location: string;
-  category: string;
-  posted: string;
-  expires: string;
+  location: string | null;
+  workMode: string;
   status: JobStatus;
-  applicants: number;
+  createdAt: string;
+  updatedAt: string;
+  certifications: Certification[];
+  _count: { applications: number };
 }
 
-const JOBS: Job[] = [
-  {
-    id: "1",
-    title: "Senior GRC Lead",
-    location: "London, UK ΓÇó Remote",
-    category: "Risk Management",
-    posted: "Oct 12, 2023",
-    expires: "Nov 12, 2023",
-    status: "active",
-    applicants: 42,
-  },
-  {
-    id: "2",
-    title: "Compliance Auditor",
-    location: "New York, NY",
-    category: "Internal Audit",
-    posted: "Oct 15, 2023",
-    expires: "Nov 15, 2023",
-    status: "closed",
-    applicants: 12,
-  },
-  {
-    id: "3",
-    title: "Data Privacy Officer",
-    location: "Remote",
-    category: "Legal & Compliance",
-    posted: "Sep 20, 2023",
-    expires: "Oct 20, 2023",
-    status: "closed",
-    applicants: 80,
-  },
-];
-
-const STATUS_STYLES: Record<JobStatus, { bg: string; color: string; label: string }> = {
-  active:  { bg: "rgba(16,185,129,0.12)", color: "#10b981", label: "Active"  },
-  closed:  { bg: "rgba(100,116,139,0.15)", color: "#64748b", label: "Closed" },
+const STATUS_STYLES: Record<string, { bg: string; color: string; label: string }> = {
+  PUBLISHED: { bg: "rgba(16,185,129,0.12)", color: "#10b981", label: "Active" },
+  CLOSED:    { bg: "rgba(100,116,139,0.15)", color: "#64748b", label: "Closed" },
+  DRAFT:     { bg: "rgba(245,158,11,0.12)", color: "#f59e0b", label: "Draft" },
 };
 
-const TABLE_HEADERS = [
-  "Job Title", "Category", "Posted", "Expires", "Status", "Applicants", "Actions",
-];
+const TABLE_HEADERS = ["Job Title", "Category", "Posted", "Status", "Applicants", "Actions"];
+
+function formatDate(dateStr: string): string {
+  return new Date(dateStr).toLocaleDateString("en-US", {
+    month: "short", day: "numeric", year: "numeric",
+  });
+}
+
+function workModeLabel(mode: string): string {
+  if (mode === "REMOTE") return "Remote";
+  if (mode === "HYBRID") return "Hybrid";
+  return "On-site";
+}
 
 function EmptyState() {
   return (
     <tr>
-      <td colSpan={7}>
+      <td colSpan={6}>
         <div className="flex flex-col items-center justify-center py-16 gap-4">
           <div
             className="w-14 h-14 rounded-full flex items-center justify-center"
@@ -92,17 +78,47 @@ function EmptyState() {
   );
 }
 
-export function ActiveJobListings() {
-  const [search, setSearch] = useState("");
-  const [filterStatus, setFilterStatus] = useState<JobStatus | "all">("all");
+function SkeletonRow() {
+  return (
+    <tr>
+      {[...Array(6)].map((_, i) => (
+        <td key={i} className="px-5 py-4">
+          <div className="h-4 rounded animate-pulse" style={{ background: "var(--db-border)", width: `${60 + i * 10}%` }} />
+        </td>
+      ))}
+    </tr>
+  );
+}
 
-  const filtered = JOBS.filter((j) => {
+export function ActiveJobListings() {
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [filterStatus, setFilterStatus] = useState<"all" | "PUBLISHED" | "CLOSED">("all");
+
+  useEffect(() => {
+    apiFetch<{ jobs: Job[] }>("/jobs/my-postings")
+      .then(res => setJobs(res.jobs))
+      .catch(err => console.error("Failed to load job listings:", err))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const filtered = jobs.filter(j => {
     const matchSearch =
       j.title.toLowerCase().includes(search.toLowerCase()) ||
-      j.category.toLowerCase().includes(search.toLowerCase());
+      (j.certifications.some(c => c.name.toLowerCase().includes(search.toLowerCase())));
     const matchStatus = filterStatus === "all" || j.status === filterStatus;
     return matchSearch && matchStatus;
   });
+
+  const handleClose = async (jobId: string) => {
+    try {
+      await apiFetch(`/jobs/${jobId}/close`, { method: "PATCH" });
+      setJobs(prev => prev.map(j => j.id === jobId ? { ...j, status: "CLOSED" as JobStatus } : j));
+    } catch (err) {
+      console.error("Failed to close job:", err);
+    }
+  };
 
   return (
     <section className="db-card overflow-hidden">
@@ -116,7 +132,7 @@ export function ActiveJobListings() {
             Active Job Listings
           </h3>
           <p className="text-xs mt-0.5" style={{ color: "var(--db-text-muted)" }}>
-            {filtered.length} of {JOBS.length} listing{JOBS.length !== 1 ? "s" : ""}
+            {loading ? "Loading..." : `${filtered.length} of ${jobs.length} listing${jobs.length !== 1 ? "s" : ""}`}
           </p>
         </div>
 
@@ -124,7 +140,7 @@ export function ActiveJobListings() {
         <div className="flex items-center gap-2 flex-wrap">
           {/* Status filter */}
           <div className="flex items-center rounded-lg overflow-hidden" style={{ border: "1px solid var(--db-border)" }}>
-            {(["all", "active", "closed"] as const).map((s) => (
+            {(["all", "PUBLISHED", "CLOSED"] as const).map((s) => (
               <button
                 key={s}
                 onClick={() => setFilterStatus(s)}
@@ -133,10 +149,10 @@ export function ActiveJobListings() {
                   ...MONO,
                   background: filterStatus === s ? "var(--db-primary)" : "var(--db-card)",
                   color: filterStatus === s ? "var(--db-primary-text)" : "var(--db-text-muted)",
-                  borderRight: s !== "closed" ? "1px solid var(--db-border)" : undefined,
+                  borderRight: s !== "CLOSED" ? "1px solid var(--db-border)" : undefined,
                 }}
               >
-                {s}
+                {s === "all" ? "All" : s === "PUBLISHED" ? "Active" : "Closed"}
               </button>
             ))}
           </div>
@@ -151,15 +167,13 @@ export function ActiveJobListings() {
             </span>
             <input
               type="text"
-              placeholder="SearchΓÇª"
+              placeholder="Search..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="bg-transparent outline-none text-xs w-28"
               style={{ color: "var(--db-text)", ...MONO }}
             />
           </div>
-
-
         </div>
       </div>
 
@@ -180,11 +194,19 @@ export function ActiveJobListings() {
             </tr>
           </thead>
           <tbody>
-            {filtered.length === 0 ? (
+            {loading ? (
+              [...Array(3)].map((_, i) => <SkeletonRow key={i} />)
+            ) : filtered.length === 0 ? (
               <EmptyState />
             ) : (
               filtered.map((job, i) => {
-                const s = STATUS_STYLES[job.status];
+                const s = STATUS_STYLES[job.status] ?? STATUS_STYLES.CLOSED;
+                const categoryLabel = job.certifications.length > 0
+                  ? job.certifications.map(c => c.name).join(", ")
+                  : "—";
+                const locationStr = job.location
+                  ? `${job.location} \u2022 ${workModeLabel(job.workMode)}`
+                  : workModeLabel(job.workMode);
                 return (
                   <tr
                     key={job.id}
@@ -202,32 +224,18 @@ export function ActiveJobListings() {
                         {job.title}
                       </p>
                       <p className="text-[10px] mt-0.5" style={{ ...MONO, color: "var(--db-text-muted)" }}>
-                        {job.location}
+                        {locationStr}
                       </p>
                     </td>
 
                     {/* Category */}
-                    <td
-                      className="px-5 py-4 text-sm"
-                      style={{ color: "var(--db-text-secondary)" }}
-                    >
-                      {job.category}
+                    <td className="px-5 py-4 text-sm" style={{ color: "var(--db-text-secondary)" }}>
+                      {categoryLabel}
                     </td>
 
                     {/* Posted */}
-                    <td
-                      className="px-5 py-4 text-xs whitespace-nowrap"
-                      style={{ ...MONO, color: "var(--db-text-muted)" }}
-                    >
-                      {job.posted}
-                    </td>
-
-                    {/* Expires */}
-                    <td
-                      className="px-5 py-4 text-xs whitespace-nowrap"
-                      style={{ ...MONO, color: "var(--db-text-muted)" }}
-                    >
-                      {job.expires}
+                    <td className="px-5 py-4 text-xs whitespace-nowrap" style={{ ...MONO, color: "var(--db-text-muted)" }}>
+                      {formatDate(job.createdAt)}
                     </td>
 
                     {/* Status */}
@@ -243,11 +251,8 @@ export function ActiveJobListings() {
                     {/* Applicants */}
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-2">
-                        <span
-                          className="text-sm font-bold"
-                          style={{ color: "var(--db-text)", ...MONO }}
-                        >
-                          {job.applicants}
+                        <span className="text-sm font-bold" style={{ color: "var(--db-text)", ...MONO }}>
+                          {job._count.applications}
                         </span>
                         <span className="text-xs" style={{ color: "var(--db-text-muted)" }}>applied</span>
                       </div>
@@ -286,23 +291,24 @@ export function ActiveJobListings() {
                         >
                           <span className="material-symbols-outlined" style={{ fontSize: 18 }}>edit</span>
                         </button>
-                        <button
-                          className="w-8 h-8 flex items-center justify-center rounded-lg transition-colors"
-                          style={{ color: "var(--db-text-muted)" }}
-                          title={job.status === "closed" ? "Reopen listing" : "Close listing"}
-                          onMouseEnter={(e) => {
-                            (e.currentTarget as HTMLButtonElement).style.background = "rgba(239,68,68,0.1)";
-                            (e.currentTarget as HTMLButtonElement).style.color = "#ef4444";
-                          }}
-                          onMouseLeave={(e) => {
-                            (e.currentTarget as HTMLButtonElement).style.background = "";
-                            (e.currentTarget as HTMLButtonElement).style.color = "var(--db-text-muted)";
-                          }}
-                        >
-                          <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
-                            {job.status === "closed" ? "refresh" : "block"}
-                          </span>
-                        </button>
+                        {job.status === "PUBLISHED" && (
+                          <button
+                            className="w-8 h-8 flex items-center justify-center rounded-lg transition-colors"
+                            style={{ color: "var(--db-text-muted)" }}
+                            title="Close listing"
+                            onClick={() => handleClose(job.id)}
+                            onMouseEnter={(e) => {
+                              (e.currentTarget as HTMLButtonElement).style.background = "rgba(239,68,68,0.1)";
+                              (e.currentTarget as HTMLButtonElement).style.color = "#ef4444";
+                            }}
+                            onMouseLeave={(e) => {
+                              (e.currentTarget as HTMLButtonElement).style.background = "";
+                              (e.currentTarget as HTMLButtonElement).style.color = "var(--db-text-muted)";
+                            }}
+                          >
+                            <span className="material-symbols-outlined" style={{ fontSize: 18 }}>block</span>
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -314,7 +320,7 @@ export function ActiveJobListings() {
       </div>
 
       {/* Footer */}
-      {filtered.length > 0 && (
+      {!loading && filtered.length > 0 && (
         <div
           className="px-5 py-3 flex items-center justify-between"
           style={{ borderTop: "1px solid var(--db-border)", background: "var(--db-table-head)" }}
@@ -327,7 +333,7 @@ export function ActiveJobListings() {
             className="text-[10px] font-semibold transition-colors"
             style={{ color: "var(--db-primary)", ...MONO }}
           >
-            View all listings ΓåÆ
+            View all listings &rarr;
           </a>
         </div>
       )}

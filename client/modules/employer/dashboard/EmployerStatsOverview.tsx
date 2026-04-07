@@ -1,7 +1,15 @@
-﻿import React from "react";
+import React, { useEffect, useState } from "react";
+import { apiFetch } from "../../../lib/api";
 
 const MONO = { fontFamily: "'JetBrains Mono', monospace" };
 const SYNE = { fontFamily: "'Syne', sans-serif" };
+
+interface DashboardStats {
+  activeJobCount: number;
+  closedJobCount: number;
+  totalApplicants: number;
+  shortlisted: number;
+}
 
 interface StatCardProps {
   label: string;
@@ -31,7 +39,7 @@ function StatCard({ label, value, badge, badgeType, icon, iconColor, children }:
           {label}
         </p>
         <div
-          className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+          className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
           style={{ background: iconColor ? `${iconColor}18` : "var(--db-primary-10)" }}
         >
           <span
@@ -61,7 +69,7 @@ function StatCard({ label, value, badge, badgeType, icon, iconColor, children }:
 }
 
 function SparkBars({ values, activeIdx }: { values: number[]; activeIdx: number }) {
-  const max = Math.max(...values);
+  const max = Math.max(...values, 1);
   return (
     <div className="flex items-end gap-1 h-8">
       {values.map((v, i) => (
@@ -71,10 +79,7 @@ function SparkBars({ values, activeIdx }: { values: number[]; activeIdx: number 
           style={{
             height: `${(v / max) * 100}%`,
             minHeight: 3,
-            background:
-              i === activeIdx
-                ? "var(--db-primary)"
-                : "var(--db-primary-20)",
+            background: i === activeIdx ? "var(--db-primary)" : "var(--db-primary-20)",
             boxShadow: i === activeIdx ? "0 0 8px var(--db-primary-40)" : undefined,
           }}
         />
@@ -100,66 +105,85 @@ function CircleProgress({ pct }: { pct: number }) {
   );
 }
 
+function SkeletonCard() {
+  return (
+    <div className="db-card p-6 animate-pulse">
+      <div className="h-3 bg-gray-200 rounded w-24 mb-4" style={{ background: "var(--db-border)" }} />
+      <div className="h-10 bg-gray-200 rounded w-16" style={{ background: "var(--db-border)" }} />
+    </div>
+  );
+}
+
 export function EmployerStatsOverview() {
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    apiFetch<{ stats: DashboardStats }>("/jobs/stats")
+      .then(res => setStats(res.stats))
+      .catch(err => console.error("Failed to load stats:", err))
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) {
+    return (
+      <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
+        {[...Array(4)].map((_, i) => <SkeletonCard key={i} />)}
+      </section>
+    );
+  }
+
+  const activeCount = stats?.activeJobCount ?? 0;
+  const totalApplicants = stats?.totalApplicants ?? 0;
+  const shortlisted = stats?.shortlisted ?? 0;
+  const closedCount = stats?.closedJobCount ?? 0;
+  const closedPct = (activeCount + closedCount) > 0
+    ? Math.round((closedCount / (activeCount + closedCount)) * 100)
+    : 0;
+
   return (
     <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
 
       {/* Active Job Postings */}
       <StatCard
         label="Active Job Postings"
-        value={7}
-        badge="+1 New"
-        badgeType="positive"
+        value={activeCount}
+        badge={activeCount > 0 ? `${activeCount} live` : "None"}
+        badgeType={activeCount > 0 ? "positive" : "muted"}
         icon="work"
       >
-        <SparkBars values={[3, 4, 4, 6, 5, 7, 7]} activeIdx={6} />
+        <SparkBars values={[0, 0, 0, 0, 0, 0, activeCount]} activeIdx={6} />
       </StatCard>
 
       {/* Total Applicants */}
       <StatCard
         label="Total Applicants"
-        value={134}
-        badge="+12% vs LW"
-        badgeType="positive"
+        value={totalApplicants}
+        badge={totalApplicants > 0 ? "All time" : "None yet"}
+        badgeType={totalApplicants > 0 ? "positive" : "muted"}
         icon="group"
       >
-        <SparkBars values={[60, 75, 80, 95, 110, 120, 134]} activeIdx={6} />
+        <SparkBars values={[0, 0, 0, 0, 0, 0, totalApplicants]} activeIdx={6} />
       </StatCard>
 
       {/* Shortlisted */}
       <StatCard
         label="Shortlisted"
-        value={23}
-        badge="Stable"
-        badgeType="muted"
+        value={shortlisted}
+        badge={shortlisted > 0 ? "In review" : "None"}
+        badgeType={shortlisted > 0 ? "neutral" : "muted"}
         icon="star"
         iconColor="#f59e0b"
       >
-        <div className="flex items-center gap-2 mt-1">
-          <div className="flex -space-x-2">
-            {["MK", "SJ", "DC", "AR"].map((initials, idx) => (
-              <div
-                key={initials}
-                className="w-7 h-7 rounded-full flex items-center justify-center text-[9px] font-bold"
-                style={{
-                  background: ["#6366f1","#8b5cf6","#ec4899","#f59e0b"][idx],
-                  border: "2px solid var(--db-card)",
-                  color: "#fff",
-                  ...MONO,
-                }}
-              >
-                {initials}
-              </div>
-            ))}
-          </div>
-          <span className="text-xs" style={{ ...MONO, color: "var(--db-text-muted)" }}>candidates</span>
-        </div>
+        <p className="text-xs mt-1" style={{ color: "var(--db-text-muted)" }}>
+          Reviewing + Interviewing stage
+        </p>
       </StatCard>
 
       {/* Jobs Closed */}
       <StatCard
         label="Jobs Closed"
-        value={3}
+        value={closedCount}
         badge="Total MTD"
         badgeType="neutral"
         icon="check_circle"
@@ -169,7 +193,7 @@ export function EmployerStatsOverview() {
           <p className="text-xs" style={{ color: "var(--db-text-muted)" }}>
             Month to date
           </p>
-          <CircleProgress pct={43} />
+          <CircleProgress pct={closedPct} />
         </div>
       </StatCard>
 

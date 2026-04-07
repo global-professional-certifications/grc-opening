@@ -5,6 +5,7 @@ import { Button } from "../../components/ui/Button";
 import { apiFetch } from "../../lib/api";
 import { setToken, setStoredUser, isFirstLogin, markVisited } from "../../lib/auth";
 import { useUser } from "../../contexts/UserContext";
+import { getDashboardPath, UserRole } from "../../lib/userRole";
 
 // ── Icons ────────────────────────────────────────
 
@@ -137,12 +138,16 @@ export function LoginForm({ onRoleChange }: LoginFormProps) {
       setUser(storedUser);
       setStoredUser(storedUser);
 
-      // First visit → profile setup; returning users → dashboard
+      // 4. Save role to localStorage for persistence
+      const roleEnum = (res.user.role === "EMPLOYER" ? "employer" : "job_seeker") as UserRole;
+      import("../../lib/userRole").then(lib => lib.saveRole(roleEnum));
+
+      // 5. First visit → profile setup; returning users → correct dashboard
       if (isFirstLogin(res.user.id)) {
         markVisited(res.user.id);
-        router.push("/dashboard/profile");
+        router.push(roleEnum === "employer" ? "/employer/profile" : "/dashboard/profile");
       } else {
-        router.push("/dashboard");
+        router.push(getDashboardPath(roleEnum));
       }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Login failed. Please try again.");

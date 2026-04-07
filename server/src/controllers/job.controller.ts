@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { PrismaClient, JobStatus, WorkMode } from '@prisma/client';
+import { PrismaClient, JobStatus, WorkMode, ApplicationStatus } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -108,6 +108,96 @@ export const getEmployerJobs = async (req: Request, res: Response): Promise<void
     res.status(200).json({ jobs });
   } catch (error) {
     console.error('Error fetching employer jobs:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+// ==========================================
+// GET /jobs/stats — Employer Dashboard KPIs
+// ==========================================
+export const getDashboardStats = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = req.user!.id;
+
+    const employerProfile = await prisma.employerProfile.findUnique({ where: { userId } });
+    if (!employerProfile) {
+      res.status(404).json({ error: 'Employer profile not found' });
+      return;
+    }
+
+    const employerId = employerProfile.id;
+
+    // Total jobs by status
+    const allJobs = await prisma.job.findMany({
+      where: { employerId },
+      include: { _count: { select: { applications: true } } },
+    });
+
+    const activeJobs = allJobs.filter(j => j.status === JobStatus.PUBLISHED);
+    const closedJobs = allJobs.filter(j => j.status === JobStatus.CLOSED);
+    const totalApplicants = allJobs.reduce((sum, j) => sum + j._count.applications, 0);
+
+    // Shortlisted = applications with status REVIEWING or INTERVIEWING
+    const shortlisted = await prisma.application.count({
+      where: {
+        job: { employerId },
+        status: { in: [ApplicationStatus.REVIEWING, ApplicationStatus.INTERVIEWING] },
+      },
+    });
+
+    res.status(200).json({
+      stats: {
+        activeJobCount: activeJobs.length,
+        closedJobCount: closedJobs.length,
+        totalApplicants,
+        shortlisted,
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching dashboard stats:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+// ==========================================
+// GET /jobs/recent-applicants — Latest 6 applicants
+// ==========================================
+export const getRecentApplicants = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = req.user!.id;
+
+    const employerProfile = await prisma.employerProfile.findUnique({ where: { userId } });
+    if (!employerProfile) {
+      res.status(404).json({ error: 'Employer profile not found' });
+      return;
+    }
+
+    const applications = await prisma.application.findMany({
+      where: { job: { employerId: employerProfile.id } },
+      orderBy: { appliedAt: 'desc' },
+      take: 6,
+      include: {
+        seeker: {
+          include: {
+            certifications: true,
+          },
+        },
+        job: { select: { title: true } },
+      },
+    });
+
+    const result = applications.map(a => ({
+      id: a.id,
+      seekerName: `${a.seeker.firstName} ${a.seeker.lastName}`.trim(),
+      jobTitle: a.job.title,
+      status: a.status,
+      appliedAt: a.appliedAt,
+      certifications: a.seeker.certifications.map(c => c.name),
+    }));
+
+    res.status(200).json({ applicants: result });
+  } catch (error) {
+    console.error('Error fetching recent applicants:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 };

@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 import type { EmployerProfileData } from "./types";
 import { INDUSTRY_OPTIONS, COMPANY_SIZE_OPTIONS } from "./types";
 import { SectionCard, Field, SelectField } from "./shared";
@@ -28,7 +28,7 @@ export function CompanyInfoSection({ data, onChange, errors = {} }: Props) {
           value={data.companyName}
           error={errors.companyName}
           onChange={(v) => onChange({ companyName: v })}
-          placeholder="TechCorp Recruitment"
+          placeholder="Acme Corp Recruitment"
           colSpan
         />
         <SelectField
@@ -39,7 +39,7 @@ export function CompanyInfoSection({ data, onChange, errors = {} }: Props) {
           error={errors.industry}
           onChange={(v) => onChange({ industry: v })}
           options={INDUSTRY_OPTIONS}
-          placeholder="Select industryΓÇª"
+          placeholder="Select industry..."
         />
         <SelectField
           id="companySize"
@@ -49,7 +49,7 @@ export function CompanyInfoSection({ data, onChange, errors = {} }: Props) {
           error={errors.companySize}
           onChange={(v) => onChange({ companySize: v })}
           options={COMPANY_SIZE_OPTIONS}
-          placeholder="Select sizeΓÇª"
+          placeholder="Select size..."
         />
         <SelectField
           id="foundedYear"
@@ -59,7 +59,7 @@ export function CompanyInfoSection({ data, onChange, errors = {} }: Props) {
           error={errors.foundedYear}
           onChange={(v) => onChange({ foundedYear: v })}
           options={YEAR_OPTIONS}
-          placeholder="Select yearΓÇª"
+          placeholder="Select year..."
         />
         <Field
           id="website"
@@ -70,7 +70,7 @@ export function CompanyInfoSection({ data, onChange, errors = {} }: Props) {
             // Trim whitespace immediately
             onChange({ website: v.trim() });
           }}
-          placeholder="https://techcorp.com"
+          placeholder="https://acmecorp.com"
           type="url"
           colSpan
           hint="Include https:// for external links to work correctly"

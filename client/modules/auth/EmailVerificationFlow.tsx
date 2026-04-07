@@ -5,6 +5,7 @@ import { Button } from "../../components/ui/Button";
 import { apiFetch } from "../../lib/api";
 import { setToken, setStoredUser, markVisited } from "../../lib/auth";
 import { useUser } from "../../contexts/UserContext";
+import { getDashboardPath, UserRole } from "../../lib/userRole";
 
 // ─── Constants ───────────────────────────────────────────
 const RESEND_COOLDOWN = 44; // seconds (issue #42)
@@ -89,8 +90,15 @@ function SuccessScreen({ authData }: { authData: VerifyResponse }) {
 
     apiFetch<{ profile: { firstName?: string; lastName?: string; companyName?: string; headline?: string } }>(profileEndpoint)
       .then(res => {
+        // Normalize role for the userRole library (e.g. 'EMPLOYER' -> 'employer')
+        const normalizedRole = (authData.user.role.toLowerCase() === 'employer' ? 'employer' : 'job_seeker') as UserRole;
+        
+        // Save to localStorage for persistence across page refreshes
+        import('../../lib/userRole').then(lib => lib.saveRole(normalizedRole));
+
         const enriched = {
           ...authData.user,
+          role: normalizedRole,
           firstName: res.profile.firstName ?? res.profile.companyName ?? '',
           lastName: res.profile.lastName ?? '',
           headline: res.profile.headline ?? '',
@@ -111,7 +119,8 @@ function SuccessScreen({ authData }: { authData: VerifyResponse }) {
     }, 50);
 
     const redirect = setTimeout(() => {
-      router.push("/dashboard/profile");
+      const role = (authData.user.role.toLowerCase() === 'employer' ? 'employer' : 'job_seeker') as UserRole;
+      router.push(getDashboardPath(role));
     }, REDIRECT_DELAY);
 
     return () => {

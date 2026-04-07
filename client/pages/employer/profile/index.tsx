@@ -330,7 +330,7 @@ function EmptyStateBanner({ onStart }: { onStart: () => void }) {
           className="text-sm mt-1.5 leading-relaxed max-w-sm"
           style={{ color: "var(--db-text-secondary)" }}
         >
-          A complete profile helps GRC professionals understand your company, culture, and the roles you're hiring for ΓÇö increasing the quality of your applicants.
+          A complete profile helps GRC professionals understand your company, culture, and the roles you're hiring for -- increasing the quality of your applicants.
         </p>
       </div>
       <button
@@ -395,7 +395,7 @@ function UnsavedBar({
             opacity: saving ? 0.7 : 1,
           }}
         >
-          {saving ? "SavingΓÇª" : "Save Changes"}
+          {saving ? "Saving..." : "Save Changes"}
         </button>
       </div>
     </div>
@@ -459,12 +459,12 @@ export default function EmployerProfilePage() {
         if (parsed.logoUrl) setLogoImage(parsed.logoUrl);
       }
     } catch {
-      // fall through ΓÇö use empty profile
+      // fall through -- use empty profile
     }
     setLoading(false);
   }, []);
 
-  // Auto-save to localStorage on every change (debounce-style ΓÇö on unmount save too)
+  // Auto-save to localStorage on every change (debounce-style -- on unmount save too)
   useEffect(() => {
     if (loading) return;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(formData));

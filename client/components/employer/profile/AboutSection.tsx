@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 import type { EmployerProfileData } from "./types";
 import { SectionCard, Field, TextareaField } from "./shared";
 
@@ -28,7 +28,7 @@ export function AboutSection({ data, onChange, errors = {} }: Props) {
           value={data.description}
           error={errors.description}
           onChange={(v) => onChange({ description: v })}
-          placeholder="Tell candidates about your company's mission, culture, the types of GRC roles you hire for, why top professionals choose to work with you, and what makes your team uniqueΓÇª"
+          placeholder="Tell candidates about your company's mission, culture, the types of GRC roles you hire for, why top professionals choose to work with you, and what makes your team unique..."
           rows={6}
           maxChars={1000}
         />

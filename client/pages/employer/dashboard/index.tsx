@@ -1,10 +1,11 @@
-﻿import React, { useEffect } from "react";
+import React, { useEffect } from "react";
 import { useRouter } from "next/router";
 import { EmployerDashboardLayout } from "../../../components/layout/EmployerDashboardLayout";
 import { EmployerStatsOverview } from "../../../modules/employer/dashboard/EmployerStatsOverview";
 import { LatestApplicants } from "../../../modules/employer/dashboard/LatestApplicants";
 import { ActiveJobListings } from "../../../modules/employer/dashboard/ActiveJobListings";
 import { useDashboardTheme } from "../../../contexts/DashboardThemeContext";
+import { useUser } from "../../../contexts/UserContext";
 
 const SYNE = { fontFamily: "'Syne', sans-serif" };
 const MONO = { fontFamily: "'JetBrains Mono', monospace" };
@@ -31,7 +32,9 @@ function MoonIcon() {
 
 function EmployerDashboardHeader() {
   const { theme, toggleTheme } = useDashboardTheme();
+  const { user } = useUser();
   const router = useRouter();
+  const companyName = user?.firstName || "Your Company";
 
   return (
     <header className="flex flex-wrap items-start justify-between gap-4">
@@ -45,7 +48,7 @@ function EmployerDashboardHeader() {
         </h2>
         <p className="mt-1 text-sm" style={{ color: "var(--db-text-muted)" }}>
           Welcome back,{" "}
-          <span style={{ color: "var(--db-text)", fontWeight: 600 }}>TechCorp Recruitment.</span>
+          <span style={{ color: "var(--db-text)", fontWeight: 600 }}>{companyName}.</span>
         </p>
       </div>
 

@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 import type { EmployerProfileData } from "./types";
 import { MONO, SYNE } from "./shared";
 
@@ -47,9 +47,9 @@ export function calcEmployerCompletion(profile: EmployerProfileData): {
 }
 
 function getMotivation(pct: number): { text: string; accent: boolean } {
-  if (pct === 100) return { text: "Your company profile is complete ΓÇö you're ready to attract GRC talent!", accent: true };
+  if (pct === 100) return { text: "Your company profile is complete — you're ready to attract GRC talent!", accent: true };
   if (pct >= 80) return { text: "Almost there! One more step to complete your profile.", accent: false };
-  if (pct >= 60) return { text: "Good progress ΓÇö keep filling in your company details.", accent: false };
+  if (pct >= 60) return { text: "Good progress — keep filling in your company details.", accent: false };
   if (pct >= 40) return { text: "You're halfway there. Candidates want to know more about you.", accent: false };
   return { text: "Complete your profile to attract qualified GRC professionals.", accent: false };
 }
