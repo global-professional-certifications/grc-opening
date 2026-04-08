@@ -1,66 +1,76 @@
 /* ✅ IMPORTS MUST BE FIRST */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
 @import "tailwindcss";
 
 /* ─── THEME VARIABLES ─────────────────────────────────── */
 :root {
-  --bg-main: #f0f4f8;
-  --bg-panel: #e8edf5;
+  --bg-main: #ffffff;
+  --bg-panel: #fcfbff;
   --bg-card: #ffffff;
   --bg-input: #ffffff;
-  --bg-toggle: #e2e8f0;
-  --text-primary: #0f172a;
-  --text-secondary: #64748b;
-  --text-muted: #94a3b8;
-  --border: #d1dae8;
-  --border-focus: #00D4B2;
-  --brand: #00c4a4;
-  --brand-dark: #00a38a;
-  --divider: rgba(0, 0, 0, 0.1);
-  --shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
-  /* right panel */
-  --right-bg: linear-gradient(150deg, #d4f4ee 0%, #b2ece1 50%, #e0f7f2 100%);
-  --right-headline: #0f172a;
-  --right-subtext: rgba(15, 23, 42, 0.7);
-  --badge-bg: rgba(255, 255, 255, 0.9);
-  --badge-border: rgba(0, 196, 164, 0.2);
-  --badge-label: #00a38a;
-  --badge-title: #0f172a;
-  --stat-num: #0f172a;
-  --stat-label: rgba(15, 23, 42, 0.5);
-  --stat-divider: rgba(15, 23, 42, 0.1);
-  --stats-card-bg: rgba(0, 0, 0, 0.04);
-  --stats-card-border: rgba(0, 196, 164, 0.2);
+  --bg-toggle: #f1f0f7;
+  --text-primary: #1a1523;
+  --text-secondary: #4a455a;
+  --text-muted: #8a859a;
+  --border: #e2e0ed;
+  --border-focus: #3a1292;
+  --brand: #3a1292;
+  --brand-light: #5a2dc1;
+  --brand-dark: #2a0d6e;
+  --brand-alpha: rgba(58, 18, 146, 0.08);
+  --divider: rgba(0, 0, 0, 0.06);
+  --shadow: 0 4px 24px rgba(58, 18, 146, 0.06);
+  /* right panel (Marketing) */
+  --right-bg: linear-gradient(155deg, #3a1292 0%, #2a0d6e 100%);
+  --right-headline: #ffffff;
+  --right-subtext: rgba(255, 255, 255, 0.8);
+  --badge-bg: rgba(255, 255, 255, 0.1);
+  --badge-border: rgba(255, 255, 255, 0.2);
+  --badge-label: #a78bfa;
+  --badge-title: #ffffff;
+  --stat-num: #ffffff;
+  --stat-label: rgba(255, 255, 255, 0.6);
+  --stat-divider: rgba(255, 255, 255, 0.1);
+  --stats-card-bg: rgba(255, 255, 255, 0.05);
+  --stats-card-border: rgba(255, 255, 255, 0.1);
+
+  /* Premium Tokens */
+  --premium-shadow: 0 10px 40px -10px rgba(58, 18, 146, 0.12), 0 0 1px rgba(58, 18, 146, 0.1);
+  --glass-bg: rgba(255, 255, 255, 0.03);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-blur: blur(12px);
 }
 
 [data-theme="dark"] {
-  --bg-main: #0b1120;
-  --bg-panel: #111827;
-  --bg-card: #141c2f;
-  --bg-input: rgba(15, 23, 42, 0.7);
-  --bg-toggle: rgba(15, 23, 42, 0.9);
-  --text-primary: #f8fafc;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
-  --border: rgba(148, 163, 184, 0.12);
-  --border-focus: #00D4B2;
-  --brand: #00D4B2;
-  --brand-dark: #00e6c2;
-  --divider: rgba(255, 255, 255, 0.07);
+  --bg-main: #0a0a0c;
+  --bg-panel: #111116;
+  --bg-card: #15151e;
+  --bg-input: #0a0a0c;
+  --bg-toggle: #1c1c27;
+  --text-primary: #f2f2f7;
+  --text-secondary: #a1a1aa;
+  --text-muted: #71717a;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-focus: #5a2dc1;
+  --brand: #4f27b9;
+  --brand-light: #7c3aed;
+  --brand-dark: #3a1292;
+  --brand-alpha: rgba(124, 58, 237, 0.15);
+  --divider: rgba(255, 255, 255, 0.1);
   --shadow: 0 4px 32px rgba(0, 0, 0, 0.4);
-  /* right panel */
-  --right-bg: linear-gradient(150deg, #0b2220 0%, #061a18 60%, #020f0e 100%);
+  /* right panel (Marketing) */
+  --right-bg: linear-gradient(155deg, #1e0b4a 0%, #0f0525 100%);
   --right-headline: #ffffff;
-  --right-subtext: rgba(148, 163, 184, 0.9);
-  --badge-bg: rgba(20, 28, 47, 0.85);
-  --badge-border: rgba(255, 255, 255, 0.08);
-  --badge-label: #00D4B2;
+  --right-subtext: rgba(255, 255, 255, 0.7);
+  --badge-bg: rgba(0, 0, 0, 0.2);
+  --badge-border: rgba(255, 255, 255, 0.1);
+  --badge-label: #8b5cf6;
   --badge-title: #ffffff;
   --stat-num: #ffffff;
-  --stat-label: rgba(148, 163, 184, 0.7);
+  --stat-label: rgba(255, 255, 255, 0.5);
   --stat-divider: rgba(255, 255, 255, 0.1);
-  --stats-card-bg: rgba(0, 0, 0, 0.2);
-  --stats-card-border: rgba(255, 255, 255, 0.08);
+  --stats-card-bg: rgba(0, 0, 0, 0.3);
+  --stats-card-border: rgba(255, 255, 255, 0.05);
 }
 
 /* ─── BASE ─────────────────────────────────────────────── */
@@ -71,7 +81,7 @@
 }
 
 html {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 body {
@@ -101,7 +111,7 @@ body {
   }
 
   50% {
-    border-color: #00D4B2;
+    border-color: var(--brand);
   }
 }
 
@@ -148,13 +158,7 @@ body {
   height: 100vh;
   overflow: hidden;
   display: grid;
-  grid-template-columns: 6fr 4fr;
-}
-
-@media (max-width: 1280px) {
-  .auth-layout {
-    grid-template-columns: 55fr 45fr;
-  }
+  grid-template-columns: 3fr 2fr; /* 60% Left, 40% Right */
 }
 
 @media (max-width: 1024px) {

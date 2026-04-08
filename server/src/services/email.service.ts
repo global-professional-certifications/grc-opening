@@ -1,11 +1,22 @@
 import { Resend } from 'resend';
+let resendInstance: Resend | null = null;
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+function getResendClient() {
+  if (!resendInstance) {
+    const apiKey = process.env.RESEND_API_KEY;
+    if (!apiKey) {
+      throw new Error('RESEND_API_KEY is missing from environment variables');
+    }
+    resendInstance = new Resend(apiKey);
+  }
+  return resendInstance;
+}
 
 export async function sendOtpEmail(to: string, otp: string): Promise<void> {
   const fromName = process.env.RESEND_FROM_NAME || 'GRC Openings';
   const fromAddress = process.env.RESEND_FROM_ADDRESS || 'onboarding@resend.dev';
 
+  const resend = getResendClient();
   await resend.emails.send({
     from: `${fromName} <${fromAddress}>`,
     to,
@@ -63,6 +74,7 @@ export async function sendPasswordResetEmail(to: string, resetLink: string): Pro
   const fromName = process.env.RESEND_FROM_NAME || 'GRC Openings';
   const fromAddress = process.env.RESEND_FROM_ADDRESS || 'onboarding@resend.dev';
 
+  const resend = getResendClient();
   await resend.emails.send({
     from: `${fromName} <${fromAddress}>`,
     to,

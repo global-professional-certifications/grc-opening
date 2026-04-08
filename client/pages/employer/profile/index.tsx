@@ -1,4 +1,4 @@
-﻿import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { EmployerDashboardLayout } from "../../../components/layout/EmployerDashboardLayout";
 import { useDashboardTheme } from "../../../contexts/DashboardThemeContext";
 import type { EmployerProfileData } from "../../../components/employer/profile/types";
@@ -11,7 +11,7 @@ import { CompanyInfoSection } from "../../../components/employer/profile/Company
 import { AboutSection } from "../../../components/employer/profile/AboutSection";
 import { ContactSection } from "../../../components/employer/profile/ContactSection";
 import { SocialLinksSection } from "../../../components/employer/profile/SocialLinksSection";
-import { MONO, SYNE, Toggle } from "../../../components/employer/profile/shared";
+import { MONO, SYNE } from "../../../components/employer/profile/shared";
 
 const STORAGE_KEY = "grc_employer_profile";
 

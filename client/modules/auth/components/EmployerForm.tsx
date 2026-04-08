@@ -1,8 +1,6 @@
 import React, { useState } from "react";
 import { useRouter } from "next/router";
-import { Input } from "../../../components/forms/Input";
-import { Select } from "../../../components/forms/Select";
-import { Button } from "../../../components/ui/Button";
+import { ModernInput } from "../../../components/ui/ModernInput";
 import { PasswordStrength } from "./PasswordStrength";
 import { apiFetch } from "../../../lib/api";
 
@@ -26,7 +24,6 @@ const COMPANY_SIZES = [
   { value: "1000+", label: "1000+" },
 ];
 
-// Domains that indicate personal (non-corporate) email
 const FREE_EMAIL_DOMAINS = [
   "gmail", "yahoo", "hotmail", "outlook", "icloud",
   "aol", "protonmail", "live", "msn", "ymail",
@@ -42,7 +39,6 @@ interface Fields {
   confirmPassword: string;
   industry: string;
   companySize: string;
-  companyWebsite: string;
 }
 
 const EMPTY: Fields = {
@@ -55,16 +51,7 @@ const EMPTY: Fields = {
   confirmPassword: "",
   industry: "",
   companySize: "",
-  companyWebsite: "",
 };
-
-function ArrowIcon() {
-  return (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M5 12h14" /><path d="m12 5 7 7-7 7" />
-    </svg>
-  );
-}
 
 function isFreeEmailDomain(email: string): boolean {
   const domain = email.split("@")[1]?.toLowerCase() ?? "";
@@ -73,22 +60,22 @@ function isFreeEmailDomain(email: string): boolean {
 
 function validate(data: Fields): Partial<Fields> {
   const errs: Partial<Fields> = {};
-  if (!data.companyName.trim()) errs.companyName = "Company name is required";
-  if (!data.firstName.trim()) errs.firstName = "First name is required";
-  if (!data.lastName.trim()) errs.lastName = "Last name is required";
+  if (!data.companyName.trim()) errs.companyName = "Required";
+  if (!data.firstName.trim()) errs.firstName = "Required";
+  if (!data.lastName.trim()) errs.lastName = "Required";
   if (!data.workEmail.trim()) {
-    errs.workEmail = "Work email is required";
+    errs.workEmail = "Required";
   } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.workEmail)) {
-    errs.workEmail = "Enter a valid email address";
+    errs.workEmail = "Invalid email";
   } else if (isFreeEmailDomain(data.workEmail)) {
-    errs.workEmail = "Please use a valid company email address (e.g. name@company.com).";
+    errs.workEmail = "Use corporate email";
   }
-  if (!data.password) errs.password = "Password is required";
-  else if (data.password.length < 8) errs.password = "Minimum 8 characters";
-  if (!data.confirmPassword) errs.confirmPassword = "Please confirm your password";
-  else if (data.password !== data.confirmPassword) errs.confirmPassword = "Passwords do not match";
-  if (!data.industry) errs.industry = "Select an industry";
-  if (!data.companySize) errs.companySize = "Select company size";
+  if (!data.password) errs.password = "Required";
+  else if (data.password.length < 8) errs.password = "Min 8 chars";
+  if (!data.confirmPassword) errs.confirmPassword = "Required";
+  else if (data.password !== data.confirmPassword) errs.confirmPassword = "No match";
+  if (!data.industry) errs.industry = "Required";
+  if (!data.companySize) errs.companySize = "Required";
   return errs;
 }
 
@@ -127,118 +114,114 @@ export function EmployerForm() {
           representativeLastName: fields.lastName,
           industry: fields.industry,
           companySize: fields.companySize,
-          website: fields.companyWebsite,
         }),
       });
       sessionStorage.setItem("grc_pending_verification_email", fields.workEmail);
       router.push("/verify-email");
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Registration failed. Please try again.";
-      if (msg.toLowerCase().includes("email")) {
-        setErrors(prev => ({ ...prev, workEmail: msg }));
-      } else if (msg.toLowerCase().includes("password")) {
-        setErrors(prev => ({ ...prev, confirmPassword: msg }));
-      } else if (msg.toLowerCase().includes("company")) {
-        setErrors(prev => ({ ...prev, companyName: msg }));
-      } else {
-        setErrors(prev => ({ ...prev, workEmail: msg }));
-      }
+      const msg = err instanceof Error ? err.message : "Registration failed.";
+      setErrors({ workEmail: msg });
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <form onSubmit={handleSubmit} noValidate style={{ display: "flex", flexDirection: "column", gap: "clamp(10px, 1.2vh, 14px)" }}>
-      <Input
-        label="Company Name" placeholder="e.g. Acme GRC" id="companyName"
+    <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-3" style={{ fontFamily: "'Poppins', sans-serif" }}>
+      <ModernInput
+        label="Company Name" placeholder="e.g. Acme GRC Solutions" id="companyName"
+        icon="business"
         value={fields.companyName} onChange={e => set("companyName", e.target.value)}
         error={errors.companyName}
       />
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
-        <Input
-          label="First Name" placeholder="John" id="firstName"
+      {/* 3-Column Rep Name Grid */}
+      <div className="grid grid-cols-3 gap-3">
+        <ModernInput
+          label="Rep. First Name" placeholder="John" id="firstName"
           value={fields.firstName} onChange={e => set("firstName", e.target.value)}
           error={errors.firstName}
         />
-        <Input
-          label="Middle Name" placeholder="(Optional)" id="middleName"
+        <ModernInput
+          label="Rep. Middle" placeholder="D." id="middleName"
           value={fields.middleName} onChange={e => set("middleName", e.target.value)}
           error={errors.middleName}
         />
-        <Input
-          label="Last Name" placeholder="Doe" id="lastName"
+        <ModernInput
+          label="Rep. Last Name" placeholder="Doe" id="lastName"
           value={fields.lastName} onChange={e => set("lastName", e.target.value)}
           error={errors.lastName}
         />
       </div>
 
-      <Input
+      <ModernInput
         label="Work Email" type="email" placeholder="hr@company.com" id="workEmail"
+        icon="alternate_email"
         value={fields.workEmail} onChange={e => set("workEmail", e.target.value)}
         error={errors.workEmail}
+        hint="Please use your professional corporate email."
       />
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-        <div>
-          <Input
-            label="Password" type="password" placeholder="••••••••" id="empPassword"
+      <div className="grid grid-cols-2 gap-3">
+        <div className="flex flex-col gap-2">
+          <ModernInput
+            label="Password" type="password" id="empPassword"
+            icon="lock"
             value={fields.password} onChange={e => set("password", e.target.value)}
             error={errors.password}
           />
           <PasswordStrength password={fields.password} />
         </div>
-        <Input
-          label="Confirm Password" type="password" placeholder="••••••••" id="empConfirmPassword"
+        <ModernInput
+          label="Confirm Password" type="password" id="empConfirmPassword"
+          icon="lock"
           value={fields.confirmPassword} onChange={e => set("confirmPassword", e.target.value)}
           error={errors.confirmPassword}
         />
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
-        <div>
-          <Select
-            label="Industry" id="industry" options={INDUSTRIES}
-            value={fields.industry} onChange={e => set("industry", e.target.value)}
-            className={errors.industry ? "grc-input-error" : ""}
-          />
-          {errors.industry && (
-            <p style={{ fontSize: "0.7rem", color: "#f87171", marginTop: 4 }}>{errors.industry}</p>
-          )}
+      <div className="grid grid-cols-2 gap-3">
+        <div className="flex flex-col gap-1">
+          <label className="text-[13px] font-semibold text-gray-500 tracking-tight">Industry</label>
+          <select
+            value={fields.industry}
+            onChange={e => set("industry", e.target.value)}
+            className={`w-full py-2.5 px-4 bg-[#f9fafb] rounded-xl border border-gray-200 outline-none text-[14.5px] font-medium transition-all ${errors.industry ? "border-red-500 focus:ring-red-500/10" : "focus:border-[#3a1292] focus:ring-4 focus:ring-[#3a1292]/10 shadow-sm"} cursor-pointer appearance-none`}
+            style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%233a1292' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`, backgroundPosition: 'right 12px center', backgroundRepeat: 'no-repeat', backgroundSize: '16px' }}
+          >
+            {INDUSTRIES.map(i => <option key={i.value} value={i.value}>{i.label}</option>)}
+          </select>
         </div>
-        <div>
-          <Select
-            label="Company Size" id="companySize" options={COMPANY_SIZES}
-            value={fields.companySize} onChange={e => set("companySize", e.target.value)}
-            className={errors.companySize ? "grc-input-error" : ""}
-          />
-          {errors.companySize && (
-            <p style={{ fontSize: "0.7rem", color: "#f87171", marginTop: 4 }}>{errors.companySize}</p>
-          )}
+        <div className="flex flex-col gap-1">
+          <label className="text-[13px] font-semibold text-gray-500 tracking-tight">Company Size</label>
+          <select
+            value={fields.companySize}
+            onChange={e => set("companySize", e.target.value)}
+            className={`w-full py-2.5 px-4 bg-[#f9fafb] rounded-xl border border-gray-200 outline-none text-[14.5px] font-medium transition-all ${errors.companySize ? "border-red-500 focus:ring-red-500/10" : "focus:border-[#3a1292] focus:ring-4 focus:ring-[#3a1292]/10 shadow-sm"} cursor-pointer appearance-none`}
+            style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%233a1292' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`, backgroundPosition: 'right 12px center', backgroundRepeat: 'no-repeat', backgroundSize: '16px' }}
+          >
+            {COMPANY_SIZES.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+          </select>
         </div>
-        <Input
-          label="Company Website" placeholder="https://..." id="website" type="url"
-          value={fields.companyWebsite} onChange={e => set("companyWebsite", e.target.value)}
-        />
       </div>
 
+      <button
+        type="submit"
+        disabled={loading}
+        className="w-full py-3.5 mt-1 rounded-xl bg-[#3a1292] text-white font-bold text-[15px] shadow-lg shadow-[#3a1292]/20 hover:bg-[#2e0e74] transition-all active:scale-[0.98] disabled:opacity-70 flex items-center justify-center gap-3"
+      >
+        {loading ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <>Get Started <span className="material-symbols-outlined text-[20px]">arrow_forward</span></>}
+      </button>
 
-      <Button type="submit" fullWidth disabled={loading} style={{ opacity: loading ? 0.7 : 1 }}>
-        {loading ? "Creating account…" : <> Create Account <ArrowIcon /> </>}
-      </Button>
-
-      <p style={{ textAlign: "center", fontSize: "0.7rem", color: "var(--text-muted)", lineHeight: 1.6 }}>
-        By signing up, you agree to our{" "}
-        <a href="#" style={{ color: "var(--brand)", textDecoration: "none" }}>Terms of Service</a>
-        {" "}and{" "}
-        <a href="#" style={{ color: "var(--brand)", textDecoration: "none" }}>Privacy Policy</a>.
+      <p className="text-center text-[12px] text-gray-500 leading-relaxed px-4">
+        By continuing, you agree to our{" "}
+        <a href="#" className="text-[#3a1292] font-bold hover:underline">Terms</a> & <a href="#" className="text-[#3a1292] font-bold hover:underline">Privacy</a>.
       </p>
 
-      <p style={{ textAlign: "center", fontSize: "0.78rem", color: "var(--text-secondary)" }}>
+      <p className="text-center text-[14px] text-gray-500 font-medium">
         Already have an account?{" "}
-        <a href="/auth/login" style={{ color: "var(--brand)", fontWeight: 600, textDecoration: "none" }}>
-          Log in
+        <a href="/auth/login" className="text-[#3a1292] font-bold hover:underline">
+          Log In
         </a>
       </p>
     </form>

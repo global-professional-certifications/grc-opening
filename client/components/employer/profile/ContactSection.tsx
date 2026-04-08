@@ -1,7 +1,7 @@
-﻿import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Country, State, City } from "country-state-city";
 import type { EmployerProfileData } from "./types";
-import { SectionCard, Field, SelectField, BASE_INPUT, LABEL_STYLE, MONO } from "./shared";
+import { SectionCard, Field, SelectField, ComboboxField, BASE_INPUT, LABEL_STYLE, MONO } from "./shared";
 
 interface Props {
   data: Pick<
@@ -198,30 +198,17 @@ export function ContactSection({ data, onChange, errors = {} }: Props) {
           options={allStates}
         />
 
-        <div className="col-span-1 sm:col-span-2 lg:col-span-1">
-            {allCities.length > 0 ? (
-                <SelectField
-                  id="city"
-                  label="City"
-                  required
-                  value={data.city || ""}
-                  error={errors.city}
-                  onChange={handleCityChange}
-                  placeholder="Select City..."
-                  options={allCities}
-                />
-            ) : (
-                <Field
-                  id="city"
-                  label="City"
-                  required
-                  value={data.city}
-                  error={errors.city}
-                  onChange={(v) => onChange({ city: v })}
-                  placeholder="Enter City"
-                />
-            )}
-        </div>
+        <ComboboxField
+          id="city"
+          label="City"
+          required
+          value={data.city || ""}
+          error={errors.city}
+          onChange={(v) => onChange({ city: v })}
+          placeholder="Type or select city..."
+          options={allCities}
+          hint={!data.stateCode ? "Select a state first to see suggestions" : ""}
+        />
 
       </div>
     </SectionCard>
