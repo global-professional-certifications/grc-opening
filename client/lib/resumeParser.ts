@@ -199,13 +199,13 @@ function splitIntoSections(lines: string[]): Record<string, string[]> {
 
 /** Email — RFC-safe pattern */
 function extractEmail(text: string): string | undefined {
-  const m = text.match(/[\w.+\-]+@[\w\-]+\.[a-zA-Z]{2,}/);
+  const m = text.match(/[\w.+-]+@[\w-]+\.[a-zA-Z]{2,}/);
   return m ? m[0].toLowerCase() : undefined;
 }
 
 /** LinkedIn profile URL */
 function extractLinkedIn(text: string): string | undefined {
-  const m = text.match(/(?:https?:\/\/)?(?:www\.)?linkedin\.com\/in\/([\w\-]+)\/?/i);
+  const m = text.match(/(?:https?:\/\/)?(?:www\.)?linkedin\.com\/in\/([\w-]+)\/?/i);
   return m ? `linkedin.com/in/${m[1]}` : undefined;
 }
 
@@ -217,7 +217,7 @@ function extractLinkedIn(text: string): string | undefined {
 function extractName(headerLines: string[]): { firstName: string; lastName: string } | undefined {
   for (const line of headerLines.slice(0, 8)) {
     // Skip lines that contain an email, URL, phone number, or address indicators
-    if (/[@\/\d]/.test(line)) continue;
+    if (/[@/\d]/.test(line)) continue;
     if (line.length > 60) continue;
 
     const words = line.split(/\s+/).filter(Boolean);
@@ -251,7 +251,7 @@ function extractTitle(headerLines: string[], nameFound: boolean): string | undef
   const startIdx = nameFound ? 1 : 0;
 
   for (const line of headerLines.slice(startIdx, startIdx + 6)) {
-    if (/[@\/\d]/.test(line)) continue;
+    if (/[@/\d]/.test(line)) continue;
     if (line.length < 4 || line.length > 80) continue;
     const lower = line.toLowerCase();
     if (TITLE_KEYWORDS.some((kw) => lower.includes(kw))) {
@@ -273,7 +273,7 @@ function extractLocation(lines: string[]): string | undefined {
 
   for (const line of lines.slice(0, 25)) {
     if (line.length < 4 || line.length > 60) continue;
-    if (/[@\/\d]/.test(line)) continue;
+    if (/[@/\d]/.test(line)) continue;
     const m = line.match(LOC_RE);
     if (m) {
       const candidate = `${m[1].trim()}, ${m[2].trim()}`;
@@ -364,7 +364,7 @@ function extractWorkExperience(lines: string[]): WorkExperience[] {
     // Title = first line that is NOT purely a date string (date-only lines
     // are common at the start when the date precedes the job title).
     const contentLines = block.filter((l) => {
-      const stripped = l.replace(new RegExp(DATE_RE_SOURCE, "gi"), "").replace(/[-–—|·,\/\s]/g, "").trim();
+      const stripped = l.replace(new RegExp(DATE_RE_SOURCE, "gi"), "").replace(/[-–—|·,/\s]/g, "").trim();
       return stripped.length > 3;
     });
 

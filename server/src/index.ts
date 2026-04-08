@@ -1,14 +1,15 @@
+import dotenv from 'dotenv';
+import { validateEnv } from './config/env';
+
+dotenv.config();
+validateEnv();
+
 import express from 'express';
 import { corsMiddleware } from './middleware/cors';
 import healthRouter from './routes/health';
 import authRouter from './routes/auth.routes';
 import profileRouter from './routes/profile.routes';
 import jobRouter from './routes/job.routes';
-import dotenv from 'dotenv';
-import { validateEnv } from './config/env';
-
-dotenv.config();
-validateEnv();
 
 const app = express();
 const PORT = process.env.PORT || 4000;

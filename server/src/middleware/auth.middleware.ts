@@ -30,7 +30,7 @@ export const validateJWT = (req: Request, res: Response, next: NextFunction): vo
     };
 
     next();
-  } catch (error) {
+  } catch {
     res.status(401).json({ error: 'Token expired or invalid.' });
     return;
   }

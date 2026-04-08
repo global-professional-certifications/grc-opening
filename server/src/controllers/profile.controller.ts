@@ -61,8 +61,17 @@ export const updateSeekerProfile = async (req: Request, res: Response): Promise<
       if (workExperiences !== undefined) {
         await tx.workExperience.deleteMany({ where: { seekerId: profile.id } });
         if (workExperiences.length > 0) {
+          interface WorkExperienceInput {
+            title: string;
+            company: string;
+            location?: string;
+            startDate: string;
+            endDate?: string;
+            current: boolean;
+            description?: string;
+          }
           await tx.workExperience.createMany({
-            data: workExperiences.map((wx: any, idx: number) => ({
+            data: workExperiences.map((wx: WorkExperienceInput, idx: number) => ({
               seekerId: profile.id,
               title: wx.title,
               company: wx.company,
@@ -80,8 +89,11 @@ export const updateSeekerProfile = async (req: Request, res: Response): Promise<
       if (certifications !== undefined) {
         await tx.seekerCertification.deleteMany({ where: { seekerId: profile.id } });
         if (certifications.length > 0) {
+          interface CertificationInput {
+            name: string;
+          }
           await tx.seekerCertification.createMany({
-            data: certifications.map((cert: any, idx: number) => ({
+            data: certifications.map((cert: CertificationInput, idx: number) => ({
               seekerId: profile.id,
               name: cert.name,
               sortOrder: idx,

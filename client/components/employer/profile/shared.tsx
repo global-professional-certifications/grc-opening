@@ -1,4 +1,4 @@
-﻿import React, { useState } from "react";
+import React, { useState } from "react";
 
 export const MONO = { fontFamily: "'JetBrains Mono', monospace" };
 export const SYNE = { fontFamily: "'Syne', sans-serif" };
@@ -265,6 +265,132 @@ export function TextareaField({
           {value.length} / {maxChars}
         </p>
       )}
+    </div>
+  );
+}
+
+// ─── Combobox / Autocomplete Field ──────────────────────────────────────────
+export function ComboboxField({
+  label,
+  value,
+  onChange,
+  options,
+  placeholder,
+  colSpan,
+  error,
+  id,
+  required,
+  disabled,
+  hint,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  options: { label: string; value: string }[] | string[];
+  placeholder?: string;
+  colSpan?: boolean;
+  error?: string;
+  id?: string;
+  required?: boolean;
+  disabled?: boolean;
+  hint?: string;
+}) {
+  const [focused, setFocused] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState(value);
+
+  // Sync searchTerm when value changes externally
+  React.useEffect(() => {
+    setSearchTerm(value);
+  }, [value]);
+
+  const allOptions = options.map((o) => (typeof o === "string" ? { label: o, value: o } : o));
+  const filteredOptions = searchTerm
+    ? allOptions.filter((o) => o.label.toLowerCase().includes(searchTerm.toLowerCase()))
+    : allOptions;
+
+  const handleSelect = (val: string) => {
+    onChange(val);
+    setSearchTerm(val);
+    setIsOpen(false);
+  };
+
+  const handleInputChange = (v: string) => {
+    setSearchTerm(v);
+    onChange(v);
+    if (!isOpen) setIsOpen(true);
+  };
+
+  return (
+    <div className={`relative ${colSpan ? "col-span-2" : ""}`}>
+      <label htmlFor={id} style={LABEL_STYLE}>
+        {label}
+        {required && <span style={{ color: "#ef4444", marginLeft: 2 }}>*</span>}
+      </label>
+      
+      <div className="relative">
+        <input
+          id={id}
+          type="text"
+          value={searchTerm}
+          disabled={disabled}
+          autoComplete="off"
+          placeholder={placeholder}
+          onFocus={() => {
+            setFocused(true);
+            setIsOpen(true);
+          }}
+          onBlur={() => {
+            setFocused(false);
+            // Delay closing to allow clicking options
+            setTimeout(() => setIsOpen(false), 200);
+          }}
+          onChange={(e) => handleInputChange(e.target.value)}
+          style={{
+            ...BASE_INPUT,
+            borderColor: error ? "#ef4444" : focused ? "var(--db-primary)" : "var(--db-border)",
+            boxShadow: focused ? (error ? "0 0 0 3px rgba(239, 68, 68, 0.1)" : "0 0 0 3px var(--db-primary-10)") : "none",
+            opacity: disabled ? 0.6 : 1,
+            cursor: disabled ? "not-allowed" : undefined,
+          }}
+        />
+        
+        <span 
+          className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-[18px] text-gray-400 pointer-events-none transition-transform duration-200"
+          style={{ transform: `translateY(-50%) rotate(${isOpen ? '180deg' : '0deg'})` }}
+        >
+          expand_more
+        </span>
+
+        {isOpen && !disabled && (filteredOptions.length > 0) && (
+          <div 
+            className="absolute left-0 right-0 mt-1.5 bg-white border border-gray-200 rounded-xl shadow-[0_10px_25px_-5px_rgba(0,0,0,0.1),0_8px_10px_-6px_rgba(0,0,0,0.1)] z-[100] max-h-[220px] overflow-y-auto overflow-x-hidden p-1.5 animate-in fade-in slide-in-from-top-2 duration-200"
+          >
+            {filteredOptions.map((opt) => (
+              <div
+                key={opt.value}
+                onClick={() => handleSelect(opt.value)}
+                className={`
+                  px-3 py-2 text-[13.5px] font-medium rounded-lg cursor-pointer transition-colors
+                  ${value === opt.value ? "bg-[#3a1292] text-white" : "text-gray-700 hover:bg-gray-50"}
+                `}
+              >
+                {opt.label}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {error ? (
+        <p className="text-[10px] mt-1.5" style={{ ...MONO, color: "#ef4444" }}>
+          {error}
+        </p>
+      ) : hint ? (
+        <p className="text-[10px] mt-1.5" style={{ ...MONO, color: "var(--db-text-muted)" }}>
+          {hint}
+        </p>
+      ) : null}
     </div>
   );
 }

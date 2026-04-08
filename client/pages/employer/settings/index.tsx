@@ -1,12 +1,17 @@
-﻿import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { EmployerDashboardLayout } from "../../../components/layout/EmployerDashboardLayout";
-import { useDashboardTheme } from "../../../contexts/DashboardThemeContext";
 import { MONO, SYNE, Toggle } from "../../../components/employer/profile/shared";
 
 const STORAGE_KEY = "grc_employer_profile";
 
 export default function EmployerSettingsPage() {
-  const [data, setData] = useState({
+  interface NotificationData {
+    emailNotifications: boolean;
+    applicantAlerts: boolean;
+    weeklyDigest: boolean;
+  }
+
+  const [data, setData] = useState<NotificationData>({
     emailNotifications: true,
     applicantAlerts: true,
     weeklyDigest: false,
@@ -33,7 +38,9 @@ export default function EmployerSettingsPage() {
           weeklyDigest: parsed.weeklyDigest ?? false,
         }));
       }
-    } catch {}
+    } catch (e) {
+      console.error("Failed to load settings from localStorage", e);
+    }
   }, []);
 
   const handleChange = (key: string, value: boolean) => {
@@ -41,9 +48,11 @@ export default function EmployerSettingsPage() {
       const next = { ...prev, [key]: value };
       try {
         const saved = localStorage.getItem(STORAGE_KEY);
-        let parsed = saved ? JSON.parse(saved) : {};
+        const parsed = saved ? JSON.parse(saved) : {};
         localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...parsed, ...next }));
-      } catch {}
+      } catch (e) {
+        console.error("Failed to save settings to localStorage", e);
+      }
       return next;
     });
   };
@@ -107,7 +116,7 @@ export default function EmployerSettingsPage() {
                     </div>
                   </div>
                   <div className="flex-shrink-0">
-                    <Toggle checked={(data as any)[key]} onChange={(v) => handleChange(key, v)} />
+                    <Toggle checked={data[key as keyof NotificationData]} onChange={(v) => handleChange(key, v)} />
                   </div>
                 </div>
               ))}
