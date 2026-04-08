@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { AuthLayout } from "../../components/layout/AuthLayout";
-import { Input } from "../../components/forms/Input";
 import { Button } from "../../components/ui/Button";
 import { apiFetch } from "../../lib/api";
 
