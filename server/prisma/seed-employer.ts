@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { PrismaClient, JobStatus, WorkMode, ApplicationStatus } from '@prisma/client';
 import bcrypt from 'bcrypt';
 

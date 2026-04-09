@@ -3,6 +3,7 @@ import type { AppProps } from 'next/app'
 import { useState, useEffect } from 'react'
 import { UserProvider } from '../contexts/UserContext'
 import { DashboardThemeProvider } from '../contexts/DashboardThemeContext'
+import { EmployerJobsProvider } from '../contexts/EmployerJobsContext'
 
 export default function App({ Component, pageProps }: AppProps) {
   const [theme, setTheme] = useState<'light' | 'dark'>('light')
@@ -15,7 +16,8 @@ export default function App({ Component, pageProps }: AppProps) {
 
   return (
     <UserProvider>
-      <DashboardThemeProvider>
+      <EmployerJobsProvider>
+        <DashboardThemeProvider>
         {/* Global Theme Toggle */}
         <button className="theme-toggle" onClick={toggleTheme} aria-label="Toggle theme">
           {theme === 'light' ? (
@@ -39,7 +41,8 @@ export default function App({ Component, pageProps }: AppProps) {
           )}
         </button>
         <Component {...pageProps} theme={theme} />
-      </DashboardThemeProvider>
+        </DashboardThemeProvider>
+      </EmployerJobsProvider>
     </UserProvider>
   )
 }
