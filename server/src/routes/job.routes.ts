@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { requireRole, validateJWT } from '../middleware/auth.middleware';
-import { createJob, getEmployerJobs, closeJob, getDashboardStats, getRecentApplicants } from '../controllers/job.controller';
+import { createJob, getEmployerJobs, closeJob, getDashboardStats, getRecentApplicants, getDiscoveryJobs } from '../controllers/job.controller';
 
 const router: Router = Router();
 
@@ -9,6 +9,9 @@ router.post('/', validateJWT, requireRole(['EMPLOYER']), createJob);
 
 // Endpoint for employers to view all jobs they've generated
 router.get('/my-postings', validateJWT, requireRole(['EMPLOYER']), getEmployerJobs);
+
+// Endpoint for job seeker discovery/feed
+router.get('/discover', validateJWT, requireRole(['JOB_SEEKER']), getDiscoveryJobs);
 
 // Endpoint for employer dashboard KPIs (active/closed jobs, applicant totals, shortlisted)
 router.get('/stats', validateJWT, requireRole(['EMPLOYER']), getDashboardStats);
