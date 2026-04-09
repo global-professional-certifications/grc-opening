@@ -1,15 +1,9 @@
-import React, { useEffect, useState } from "react";
-import { apiFetch } from "../../../lib/api";
+import React from "react";
+import { useEmployerJobs } from "../../../contexts/EmployerJobsContext";
 
 const MONO = { fontFamily: "'JetBrains Mono', monospace" };
 const SYNE = { fontFamily: "'Syne', sans-serif" };
 
-interface DashboardStats {
-  activeJobCount: number;
-  closedJobCount: number;
-  totalApplicants: number;
-  shortlisted: number;
-}
 
 interface StatCardProps {
   label: string;
@@ -115,15 +109,12 @@ function SkeletonCard() {
 }
 
 export function EmployerStatsOverview() {
-  const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { activeCount, closedCount, totalApplicants, loading } = useEmployerJobs();
 
-  useEffect(() => {
-    apiFetch<{ stats: DashboardStats }>("/jobs/stats")
-      .then(res => setStats(res.stats))
-      .catch(err => console.error("Failed to load stats:", err))
-      .finally(() => setLoading(false));
-  }, []);
+  const shortlisted = 0; // placeholder — wire to real API when available
+  const closedPct = (activeCount + closedCount) > 0
+    ? Math.round((closedCount / (activeCount + closedCount)) * 100)
+    : 0;
 
   if (loading) {
     return (
@@ -132,14 +123,6 @@ export function EmployerStatsOverview() {
       </section>
     );
   }
-
-  const activeCount = stats?.activeJobCount ?? 0;
-  const totalApplicants = stats?.totalApplicants ?? 0;
-  const shortlisted = stats?.shortlisted ?? 0;
-  const closedCount = stats?.closedJobCount ?? 0;
-  const closedPct = (activeCount + closedCount) > 0
-    ? Math.round((closedCount / (activeCount + closedCount)) * 100)
-    : 0;
 
   return (
     <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
