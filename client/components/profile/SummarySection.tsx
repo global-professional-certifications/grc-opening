@@ -15,16 +15,18 @@ export function SummarySection({ summary, onChange }: Props) {
 
   return (
     <div
-      className="db-card db-card-hover rounded-2xl p-6 space-y-4"
+      className="db-card rounded-2xl p-6 space-y-4 shadow-sm"
       style={{ background: "var(--db-card)", border: "1px solid var(--db-border)" }}
     >
-      <div className="flex items-center gap-2">
-        <span className="material-symbols-outlined" style={{ fontSize: 18, color: "var(--db-primary)" }}>
-          article
-        </span>
+      <div className="flex items-center gap-3 border-l-4 pl-3" style={{ borderColor: "var(--db-primary)" }}>
+        <div className="p-2 rounded-lg" style={{ background: "var(--db-primary-10)" }}>
+          <span className="material-symbols-outlined" style={{ fontSize: 18, color: "var(--db-primary)" }}>
+            article
+          </span>
+        </div>
         <h3
-          className="text-xs font-semibold uppercase tracking-widest"
-          style={{ ...MONO, color: "var(--db-text-muted)" }}
+          className="text-sm font-bold uppercase tracking-widest"
+          style={{ color: "var(--db-text)" }}
         >
           Professional Summary
         </h3>
@@ -45,22 +47,23 @@ export function SummarySection({ summary, onChange }: Props) {
           style={{
             width: "100%",
             background: "var(--db-surface)",
-            border: `1.5px solid ${focused ? "var(--db-primary)" : "var(--db-border)"}`,
-            boxShadow: focused ? "0 0 0 3px var(--db-primary-10)" : "none",
-            borderRadius: 8,
-            padding: "10px 14px",
+            border: "1px solid",
+            borderColor: focused ? "var(--db-primary)" : "var(--db-border)",
+            boxShadow: focused ? "0 0 0 4px var(--db-primary-10), inset 0 2px 4px rgba(0,0,0,0.02)" : "inset 0 2px 4px rgba(0,0,0,0.02)",
+            borderRadius: 10,
+            padding: "12px 16px",
             color: "var(--db-text)",
             fontSize: "0.875rem",
+            fontWeight: 500,
             outline: "none",
             resize: "vertical",
             lineHeight: 1.65,
-            transition: "border-color 0.2s ease, box-shadow 0.2s ease",
+            transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
           }}
         />
         <p
-          className="text-right text-xs mt-1.5"
+          className="text-right text-xs mt-1.5 font-medium"
           style={{
-            ...MONO,
             color:
               summary.length > MAX_CHARS * 0.9
                 ? "var(--db-primary)"
