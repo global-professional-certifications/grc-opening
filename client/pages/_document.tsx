@@ -100,12 +100,23 @@ export default function Document() {
 
           /* ── NAV ITEM ──────────────────────────────────────────── */
           .db-nav-item {
-            display:flex;align-items:center;gap:12px;padding:10px 16px;
-            border-radius:6px;color:var(--db-sidebar-nav-text);
-            transition:background 0.15s ease,color 0.15s ease;text-decoration:none;
+            display:flex;align-items:center;gap:12px;padding:14px 16px;
+            border-radius:12px;color:var(--db-sidebar-nav-text);
+            border:1px solid transparent;
+            transition:background 0.15s ease,color 0.15s ease,border-color 0.15s ease,box-shadow 0.15s ease;text-decoration:none;
           }
           .db-nav-item:hover { background:var(--db-sidebar-nav-hover); color:var(--db-sidebar-nav-hover-text); }
-          .db-nav-item.active { background:var(--db-primary-10); color:var(--db-primary); border-right:2px solid var(--db-primary); }
+          .db-nav-item.active {
+            background: linear-gradient(90deg, rgba(0,168,150,0.12) 0%, rgba(0,168,150,0.05) 100%);
+            color: var(--db-primary);
+            border-color: rgba(0,168,150,0.34);
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
+          }
+          html[data-db-theme="dark"] .db-nav-item.active {
+            background: linear-gradient(90deg, rgba(0,199,179,0.18) 0%, rgba(0,199,179,0.06) 100%);
+            border-color: rgba(0,199,179,0.28);
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04);
+          }
 
           /* ── CARD ELEVATION ────────────────────────────────────── */
           .db-card { background:var(--db-card); border:1px solid var(--db-border); border-radius:8px; box-shadow:var(--db-card-shadow); }
