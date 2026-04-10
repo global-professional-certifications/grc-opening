@@ -23,7 +23,7 @@ export default function MyJobListingsPage() {
       <div className="mb-6">
         <h2
           className="text-2xl font-semibold"
-          style={{ fontFamily: "'Syne', sans-serif", color: 'var(--db-text)' }}
+          style={{ fontFamily: "'Poppins', sans-serif", color: 'var(--db-text)' }}
         >
           My Job Listings
         </h2>
