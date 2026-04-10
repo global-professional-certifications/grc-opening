@@ -3,8 +3,8 @@ import type { AppProps } from 'next/app'
 import { useState, useEffect } from 'react'
 import { UserProvider } from '../contexts/UserContext'
 import { DashboardThemeProvider } from '../contexts/DashboardThemeContext'
-import { useRouter } from 'next/router'
 import { EmployerJobsProvider } from '../contexts/EmployerJobsContext'
+import { useRouter } from 'next/router'
 
 export default function App({ Component, pageProps }: AppProps) {
   const router = useRouter()
