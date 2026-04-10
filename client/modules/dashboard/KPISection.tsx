@@ -1,34 +1,45 @@
 import React from "react";
 
-const MONO = { fontFamily: "'JetBrains Mono', monospace" };
-
 function SparkBar({ h, active }: { h: string; active: boolean }) {
   return (
-    <div className="w-1.5 rounded-t" style={{
+    <div className="w-1.5 rounded-t transition-all duration-300" style={{
       height: h,
-      background: active ? "var(--db-primary)" : "var(--db-primary-20)",
-      boxShadow: active ? "0 0 10px var(--db-primary-40)" : undefined,
+      background: active ? "#ffffff" : "rgba(255, 255, 255, 0.2)",
+      boxShadow: active ? "0 0 12px rgba(255, 255, 255, 0.4)" : undefined,
     }} />
   );
 }
 
 function StatCard({ children }: { children: React.ReactNode }) {
-  // db-card: base elevation   db-card-hover: lift + glow on hover
-  return <div className="db-card db-card-hover p-6">{children}</div>;
+  // Brand Blue background, static elevation, white text foundation, no border
+  return (
+    <div 
+      className="db-card p-6 shadow-xl" 
+      style={{ 
+        background: "var(--db-primary)", 
+        color: "#ffffff",
+        border: "none"
+      }}
+    >
+      {children}
+    </div>
+  );
 }
 
 function Card1() {
   return (
     <StatCard>
-      <div className="flex justify-between items-start mb-4">
-        <p className="text-xs uppercase tracking-wider" style={{ ...MONO, color: "var(--db-text-muted)" }}>Applications Sent</p>
-        <span className="material-symbols-outlined text-xl" style={{ color: "var(--db-primary)" }}>send</span>
+      <div className="flex justify-between items-start mb-6">
+        <p className="text-xs font-semibold tracking-wider uppercase opacity-80">Applications Sent</p>
+        <div className="p-2 rounded-lg" style={{ background: "rgba(255, 255, 255, 0.15)" }}>
+          <span className="material-symbols-outlined text-xl" style={{ color: "#ffffff" }}>send</span>
+        </div>
       </div>
-      <div className="flex items-baseline gap-2">
-        <h3 className="text-3xl font-bold" style={{ color: "var(--db-text)" }}>12</h3>
-        <span className="text-xs" style={{ ...MONO, color: "var(--db-primary)" }}>+14% ↑</span>
+      <div className="flex items-baseline gap-2 mb-6">
+        <h3 className="text-4xl font-bold tracking-tight">12</h3>
+        <span className="text-sm font-medium" style={{ color: "rgba(255, 255, 255, 0.9)" }}>+14% ↑</span>
       </div>
-      <div className="mt-4 h-8 flex items-end gap-1">
+      <div className="h-8 flex items-end gap-1.5 opacity-90">
         <SparkBar h="40%" active={false} /><SparkBar h="60%" active={false} />
         <SparkBar h="45%" active={false} /><SparkBar h="80%" active={true} />
         <SparkBar h="65%" active={true} />
@@ -40,15 +51,17 @@ function Card1() {
 function Card2() {
   return (
     <StatCard>
-      <div className="flex justify-between items-start mb-4">
-        <p className="text-xs uppercase tracking-wider" style={{ ...MONO, color: "var(--db-text-muted)" }}>Profile Views</p>
-        <span className="material-symbols-outlined text-xl" style={{ color: "var(--db-text-muted)" }}>visibility</span>
+      <div className="flex justify-between items-start mb-6">
+        <p className="text-xs font-semibold tracking-wider uppercase opacity-80">Profile Views</p>
+        <div className="p-2 rounded-lg" style={{ background: "rgba(255, 255, 255, 0.15)" }}>
+          <span className="material-symbols-outlined text-xl" style={{ color: "#ffffff" }}>visibility</span>
+        </div>
       </div>
-      <div className="flex items-baseline gap-2">
-        <h3 className="text-3xl font-bold" style={{ color: "var(--db-text)" }}>47</h3>
-        <span className="text-xs" style={{ ...MONO, color: "var(--db-text-muted)" }}>-- 0%</span>
+      <div className="flex items-baseline gap-2 mb-6">
+        <h3 className="text-4xl font-bold tracking-tight">47</h3>
+        <span className="text-sm font-medium opacity-70">-- 0%</span>
       </div>
-      <p className="mt-4 text-xs" style={{ color: "var(--db-text-muted)" }}>Viewed by 8 recruiters this week</p>
+      <p className="text-xs opacity-70 font-medium">Viewed by 8 recruiters this week</p>
     </StatCard>
   );
 }
@@ -56,18 +69,20 @@ function Card2() {
 function Card3() {
   return (
     <StatCard>
-      <div className="flex justify-between items-start mb-4">
-        <p className="text-xs uppercase tracking-wider" style={{ ...MONO, color: "var(--db-text-muted)" }}>Saved Jobs</p>
-        <span className="material-symbols-outlined text-xl" style={{ color: "var(--db-text-muted)" }}>bookmark</span>
+      <div className="flex justify-between items-start mb-6">
+        <p className="text-xs font-semibold tracking-wider uppercase opacity-80">Saved Jobs</p>
+        <div className="p-2 rounded-lg" style={{ background: "rgba(255, 255, 255, 0.15)" }}>
+          <span className="material-symbols-outlined text-xl" style={{ color: "#ffffff" }}>bookmark</span>
+        </div>
       </div>
-      <div className="flex items-baseline gap-2">
-        <h3 className="text-3xl font-bold" style={{ color: "var(--db-text)" }}>8</h3>
-        <span className="text-xs" style={{ ...MONO, color: "var(--db-primary)" }}>+2 new</span>
+      <div className="flex items-baseline gap-2 mb-6">
+        <h3 className="text-4xl font-bold tracking-tight">8</h3>
+        <span className="text-sm font-medium" style={{ color: "rgba(255, 255, 255, 0.9)" }}>+2 new</span>
       </div>
-      <div className="mt-4 flex -space-x-2">
+      <div className="flex -space-x-2">
         {["DS","GS","K"].map((i, idx) => (
-          <div key={i} className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] text-white ${["bg-slate-500","bg-slate-600","bg-slate-700"][idx]}`}
-            style={{ border: "2px solid var(--db-card)" }}>{i}</div>
+          <div key={i} className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] text-primary font-bold ${["bg-slate-100","bg-slate-200","bg-slate-300"][idx]}`}
+            style={{ border: "2px solid var(--db-primary)", color: "var(--db-primary)" }}>{i}</div>
         ))}
       </div>
     </StatCard>
@@ -77,18 +92,22 @@ function Card3() {
 function Card4() {
   return (
     <StatCard>
-      <div className="flex items-center justify-between h-full">
-        <div>
-          <p className="text-xs uppercase tracking-wider mb-4" style={{ ...MONO, color: "var(--db-text-muted)" }}>Response Rate</p>
-          <h3 className="text-3xl font-bold" style={{ color: "var(--db-text)" }}>41%</h3>
+      <div className="flex justify-between items-start mb-6">
+        <p className="text-xs font-semibold tracking-wider uppercase opacity-80">Response Rate</p>
+        <div className="p-2 rounded-lg" style={{ background: "rgba(255, 255, 255, 0.15)" }}>
+          <span className="material-symbols-outlined text-xl" style={{ color: "#ffffff" }}>speed</span>
         </div>
-        <div className="relative w-16 h-16">
+      </div>
+      <div className="flex items-center justify-between">
+        <h3 className="text-4xl font-bold tracking-tight">41%</h3>
+        <div className="relative w-12 h-12">
           <svg className="w-full h-full -rotate-90" viewBox="0 0 64 64">
-            <circle cx="32" cy="32" r="28" fill="transparent" stroke="var(--db-ring-track)" strokeWidth="4" />
-            <circle cx="32" cy="32" r="28" fill="transparent" stroke="var(--db-primary)" strokeWidth="4" strokeDasharray="175" strokeDashoffset="103" />
+            <circle cx="32" cy="32" r="28" fill="transparent" stroke="rgba(255, 255, 255, 0.1)" strokeWidth="6" />
+            <circle cx="32" cy="32" r="28" fill="transparent" stroke="#ffffff" strokeWidth="6" strokeDasharray="175" strokeDashoffset="103" strokeLinecap="round" />
           </svg>
         </div>
       </div>
+      <p className="mt-4 text-xs opacity-70 font-medium tracking-tight">Top 15% among GRC candidates</p>
     </StatCard>
   );
 }

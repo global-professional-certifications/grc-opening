@@ -4,6 +4,12 @@ import { ModernInput } from "../../../components/ui/ModernInput";
 import { PasswordStrength } from "./PasswordStrength";
 import { apiFetch } from "../../../lib/api";
 
+interface RegisterResponse {
+  message: string;
+  requiresEmailVerification: boolean;
+  emailVerified: boolean;
+}
+
 const INDUSTRIES = [
   { value: "", label: "Select Industry" },
   { value: "fintech", label: "Fintech" },
@@ -101,7 +107,7 @@ export function EmployerForm() {
 
     setLoading(true);
     try {
-      await apiFetch("/auth/register", {
+      const res = await apiFetch<RegisterResponse>("/auth/register", {
         method: "POST",
         body: JSON.stringify({
           email: fields.workEmail,
@@ -116,8 +122,14 @@ export function EmployerForm() {
           companySize: fields.companySize,
         }),
       });
-      sessionStorage.setItem("grc_pending_verification_email", fields.workEmail);
-      router.push("/verify-email");
+      if (res.requiresEmailVerification) {
+        sessionStorage.setItem("grc_pending_verification_email", fields.workEmail);
+        router.push("/verify-email");
+        return;
+      }
+
+      sessionStorage.removeItem("grc_pending_verification_email");
+      router.push(`/auth/login?verified=true&email=${encodeURIComponent(fields.workEmail)}`);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Registration failed.";
       setErrors({ workEmail: msg });

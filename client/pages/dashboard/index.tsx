@@ -45,19 +45,19 @@ function DashboardHeader() {
   return (
     <header className="flex items-center justify-between">
       <div>
-        <h2 className="text-3xl font-semibold" style={{ fontFamily: "'Syne', sans-serif", color: "var(--db-text)" }}>
-          {getGreeting()}, {firstName} 👋
+        <h2 className="text-3xl font-bold" style={{ color: "var(--db-text)" }}>
+          {getGreeting()}, {firstName}
         </h2>
-        <p className="mt-1 text-sm" style={{ color: "var(--db-text-muted)" }}>
+        <p className="mt-1 text-sm font-medium" style={{ color: "var(--db-text-muted)" }}>
           Here&apos;s what&apos;s happening with your compliance applications today.
         </p>
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-4">
         {/* Notification bell */}
         <button
-          className="w-10 h-10 flex items-center justify-center rounded-full border transition-colors relative"
-          style={{ background: "var(--db-card)", borderColor: "var(--db-border)" }}
+          className="w-10 h-10 flex items-center justify-center rounded-full border transition-all duration-200 shadow-sm hover:shadow-md hover:scale-105 relative"
+          style={{ background: "rgba(255, 255, 255, 0.05)", borderColor: "var(--db-border)" }}
           aria-label="Notifications"
         >
           <span className="material-symbols-outlined" style={{ fontSize: 20, color: "var(--db-text-secondary)" }}>notifications</span>
@@ -65,13 +65,13 @@ function DashboardHeader() {
         </button>
 
         {/* Divider */}
-        <div className="h-8 w-px bg-slate-800" />
+        <div className="h-8 w-px bg-slate-800" style={{ background: "var(--db-border)" }} />
 
         {/* Theme toggle — matches bell size/style */}
         <button
           onClick={toggleTheme}
-          className="w-10 h-10 flex items-center justify-center rounded-full border transition-colors"
-          style={{ background: "var(--db-card)", borderColor: "var(--db-border)", color: "var(--db-text-secondary)" }}
+          className="w-10 h-10 flex items-center justify-center rounded-full border transition-all duration-200 shadow-sm hover:shadow-md hover:scale-105"
+          style={{ background: "rgba(255, 255, 255, 0.05)", borderColor: "var(--db-border)", color: "var(--db-text-secondary)" }}
           aria-label="Toggle theme"
           title={theme === "dark" ? "Switch to Light mode" : "Switch to Dark mode"}
         >
@@ -80,7 +80,7 @@ function DashboardHeader() {
 
         {/* Upload Resume */}
         <button
-          className="px-4 py-2 font-bold text-sm rounded-full hover:brightness-110 transition-all"
+          className="db-btn-primary px-5 py-2.5 font-bold text-sm rounded-full shadow-lg transition-all"
           style={{ background: "var(--db-primary)", color: "var(--db-primary-text)" }}
         >
           Upload Resume

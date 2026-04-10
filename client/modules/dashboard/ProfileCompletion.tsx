@@ -10,12 +10,12 @@ export function ProfileCompletion() {
 
   return (
     // db-card-hover: same lift effect as other cards for consistency
-    <div className="db-card db-card-hover p-6">
+    <div className="db-card p-6 shadow-md border border-transparent">
       <div className="flex justify-between items-center mb-6">
-        <h3 className="text-lg font-semibold" style={{ fontFamily: "'Syne', sans-serif", color: "var(--db-text)" }}>
+        <h3 className="text-lg font-bold border-l-4 pl-3" style={{ color: "var(--db-text)", borderColor: "var(--db-primary)" }}>
           Profile Completion
         </h3>
-        <span className="text-sm font-bold" style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--db-primary)" }}>
+        <span className="text-sm font-bold" style={{ color: "var(--db-primary)" }}>
           72% Completed
         </span>
       </div>
@@ -26,17 +26,17 @@ export function ProfileCompletion() {
               style={{ color: item.done ? "var(--db-primary)" : "var(--db-text-muted)" }}>
               {item.done ? "check_circle" : "circle"}
             </span>
-            <span className="text-sm"
+            <span className="text-sm font-medium"
               style={{ color: item.done ? "var(--db-text-secondary)" : "var(--db-text-muted)", fontStyle: item.done ? undefined : "italic" }}>
               {item.label}
             </span>
           </div>
         ))}
       </div>
-      {/* db-btn-secondary: scale-up on hover, darker bg */}
+      {/* db-btn-primary: themed button */}
       <button
-        className="db-btn-secondary mt-6 w-full py-2 text-xs font-bold uppercase tracking-widest rounded-full"
-        style={{ background: "var(--db-btn-sec)", color: "var(--db-text-secondary)", border: "1px solid var(--db-border)" }}
+        className="db-btn-primary mt-6 w-full py-2.5 text-xs font-bold uppercase tracking-widest rounded-full cursor-pointer transition-all duration-200"
+        style={{ background: "var(--db-primary)", color: "#ffffff", boxShadow: "0 4px 12px var(--db-primary-20)" }}
       >
         Complete Profile
       </button>
