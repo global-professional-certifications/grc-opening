@@ -33,6 +33,9 @@ jobs:
       - name: ESLint Check
         run: pnpm run lint
 
+      - name: Generate Prisma Client
+        run: pnpm --filter @grc/server exec prisma generate
+
       - name: Type Check (tsc)
         # Runs tsc in all packages to ensure strict type compliance without emitting compiled files
         run: pnpm -r exec tsc --noEmit
