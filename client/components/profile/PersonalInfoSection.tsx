@@ -1,4 +1,4 @@
-﻿import React, { useState } from "react";
+import React, { useState } from "react";
 import type { ProfileFormData } from "./types";
 
 const MONO = { fontFamily: "'JetBrains Mono', monospace" };
@@ -6,24 +6,25 @@ const MONO = { fontFamily: "'JetBrains Mono', monospace" };
 const BASE_INPUT: React.CSSProperties = {
   width: "100%",
   background: "var(--db-surface)",
-  border: "1.5px solid var(--db-border)",
-  borderRadius: 8,
-  padding: "10px 14px",
+  border: "1px solid var(--db-border)",
+  borderRadius: 10,
+  padding: "12px 16px",
   color: "var(--db-text)",
   fontSize: "0.875rem",
+  fontWeight: 500,
   outline: "none",
-  transition: "border-color 0.2s ease, box-shadow 0.2s ease",
+  transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+  boxShadow: "inset 0 2px 4px rgba(0,0,0,0.02)",
 };
 
 const LABEL_STYLE: React.CSSProperties = {
-  fontSize: "0.625rem",
+  fontSize: "0.65rem",
   fontWeight: 700,
-  letterSpacing: "0.1em",
+  letterSpacing: "0.08em",
   textTransform: "uppercase",
-  color: "var(--db-text-muted)",
-  marginBottom: 6,
+  color: "var(--db-text-secondary)",
+  marginBottom: 8,
   display: "block",
-  ...MONO,
 };
 
 interface FieldProps {
@@ -51,7 +52,9 @@ function Field({ label, value, onChange, type = "text", placeholder, colSpan }: 
         style={{
           ...BASE_INPUT,
           borderColor: focused ? "var(--db-primary)" : "var(--db-border)",
-          boxShadow: focused ? "0 0 0 3px var(--db-primary-10)" : "none",
+          boxShadow: focused
+            ? "0 0 0 4px var(--db-primary-10), inset 0 2px 4px rgba(0,0,0,0.02)"
+            : BASE_INPUT.boxShadow,
         }}
       />
     </div>
@@ -79,16 +82,18 @@ export function PersonalInfoSection({ data, onChange }: Props) {
 
   return (
     <div
-      className="db-card db-card-hover rounded-2xl p-6 space-y-5"
+      className="db-card rounded-2xl p-6 space-y-5 shadow-sm"
       style={{ background: "var(--db-card)", border: "1px solid var(--db-border)" }}
     >
-      <div className="flex items-center gap-2">
-        <span className="material-symbols-outlined" style={{ fontSize: 18, color: "var(--db-primary)" }}>
-          person
-        </span>
+      <div className="flex items-center gap-3 border-l-4 pl-3" style={{ borderColor: "var(--db-primary)" }}>
+        <div className="p-2 rounded-lg" style={{ background: "var(--db-primary-10)" }}>
+          <span className="material-symbols-outlined" style={{ fontSize: 18, color: "var(--db-primary)" }}>
+            person
+          </span>
+        </div>
         <h3
-          className="text-xs font-semibold uppercase tracking-widest"
-          style={{ ...MONO, color: "var(--db-text-muted)" }}
+          className="text-sm font-bold tracking-widest uppercase"
+          style={{ color: "var(--db-text)" }}
         >
           Personal Information
         </h3>

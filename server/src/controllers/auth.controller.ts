@@ -4,6 +4,7 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import { sendOtpEmail, sendPasswordResetEmail } from '../services/email.service';
+import { shouldBypassEmailVerificationForEmail } from '../config/dev-auth';
 
 const prisma = new PrismaClient();
 
@@ -63,6 +64,18 @@ async function issueAndSendOtp(userId: string, email: string): Promise<{ cooldow
   return { cooldown: false };
 }
 
+async function markUserEmailVerified(userId: string): Promise<void> {
+  await prisma.$transaction([
+    prisma.user.update({
+      where: { id: userId },
+      data: { emailVerified: true },
+    }),
+    prisma.emailVerification.deleteMany({
+      where: { userId },
+    }),
+  ]);
+}
+
 // ─────────────────────────────────────────────────────────
 // POST /auth/register
 // ─────────────────────────────────────────────────────────
@@ -74,6 +87,7 @@ export const registerUser = async (req: Request, res: Response): Promise<void> =
       companyName, representativeFirstName, representativeMiddleName, representativeLastName, industry, companySize, website
     } = req.body;
     const email = (rawEmail as string)?.trim().toLowerCase();
+    const bypassEmailVerification = shouldBypassEmailVerificationForEmail(email);
 
     if (!email || !password || !confirmPassword || !role) {
       res.status(400).json({ error: 'Missing required fields' });
@@ -121,10 +135,10 @@ export const registerUser = async (req: Request, res: Response): Promise<void> =
 
     const passwordHash = await bcrypt.hash(password, 12);
 
-    // Create user and profile in a transaction (emailVerified starts false)
+    // Create user and profile in a transaction.
     const user = await prisma.$transaction(async (tx) => {
       const created = await tx.user.create({
-        data: { email, passwordHash, role: requestedRole, emailVerified: false },
+        data: { email, passwordHash, role: requestedRole, emailVerified: bypassEmailVerification },
       });
 
       if (requestedRole === Role.EMPLOYER) {
@@ -149,16 +163,27 @@ export const registerUser = async (req: Request, res: Response): Promise<void> =
       return created;
     });
 
-    // Send verification OTP
-    try {
-      await issueAndSendOtp(user.id, email);
-    } catch (emailError) {
-      console.error('OTP email failed (user still created):', emailError);
+    if (!bypassEmailVerification) {
+      try {
+        await issueAndSendOtp(user.id, email);
+      } catch (emailError) {
+        console.error('OTP email failed (user still created):', emailError);
+      }
     }
 
-    res.status(201).json({
-      message: 'Registration successful! Please check your email for a verification code.',
-    });
+    res.status(201).json(
+      bypassEmailVerification
+        ? {
+            message: 'Registration successful. Email verification was skipped for this development account.',
+            requiresEmailVerification: false,
+            emailVerified: true,
+          }
+        : {
+            message: 'Registration successful! Please check your email for a verification code.',
+            requiresEmailVerification: true,
+            emailVerified: false,
+          }
+    );
   } catch (error) {
     console.error('Registration error:', error);
     res.status(500).json({ error: 'Internal server error during registration' });
@@ -299,14 +324,21 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    if (!user.emailVerified) {
+    let effectiveEmailVerified = user.emailVerified;
+
+    if (!effectiveEmailVerified && shouldBypassEmailVerificationForEmail(email)) {
+      await markUserEmailVerified(user.id);
+      effectiveEmailVerified = true;
+    }
+
+    if (!effectiveEmailVerified) {
       res.status(403).json({ error: 'Please verify your email before logging in.' });
       return;
     }
 
     const jwtSecret = process.env.JWT_SECRET as string;
     const token = jwt.sign(
-      { id: user.id, role: user.role, email_verified: user.emailVerified },
+      { id: user.id, role: user.role, email_verified: effectiveEmailVerified },
       jwtSecret,
       { expiresIn: '7d' }
     );
@@ -314,7 +346,7 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
     res.status(200).json({
       message: 'Login successful',
       token,
-      user: { id: user.id, email: user.email, role: user.role, emailVerified: user.emailVerified },
+      user: { id: user.id, email: user.email, role: user.role, emailVerified: effectiveEmailVerified },
     });
   } catch (error) {
     console.error('Login error:', error);

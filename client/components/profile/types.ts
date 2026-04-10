@@ -16,6 +16,7 @@ export interface Certification {
 
 export interface ProfileFormData {
   firstName: string;
+  middleName?: string;
   lastName: string;
   professionalTitle: string;
   email: string;

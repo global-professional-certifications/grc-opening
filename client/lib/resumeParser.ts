@@ -17,6 +17,7 @@
  */
 
 import type { WorkExperience, Certification, ProfileFormData } from "../components/profile/types";
+import type { TextItem, TextMarkedContent } from "pdfjs-dist/types/src/display/api";
 
 // ─────────────────────────────────────────────────────────────
 // Public result type
@@ -58,13 +59,15 @@ async function extractTextFromPDF(file: File): Promise<string> {
     // Use hasEOL to reconstruct actual line breaks; fall back to a space
     // between inline items so words don't run together.
     const pageText = content.items
-      .map((item: { str?: string; hasEOL?: boolean }) =>
-        (item.str ?? "") + (item.hasEOL ? "\n" : " ")
-      )
+      .map((item) => (isPdfTextItem(item) ? item.str + (item.hasEOL ? "\n" : " ") : ""))
       .join("");
     pageTexts.push(pageText);
   }
   return pageTexts.join("\n");
+}
+
+function isPdfTextItem(item: TextItem | TextMarkedContent): item is TextItem {
+  return "str" in item;
 }
 
 // ─────────────────────────────────────────────────────────────

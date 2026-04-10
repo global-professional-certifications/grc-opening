@@ -1,7 +1,6 @@
 import type { ProfileFormData } from "./types";
 
-const MONO = { fontFamily: "'JetBrains Mono', monospace" };
-const SYNE = { fontFamily: "'Syne', sans-serif" };
+// Fonts are handled globally via Poppins
 
 const STEP_ICONS: Record<string, string> = {
   "Personal Info":   "person",
@@ -121,7 +120,6 @@ function StepNode({
             ? "var(--db-text)"
             : "var(--db-text-muted)",
           whiteSpace: "nowrap",
-          ...MONO,
           transition: "color 0.3s ease",
         }}>
           {item.label}
@@ -164,10 +162,11 @@ export function ProfileCompletionBar({ profile }: { profile: ProfileFormData }) 
 
   return (
     <div
-      className="db-card db-card-hover rounded-2xl"
+      className="db-card rounded-2xl"
       style={{
         background: "var(--db-card)",
         border: "1px solid var(--db-border)",
+        boxShadow: "var(--db-shadow-sm)"
       }}
     >
       {/* ── Header strip ─────────────────────────────────────── */}
@@ -202,16 +201,17 @@ export function ProfileCompletionBar({ profile }: { profile: ProfileFormData }) 
             <span style={{
               position: "absolute", inset: 0,
               display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: "0.58rem", fontWeight: 800,
+              fontSize: "0.7rem", fontWeight: 800,
               color: pct === 100 ? "#10b981" : "var(--db-primary)",
-              ...MONO,
+              textAlign: "center",
+              width: "100%"
             }}>
               {pct}%
             </span>
           </div>
 
           <div>
-            <h3 style={{ fontSize: "0.9rem", fontWeight: 700, color: "var(--db-text)", lineHeight: 1.2, ...SYNE }}>
+            <h3 style={{ fontSize: "0.9rem", fontWeight: 800, color: "var(--db-text)", lineHeight: 1.2 }}>
               Profile Completion
             </h3>
             <p style={{
@@ -238,11 +238,11 @@ export function ProfileCompletionBar({ profile }: { profile: ProfileFormData }) 
         }}>
           <span style={{
             fontSize: "0.85rem", fontWeight: 800,
-            color: "var(--db-primary)", ...MONO, lineHeight: 1,
+            color: "var(--db-primary)", lineHeight: 1,
           }}>
             {doneCount}
           </span>
-          <span style={{ fontSize: "0.7rem", color: "var(--db-text-muted)", ...MONO }}>
+          <span style={{ fontSize: "0.7rem", fontWeight: 700, color: "var(--db-text-muted)" }}>
             / {items.length} steps
           </span>
         </div>

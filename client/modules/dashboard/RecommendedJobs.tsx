@@ -1,12 +1,9 @@
 import React from "react";
 
-const SYNE = { fontFamily: "'Syne', sans-serif" };
-const MONO = { fontFamily: "'JetBrains Mono', monospace" };
-
 function CertTag({ label }: { label: string }) {
   return (
-    <span className="px-2 py-1 rounded text-[10px]"
-      style={{ ...MONO, background: "var(--db-btn-sec)", color: "var(--db-text-secondary)", border: "1px solid var(--db-border)" }}>
+    <span className="px-2 py-1 rounded text-[10px] font-semibold"
+      style={{ background: "rgba(255, 255, 255, 0.05)", color: "var(--db-text-secondary)", border: "1px solid var(--db-border)" }}>
       {label}
     </span>
   );
@@ -16,23 +13,22 @@ interface JobCardProps { logo: React.ReactNode; badge: React.ReactNode; title: s
 
 function JobCard({ logo, badge, title, company, tags }: JobCardProps) {
   return (
-    // db-card: base styling   db-card-hover: lift + glow effect
-    <div className="db-card db-card-hover p-6 flex flex-col justify-between">
+    // db-card: base styling
+    <div className="db-card p-6 flex flex-col justify-between border-transparent shadow-md">
       <div>
         <div className="flex justify-between items-start mb-4">
-          <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center p-2 overflow-hidden"
-            style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.1)" }}>{logo}</div>
+          <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center p-2 overflow-hidden shadow-sm"
+            style={{ border: "1px solid var(--db-border)" }}>{logo}</div>
           {badge}
         </div>
-        <h4 className="text-lg font-semibold mb-1" style={{ ...SYNE, color: "var(--db-text)" }}>{title}</h4>
-        <p className="text-sm mb-4" style={{ color: "var(--db-text-secondary)" }}>{company}</p>
+        <h4 className="text-lg font-bold mb-1" style={{ color: "var(--db-text)" }}>{title}</h4>
+        <p className="text-sm mb-4 font-medium" style={{ color: "var(--db-text-secondary)" }}>{company}</p>
         <div className="flex flex-wrap gap-2 mb-6">{tags.map(t => <CertTag key={t} label={t} />)}</div>
       </div>
 
-      {/* db-btn-primary: scale(1.04) + glow on hover, scale(0.97) on active */}
       <button
-        className="db-btn-primary w-full py-2.5 font-bold text-sm rounded-full"
-        style={{ background: "var(--db-primary-10)", color: "var(--db-primary)", border: "1px solid var(--db-primary-20)" }}
+        className="db-btn-primary w-full py-2.5 font-bold text-sm rounded-full cursor-pointer transition-all duration-200"
+        style={{ background: "var(--db-primary)", color: "#ffffff", boxShadow: "0 4px 12px var(--db-primary-20)" }}
       >
         Apply Now
       </button>
@@ -54,8 +50,8 @@ export function RecommendedJobs() {
   return (
     <section>
       <div className="flex justify-between items-end mb-6">
-        <h3 className="text-xl font-semibold" style={{ ...SYNE, color: "var(--db-text)" }}>Recommended Jobs</h3>
-        <a href="#" className="text-sm font-medium hover:underline" style={{ color: "var(--db-primary)" }}>View all roles</a>
+        <h3 className="text-xl font-bold border-l-4 pl-3" style={{ color: "var(--db-text)", borderColor: "var(--db-primary)" }}>Recommended Jobs</h3>
+        <a href="#" className="text-sm font-bold hover:opacity-80 transition-opacity" style={{ color: "var(--db-primary)" }}>View all roles</a>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <JobCard

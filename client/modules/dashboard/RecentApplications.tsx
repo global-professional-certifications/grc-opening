@@ -1,6 +1,5 @@
 import React from "react";
 
-const MONO = { fontFamily: "'JetBrains Mono', monospace" };
 type Status = "shortlisted" | "submitted" | "interviewing";
 
 const STATUS: Record<Status, { bg: string; color: string }> = {
@@ -19,18 +18,18 @@ export function RecentApplications() {
   return (
     <section className="db-card overflow-hidden">
       <div className="p-6 flex justify-between items-center" style={{ borderBottom: "1px solid var(--db-border)" }}>
-        <h3 className="text-lg font-semibold" style={{ fontFamily: "'Syne', sans-serif", color: "var(--db-text)" }}>
+        <h3 className="text-lg font-bold border-l-4 pl-3" style={{ color: "var(--db-text)", borderColor: "var(--db-primary)" }}>
           Recent Applications
         </h3>
-        <span className="text-xs" style={{ ...MONO, color: "var(--db-text-muted)" }}>Live Updates</span>
+        <span className="text-xs font-semibold" style={{ color: "var(--db-text-muted)" }}>Live Updates</span>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-left">
           <thead>
             <tr style={{ background: "var(--db-table-head)" }}>
               {["Job Title","Company","Date Applied","Status","Action"].map(h => (
-                <th key={h} className="px-6 py-4 text-[10px] uppercase tracking-widest"
-                  style={{ ...MONO, color: "var(--db-text-muted)" }}>{h}</th>
+                <th key={h} className="px-6 py-4 text-[10px] uppercase font-bold tracking-widest"
+                  style={{ color: "var(--db-text-muted)" }}>{h}</th>
               ))}
             </tr>
           </thead>
@@ -46,7 +45,7 @@ export function RecentApplications() {
                 onMouseLeave={e => (e.currentTarget.style.background = "")}>
                 <td className="px-6 py-4 font-medium text-sm" style={{ color: "var(--db-text)" }}>{row.title}</td>
                 <td className="px-6 py-4 text-sm" style={{ color: "var(--db-text-secondary)" }}>{row.company}</td>
-                <td className="px-6 py-4 text-xs" style={{ ...MONO, color: "var(--db-text-muted)" }}>{row.date}</td>
+                <td className="px-6 py-4 text-xs font-medium" style={{ color: "var(--db-text-muted)" }}>{row.date}</td>
                 <td className="px-6 py-4">
                   <span className="px-3 py-1 text-[10px] font-bold rounded-full uppercase"
                     style={{ background: STATUS[row.status].bg, color: STATUS[row.status].color }}>
