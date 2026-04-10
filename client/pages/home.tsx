@@ -241,22 +241,59 @@ export default function LandingPage() {
         </section>
 
         {/* ── Final Call to Action ──────────────────────────────────────────── */}
-        <section className="px-6 py-24 lg:py-32 relative reveal-scroll opacity-0 translate-y-8 transition-all duration-1000" style={{ background: "var(--db-surface)" }}>
-          <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+        <section className="px-6 py-24 lg:py-32 relative reveal-scroll opacity-0 translate-y-8 transition-all duration-1000 overflow-hidden" style={{ background: "var(--db-surface)" }}>
+          <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center">
 
-            {/* Left Content: Image */}
-            <div className="flex justify-center items-center">
-              <img
-                src="/images/cta-image.png"
-                alt="GRC Professional"
-                className="w-full max-w-[400px] object-contain drop-shadow-xl"
-                style={{ filter: "drop-shadow(0 20px 40px rgba(58, 18, 146, 0.15))" }}
+            {/* Left Content: Clean Premium Glass Card (Static) */}
+            <div className="relative w-full max-w-[340px] mx-auto min-h-[420px] flex justify-center items-center min-w-0">
+              
+              {/* Back Plate (Brand Shadow) */}
+              <div 
+                className="absolute w-[80%] h-[80%] top-[8%] left-[12%] rounded-[32px] transform -rotate-6 opacity-90 shadow-[0_20px_50px_rgba(58,18,146,0.3)] pointer-events-none" 
+                style={{ background: "linear-gradient(135deg, var(--db-primary) 0%, rgba(58, 18, 146, 0.4) 100%)" }}
               />
+
+              {/* Middle Plate / Glass Layer */}
+              <div 
+                className="absolute w-[85%] h-[85%] top-[6%] left-[10%] rounded-[32px] bg-white/10 backdrop-blur-md transform -rotate-3 pointer-events-none" 
+                style={{ border: "1px solid rgba(255,255,255,0.4)", boxShadow: "0 10px 40px rgba(0,0,0,0.1)" }}
+              />
+
+              {/* Main Image Container */}
+              <div 
+                className="relative z-10 w-full aspect-[4/5] overflow-hidden rounded-[28px] shadow-[0_20px_40px_rgba(0,0,0,0.4)] bg-[var(--db-surface)]"
+              >
+                {/* Inner Bezel */}
+                <div className="absolute inset-0 border-[2px] border-white/30 mix-blend-overlay rounded-[28px] z-20 pointer-events-none" />
+                
+                <img 
+                  src="/images/ready-to-join.webp" 
+                  alt="GRC Professionals Team" 
+                  className="w-full h-full object-cover" 
+                />
+
+                {/* Overlaid Gradient */}
+                <div className="absolute bottom-0 w-full h-[60%] bg-gradient-to-t from-black/90 via-black/40 to-transparent z-10 pointer-events-none" />
+                
+                {/* Embedded UI Component */}
+                <div className="absolute bottom-6 left-6 right-6 z-20">
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-white/20 backdrop-blur-md rounded-full border border-white/30 text-white text-[10px] font-bold uppercase tracking-wider mb-2 shadow-lg">
+                    <span className="w-2 h-2 rounded-full bg-green-400 shadow-[0_0_8px_#4ade80]" />
+                    Pre-Verified
+                  </div>
+                  <h3 className="text-white text-xl font-black leading-tight drop-shadow-md">Enterprise<br />Ready Talent.</h3>
+                </div>
+              </div>
+
+              {/* Contained Accent Ring */}
+              <div className="absolute top-0 -left-6 w-16 h-16 rounded-full border-[5px] opacity-40 z-0 pointer-events-none transform -translate-y-4" style={{ borderColor: 'var(--db-primary)' }} />
+              
+              <div className="absolute bottom-0 -right-6 w-12 h-12 rounded-full bg-[var(--db-primary)] opacity-80 z-0 pointer-events-none transform translate-y-4 shadow-[0_0_20px_var(--db-primary)]" />
             </div>
 
             {/* Right Content: SEO Text & CTAs */}
-            <div className="space-y-8 text-center lg:text-left">
-              <h2 className="text-4xl md:text-5xl font-black tracking-tight leading-tight" style={{ color: "var(--db-text)" }}>
+            <div className="space-y-8 text-center lg:text-left min-w-0">
+              <h2 className="text-4xl md:text-5xl font-black tracking-tight leading-tight break-words" style={{ color: "var(--db-text)" }}>
                 Ready to secure your next <span style={{ color: "var(--db-primary)" }}>role?</span>
               </h2>
 
