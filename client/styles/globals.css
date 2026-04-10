@@ -1,0 +1,492 @@
+/* ✅ IMPORTS MUST BE FIRST */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
+@import "tailwindcss";
+
+/* ─── THEME VARIABLES ─────────────────────────────────── */
+:root {
+  --bg-main: #ffffff;
+  --bg-panel: #fcfbff;
+  --bg-card: #ffffff;
+  --bg-input: #ffffff;
+  --bg-toggle: #f1f0f7;
+  --text-primary: #1a1523;
+  --text-secondary: #4a455a;
+  --text-muted: #8a859a;
+  --border: #e2e0ed;
+  --border-focus: #3a1292;
+  --brand: #3a1292;
+  --brand-light: #5a2dc1;
+  --brand-dark: #2a0d6e;
+  --brand-alpha: rgba(58, 18, 146, 0.08);
+  --divider: rgba(0, 0, 0, 0.06);
+  --shadow: 0 4px 24px rgba(58, 18, 146, 0.06);
+  /* right panel (Marketing) */
+  --right-bg: linear-gradient(155deg, #3a1292 0%, #2a0d6e 100%);
+  --right-headline: #ffffff;
+  --right-subtext: rgba(255, 255, 255, 0.8);
+  --badge-bg: rgba(255, 255, 255, 0.1);
+  --badge-border: rgba(255, 255, 255, 0.2);
+  --badge-label: #a78bfa;
+  --badge-title: #ffffff;
+  --stat-num: #ffffff;
+  --stat-label: rgba(255, 255, 255, 0.6);
+  --stat-divider: rgba(255, 255, 255, 0.1);
+  --stats-card-bg: rgba(255, 255, 255, 0.05);
+  --stats-card-border: rgba(255, 255, 255, 0.1);
+
+  /* Premium Tokens */
+  --premium-shadow: 0 10px 40px -10px rgba(58, 18, 146, 0.12), 0 0 1px rgba(58, 18, 146, 0.1);
+  --glass-bg: rgba(255, 255, 255, 0.03);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-blur: blur(12px);
+}
+
+[data-theme="dark"] {
+  --bg-main: #0a0a0c;
+  --bg-panel: #111116;
+  --bg-card: #15151e;
+  --bg-input: #0a0a0c;
+  --bg-toggle: #1c1c27;
+  --text-primary: #f2f2f7;
+  --text-secondary: #a1a1aa;
+  --text-muted: #71717a;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-focus: #5a2dc1;
+  --brand: #4f27b9;
+  --brand-light: #7c3aed;
+  --brand-dark: #3a1292;
+  --brand-alpha: rgba(124, 58, 237, 0.15);
+  --divider: rgba(255, 255, 255, 0.1);
+  --shadow: 0 4px 32px rgba(0, 0, 0, 0.4);
+  /* right panel (Marketing) */
+  --right-bg: linear-gradient(155deg, #1e0b4a 0%, #0f0525 100%);
+  --right-headline: #ffffff;
+  --right-subtext: rgba(255, 255, 255, 0.7);
+  --badge-bg: rgba(0, 0, 0, 0.2);
+  --badge-border: rgba(255, 255, 255, 0.1);
+  --badge-label: #8b5cf6;
+  --badge-title: #ffffff;
+  --stat-num: #ffffff;
+  --stat-label: rgba(255, 255, 255, 0.5);
+  --stat-divider: rgba(255, 255, 255, 0.1);
+  --stats-card-bg: rgba(0, 0, 0, 0.3);
+  --stats-card-border: rgba(255, 255, 255, 0.05);
+}
+
+/* ─── BASE ─────────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+body {
+  background-color: var(--bg-main);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* ─── ANIMATIONS ────────────────────────────────────────── */
+@keyframes typewriter {
+  from {
+    width: 0;
+  }
+
+  to {
+    width: 100%;
+  }
+}
+
+@keyframes blink {
+
+  0%,
+  100% {
+    border-color: transparent;
+  }
+
+  50% {
+    border-color: var(--brand);
+  }
+}
+
+@keyframes slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(80px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes glow-pulse {
+
+  0%,
+  100% {
+    opacity: 0.15;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.25;
+    transform: scale(1.05);
+  }
+}
+
+/* ─── UTILITY CLASSES ──────────────────────────────────── */
+.auth-layout {
+  height: 100vh;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: 3fr 2fr; /* 60% Left, 40% Right */
+}
+
+@media (max-width: 1024px) {
+  .auth-layout {
+    grid-template-columns: 1fr;
+    height: auto;
+    min-height: 100vh;
+    overflow: visible;
+  }
+}
+
+.auth-right-panel {
+  overflow: hidden;
+}
+
+@media (max-width: 1024px) {
+  .auth-right-panel {
+    display: none;
+  }
+}
+
+.left-panel {
+  display: flex;
+  flex-direction: column;
+  /*
+   * DO NOT use justify-content: center here.
+   * When a flex container with justify-content:center overflows its height,
+   * the overflow at the top is clipped and cannot be scrolled to.
+   * Instead we use ::before / ::after flex spacers (see below) which collapse
+   * to zero when content is taller than the viewport, keeping top content
+   * always reachable.
+   */
+  align-items: center;
+  padding: 0 clamp(1.5rem, 3vw, 3rem);
+  background-color: var(--bg-main);
+  transition: background-color 0.3s ease;
+  position: relative;
+  overflow-y: auto;
+  height: 100vh;
+  /* Hide scrollbar for a premium feel — content still scrolls when needed */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.left-panel::-webkit-scrollbar {
+  display: none;
+}
+
+/*
+ * Flex spacers: each takes equal share of leftover vertical space so the
+ * form card sits centred when the viewport is tall enough. When content
+ * overflows they collapse to their min-height and the panel scrolls normally.
+ */
+.left-panel::before,
+.left-panel::after {
+  content: '';
+  flex: 1;
+  min-height: clamp(0.5rem, 1vh, 1rem);
+}
+
+@media (max-width: 1024px) {
+  .left-panel {
+    height: auto;
+    min-height: 100vh;
+    padding: 2rem 1.5rem;
+    scrollbar-width: auto;
+    -ms-overflow-style: auto;
+  }
+  .left-panel::-webkit-scrollbar {
+    display: revert;
+  }
+  .left-panel::before,
+  .left-panel::after {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .left-panel {
+    padding: 1.5rem 1.25rem;
+    padding-top: 2rem;
+  }
+}
+
+.form-card {
+  width: 100%;
+  max-width: 520px;
+}
+
+@media (max-width: 640px) {
+  .form-card {
+    max-width: 100%;
+  }
+}
+
+/* ─── INPUTS ──────────────────────────────────────────── */
+.grc-input {
+  width: 100%;
+  background: var(--bg-input);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 9px 12px;
+  color: var(--text-primary);
+  font-size: 0.825rem;
+  font-family: 'Inter', sans-serif;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  outline: none;
+}
+
+.grc-input::placeholder {
+  color: var(--text-muted);
+}
+
+.grc-input:focus {
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px rgba(0, 212, 178, 0.12);
+}
+
+.grc-input-error {
+  border-color: #f87171 !important;
+}
+
+.grc-input-error:focus {
+  box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.15) !important;
+}
+
+.grc-label {
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+  display: block;
+}
+
+/* ─── BADGES ──────────────────────────────────────────── */
+.badge-card {
+  animation: slide-in-right 1.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+  /* Hover lift — transition runs independently of the entry animation */
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  cursor: default;
+}
+
+.badge-card:nth-child(1) { animation-delay: 0s; }
+.badge-card:nth-child(2) { animation-delay: 2.5s; }
+.badge-card:nth-child(3) { animation-delay: 5s; }
+
+.badge-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0, 196, 164, 0.15);
+}
+
+/* ─── TYPEWRITER ──────────────────────────────────────── */
+.typewriter-line {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  width: 0;
+  animation: typewriter 3s steps(14, end) 0.3s forwards;
+}
+
+/* Employer headline — line 1: 'Built for GRC,' ~14 chars */
+.typewriter-emp-1 {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  width: 0;
+  animation: typewriter 1.4s steps(14, end) 0.2s forwards;
+}
+
+/* Employer headline — line 2: 'by GRC specialists.' ~19 chars */
+.typewriter-emp-2 {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  width: 0;
+  animation: typewriter 1.9s steps(19, end) 1.8s forwards;
+}
+
+/* ─── EMPLOYER PANEL STAGGER ──────────────────────────── */
+.emp-anim-pill {
+  opacity: 0;
+  animation: fade-up 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.1s forwards;
+}
+
+.emp-anim-heading {
+  opacity: 0;
+  animation: fade-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.35s forwards;
+}
+
+.emp-anim-body {
+  opacity: 0;
+  animation: fade-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.55s forwards;
+}
+
+.emp-anim-stats {
+  opacity: 0;
+  animation: fade-up 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.75s forwards;
+}
+
+/* ─── HEADLINE FADE ───────────────────────────────────── */
+.headline-fade {
+  animation: fade-up 0.8s ease both;
+}
+
+.headline-fade:nth-child(1) {
+  animation-delay: 0.1s;
+}
+
+.headline-fade:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+/* ─── GLOW ────────────────────────────────────────────── */
+.glow-orb {
+  animation: glow-pulse 4s ease-in-out infinite;
+}
+
+/* ─── THEME TOGGLE ────────────────────────────────────── */
+.theme-toggle {
+  position: fixed;
+  top: 1.25rem;
+  right: 1.25rem;
+  z-index: 100;
+  background: var(--bg-card);
+  border: 1.5px solid var(--border);
+  border-radius: 99px;
+  padding: 6px 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  transition: all 0.2s ease;
+  box-shadow: var(--shadow);
+}
+
+.theme-toggle:hover {
+  border-color: var(--brand);
+  color: var(--text-primary);
+}
+
+/* ─── SCROLLBAR ───────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
+/* ─── FORM ROLE TRANSITION ──────────────────────────────── */
+@keyframes formEnter {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0);   }
+}
+
+@keyframes formExit {
+  from { opacity: 1; transform: translateY(0);   }
+  to   { opacity: 0; transform: translateY(-8px); }
+}
+
+/* Entry — plays when new form mounts */
+.form-role-container {
+  animation: formEnter 0.22s ease-out both;
+}
+
+/* Exit — applied via JS for the 160ms before content swaps */
+.form-role-exit {
+  animation: formExit 0.16s ease-in both;
+  pointer-events: none; /* block clicks during exit */
+}
+
+/* ─── MARKETING PANEL TRANSITION ────────────────────────── */
+@keyframes panelEnter {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.panel-enter {
+  animation: panelEnter 0.28s ease both;
+}
+
+/* ─── BADGE CARD HOVER ───────────────────────────────────── */
+.badge-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  cursor: default;
+}
+
+.badge-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0, 196, 164, 0.15);
+}
+
+/* ─── INPUT IMPROVEMENTS ─────────────────────────────────── */
+/* Increase input padding for a more premium feel */
+.grc-input {
+  padding: 11px 14px;
+}
+
+/* ─── HEADING TRANSITION ─────────────────────────────────── */
+@keyframes headingEnter {
+  from { opacity: 0; transform: translateY(6px);  }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+
+@keyframes headingExit {
+  from { opacity: 1; transform: translateY(0);    }
+  to   { opacity: 0; transform: translateY(-6px); }
+}
+
+.heading-animate {
+  animation: headingEnter 0.22s ease-out both;
+}
+
+.heading-exit {
+  animation: headingExit 0.16s ease-in both;
+  pointer-events: none;
+}

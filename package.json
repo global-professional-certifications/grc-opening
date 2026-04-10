@@ -1,27 +1,27 @@
 {
-  "name": "grcopening",
+  "name": "grc-opening",
   "version": "1.0.0",
-  "description": "",
-  "main": "postcss.config.js",
+  "private": true,
+  "description": "GRC Opening - Monorepo",
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
+    "dev": "pnpm --parallel -r dev",
+    "dev:client": "pnpm --filter @grc/client dev",
+    "dev:server": "pnpm --filter @grc/server dev",
+    "build": "pnpm -r build",
+    "build:client": "pnpm --filter @grc/client build",
+    "build:server": "pnpm --filter @grc/server build",
+    "lint": "pnpm -r lint",
+    "start:client": "pnpm --filter @grc/client start",
+    "start:server": "pnpm --filter @grc/server start"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "dependencies": {
-    "@tailwindcss/postcss": "^4.2.2",
-    "@types/node": "^25.5.0",
-    "@types/react": "^19.2.14",
-    "autoprefixer": "^10.4.27",
-    "next": "^16.2.1",
-    "postcss": "^8.5.8",
-    "react": "^19.2.4",
-    "react-dom": "^19.2.4",
-    "tailwindcss": "^4.2.2",
-    "typescript": "^6.0.2"
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^8.58.0",
+    "@typescript-eslint/parser": "^8.58.0",
+    "eslint": "^8.57.1",
+    "tsx": "^4.21.0",
+    "typescript": "^5.7.3"
   }
 }
