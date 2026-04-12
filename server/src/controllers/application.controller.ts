@@ -89,7 +89,7 @@ export const getJobApplications = async (req: Request, res: Response): Promise<v
       return;
     }
 
-    // 2. Ensure they own the Job
+    //Ensure they own the job 
     const job = await prisma.job.findUnique({ where: { id: jobId } });
     
     if (!job || job.employerId !== employerProfile.id) {
