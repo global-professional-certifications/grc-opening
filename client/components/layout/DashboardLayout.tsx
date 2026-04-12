@@ -3,9 +3,7 @@ import { useRouter } from "next/router";
 import { DashboardThemeProvider, useDashboardTheme } from "../../contexts/DashboardThemeContext";
 import { useUser } from "../../contexts/UserContext";
 
-const SYNE  = { fontFamily: "'Syne', sans-serif" };
-const MONO  = { fontFamily: "'JetBrains Mono', monospace" };
-const MANROPE = { fontFamily: "'Manrope', sans-serif" };
+// Fonts are now handled globally via Poppins in _document.tsx
 
 function NavItem({ href, icon, label }: { href: string; icon: string; label: string }) {
   const router = useRouter();
@@ -69,13 +67,13 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
   return (
     // No data-db-theme here — the blocking script + DashboardThemeProvider
     // both write to document.documentElement, which is the single source of truth.
-    <div className="min-h-screen overflow-x-hidden" style={MANROPE}>
+    <div className="min-h-screen overflow-x-hidden">
       <div className="flex min-h-screen">
 
         {/* ── Sidebar ────────────────────────────────────────────── */}
         <aside
-          className="fixed left-0 top-0 h-full w-[260px] flex flex-col z-50"
-          style={{ background: "var(--db-sidebar-bg)", borderRight: "1px solid var(--db-sidebar-border)" }}
+          className="fixed left-0 top-0 h-full w-[260px] flex flex-col z-50 backdrop-blur-xl"
+          style={{ background: "var(--db-sidebar-bg)", borderRight: "1px solid var(--db-sidebar-border)", backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)" }}
         >
           {/* Logo */}
           <div className="p-6 flex items-center gap-3">
@@ -85,7 +83,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
                 shield_person
               </span>
             </div>
-            <h1 className="text-lg tracking-tight uppercase font-semibold" style={{ ...SYNE, color: "var(--db-sidebar-logo-text)" }}>
+            <h1 className="text-lg tracking-tight uppercase font-bold" style={{ color: "var(--db-sidebar-logo-text)" }}>
               GRC <span style={{ color: "var(--db-primary)" }}>Openings</span>
             </h1>
           </div>
@@ -93,8 +91,8 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
           {/* Navigation */}
           <nav className="flex-1 px-4 py-4 space-y-8 overflow-y-auto scrollbar-hide">
             <div>
-              <p className="px-4 text-[11px] uppercase tracking-widest mb-4"
-                style={{ ...MONO, color: "var(--db-sidebar-section)" }}>
+              <p className="px-4 text-[11px] uppercase tracking-widest mb-4 font-semibold"
+                style={{ color: "var(--db-sidebar-section)" }}>
                 Nav Groups
               </p>
               <div className="space-y-1">
@@ -106,8 +104,8 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
               </div>
             </div>
             <div>
-              <p className="px-4 text-[11px] uppercase tracking-widest mb-4"
-                style={{ ...MONO, color: "var(--db-sidebar-section)" }}>
+              <p className="px-4 text-[11px] uppercase tracking-widest mb-4 font-semibold"
+                style={{ color: "var(--db-sidebar-section)" }}>
                 Discovery
               </p>
               <div className="space-y-1">
@@ -118,7 +116,11 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
           </nav>
 
           {/* User block */}
-          <div className="p-4" style={{ borderTop: "1px solid var(--db-sidebar-border)", background: "var(--db-sidebar-user-bg)", position: "relative" }} ref={menuRef}>
+          <div className="p-4" style={{ 
+            borderTop: "1px solid var(--db-sidebar-border)", 
+            background: "var(--db-primary-10)", 
+            position: "relative" 
+          }} ref={menuRef}>
             {/* Logout popup — appears above the user block */}
             {menuOpen && (
               <div
@@ -131,7 +133,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
               >
                 <div style={{ padding: "10px 14px 8px", borderBottom: "1px solid var(--db-border)" }}>
                   <p style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--db-text)", marginBottom: 2 }}>{displayName}</p>
-                  <p style={{ fontSize: "0.7rem", color: "var(--db-text-muted)", ...MONO }}>{user?.email}</p>
+                  <p style={{ fontSize: "0.7rem", color: "var(--db-text-muted)" }}>{user?.email}</p>
                 </div>
                 <button
                   onClick={handleLogout}
@@ -161,16 +163,16 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
                 cursor: "pointer", borderRadius: 10, padding: "6px 8px",
                 transition: "background 0.15s",
               }}
-              onMouseEnter={e => (e.currentTarget.style.background = "var(--db-border)")}
+              onMouseEnter={e => (e.currentTarget.style.background = "var(--db-sidebar-nav-hover)")}
               onMouseLeave={e => (e.currentTarget.style.background = "none")}
             >
-              <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0"
-                style={{ background: "var(--db-primary)", color: "#03120f", fontWeight: 700, fontSize: "0.8rem", border: "2px solid var(--db-primary-20)" }}>
+              <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 shadow-sm"
+                style={{ background: "var(--db-primary)", color: "#ffffff", fontWeight: 800, fontSize: "0.8rem" }}>
                 {initials}
               </div>
               <div className="overflow-hidden flex-1 text-left">
-                <p className="text-sm font-bold truncate" style={{ color: "var(--db-sidebar-user-text)" }}>{displayName}</p>
-                <p className="text-xs truncate" style={{ ...MONO, color: "var(--db-sidebar-user-sub)" }}>{displaySub}</p>
+                <p className="text-sm font-bold truncate" style={{ color: "var(--db-text)" }}>{displayName}</p>
+                <p className="text-xs truncate font-semibold" style={{ color: "var(--db-primary)" }}>{displaySub}</p>
               </div>
               <span className="material-symbols-outlined" style={{ fontSize: 16, color: "var(--db-text-muted)", flexShrink: 0, transform: menuOpen ? "rotate(180deg)" : "none", transition: "transform 0.2s" }}>
                 expand_less

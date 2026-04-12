@@ -5,25 +5,26 @@ const MONO = { fontFamily: "'JetBrains Mono', monospace" };
 
 const BASE_INPUT: React.CSSProperties = {
   width: "100%",
-  background: "var(--db-bg)",
-  border: "1.5px solid var(--db-border)",
-  borderRadius: 8,
-  padding: "8px 12px",
+  background: "var(--db-surface)",
+  border: "1px solid var(--db-border)",
+  borderRadius: 10,
+  padding: "12px 16px",
   color: "var(--db-text)",
-  fontSize: "0.8125rem",
+  fontSize: "0.875rem",
+  fontWeight: 500,
   outline: "none",
-  transition: "border-color 0.2s ease",
+  transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+  boxShadow: "inset 0 2px 4px rgba(0,0,0,0.02)",
 };
 
 const LABEL_STYLE: React.CSSProperties = {
-  fontSize: "0.6rem",
+  fontSize: "0.65rem",
   fontWeight: 700,
-  letterSpacing: "0.1em",
+  letterSpacing: "0.08em",
   textTransform: "uppercase",
-  color: "var(--db-text-muted)",
-  marginBottom: 5,
+  color: "var(--db-text-secondary)",
+  marginBottom: 8,
   display: "block",
-  ...MONO,
 };
 
 function genId(): string {
@@ -67,7 +68,7 @@ function ExperienceItem({ exp, onUpdate, onRemove }: ExperienceItemProps) {
             <p className="text-sm font-semibold truncate" style={{ color: "var(--db-text)" }}>
               {exp.title || "New Position"}
             </p>
-            <p className="text-xs truncate" style={{ ...MONO, color: "var(--db-text-muted)" }}>
+            <p className="text-xs truncate font-medium" style={{ color: "var(--db-text-muted)" }}>
               {[exp.company, exp.location].filter(Boolean).join(" · ") || "Company"}
               {(exp.startDate || exp.current) && (
                 <>
@@ -86,9 +87,8 @@ function ExperienceItem({ exp, onUpdate, onRemove }: ExperienceItemProps) {
             <span
               className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase"
               style={{
-                background: "var(--db-primary-20)",
+                background: "var(--db-primary-10)",
                 color: "var(--db-primary)",
-                ...MONO,
               }}
             >
               Current
@@ -233,16 +233,18 @@ export function WorkExperienceSection({ workExperience, onChange }: Props) {
 
   return (
     <div
-      className="db-card db-card-hover rounded-2xl p-6 space-y-4"
+      className="db-card rounded-2xl p-6 space-y-4 shadow-sm"
       style={{ background: "var(--db-card)", border: "1px solid var(--db-border)" }}
     >
-      <div className="flex items-center gap-2">
-        <span className="material-symbols-outlined" style={{ fontSize: 18, color: "var(--db-primary)" }}>
-          work
-        </span>
+      <div className="flex items-center gap-3 border-l-4 pl-3" style={{ borderColor: "var(--db-primary)" }}>
+        <div className="p-2 rounded-lg" style={{ background: "var(--db-primary-10)" }}>
+          <span className="material-symbols-outlined" style={{ fontSize: 18, color: "var(--db-primary)" }}>
+            work
+          </span>
+        </div>
         <h3
-          className="text-xs font-semibold uppercase tracking-widest"
-          style={{ ...MONO, color: "var(--db-text-muted)" }}
+          className="text-sm font-bold uppercase tracking-widest"
+          style={{ color: "var(--db-text)" }}
         >
           Work Experience
         </h3>

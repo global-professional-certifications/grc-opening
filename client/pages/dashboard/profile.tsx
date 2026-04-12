@@ -71,8 +71,7 @@ async function loadProfileFromApi(): Promise<ProfileFormData> {
   return mapApiToForm(res);
 }
 
-const SYNE = { fontFamily: "'Syne', sans-serif" };
-const MONO = { fontFamily: "'JetBrains Mono', monospace" };
+// Fonts are handled globally via Poppins
 
 const EMPTY_PROFILE: ProfileFormData = {
   firstName: "",
@@ -263,12 +262,12 @@ export default function ProfilePage() {
       <header className="flex items-center justify-between">
         <div>
           <h2
-            className="text-3xl font-semibold"
-            style={{ ...SYNE, color: "var(--db-text)" }}
+            className="text-3xl font-bold"
+            style={{ color: "var(--db-text)" }}
           >
             My Profile
           </h2>
-          <p className="mt-1 text-sm" style={{ color: "var(--db-text-muted)" }}>
+          <p className="mt-1 text-sm font-medium" style={{ color: "var(--db-text-muted)" }}>
             Your professional presence on GRC Openings.
           </p>
         </div>
@@ -314,10 +313,10 @@ export default function ProfilePage() {
       {/* ── Profile form ─────────────────────────────────────────── */}
       {!loading && !error && (
         <>
-          {/* Identity card */}
+          {/* Identity card - Re-themed to Brand Blue like Stat Cards */}
           <div
-            className="db-card db-card-hover rounded-2xl p-6"
-            style={{ background: "var(--db-card)", border: "1px solid var(--db-border)" }}
+            className="db-card rounded-2xl p-8 border-none shadow-xl relative overflow-hidden"
+            style={{ background: "var(--db-primary)", color: "#ffffff" }}
           >
             <div className="flex items-center gap-5">
               {/* Avatar — click to upload photo */}
@@ -327,12 +326,10 @@ export default function ProfilePage() {
                 title="Upload profile photo"
               >
                 <div
-                  className="w-20 h-20 rounded-full flex items-center justify-center overflow-hidden text-2xl font-bold select-none"
+                  className="w-20 h-20 rounded-full flex items-center justify-center overflow-hidden text-2xl font-black select-none shadow-inner"
                   style={{
-                    background: "var(--db-primary-20)",
+                    background: "#ffffff",
                     color: "var(--db-primary)",
-                    border: "3px solid var(--db-primary-40)",
-                    ...SYNE,
                   }}
                 >
                   {profileImage ? (
@@ -375,23 +372,22 @@ export default function ProfilePage() {
                 />
               </div>
 
-              <div className="flex-1 min-w-0">
+              <div className="flex-1 min-w-0 relative z-10">
                 <h3
-                  className="text-2xl font-bold truncate"
-                  style={{ ...SYNE, color: "var(--db-text)" }}
+                  className="text-3xl font-bold truncate tracking-tight"
                 >
                   {fullName || "Your Name"}
                 </h3>
                 {formData.professionalTitle && (
-                  <p className="text-sm font-medium mt-0.5" style={{ color: "var(--db-primary)" }}>
+                  <p className="text-sm font-bold mt-1 opacity-90 uppercase tracking-wider">
                     {formData.professionalTitle}
                   </p>
                 )}
                 <div className="flex items-center gap-4 mt-1.5 flex-wrap">
                   {formData.location && (
                     <span
-                      className="flex items-center gap-1 text-xs min-w-0"
-                      style={{ color: "var(--db-text-muted)", maxWidth: 240 }}
+                      className="flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-white/10"
+                      style={{ color: "#ffffff" }}
                     >
                       <span className="material-symbols-outlined shrink-0" style={{ fontSize: 13 }}>
                         location_on
@@ -408,8 +404,8 @@ export default function ProfilePage() {
                       }
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-1 text-xs hover:underline min-w-0"
-                      style={{ ...MONO, color: "var(--db-text-muted)", maxWidth: 220 }}
+                      className="flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+                      style={{ color: "#ffffff" }}
                     >
                       <span className="material-symbols-outlined shrink-0" style={{ fontSize: 13 }}>
                         link
@@ -460,11 +456,13 @@ export default function ProfilePage() {
       {/* ── Unsaved changes bar ───────────────────────────────────── */}
       {isDirty && !loading && (
         <div
-          className="fixed bottom-0 left-[260px] right-0 z-40 flex items-center justify-between px-8 py-4"
+          className="fixed bottom-8 right-8 z-50 flex items-center gap-6 px-6 py-4 rounded-2xl"
           style={{
-            background: "var(--db-card)",
-            borderTop: "1px solid var(--db-border)",
-            boxShadow: "0 -4px 20px rgba(0,0,0,0.08)",
+            background: "var(--db-surface)",
+            border: "1px solid var(--db-border)",
+            boxShadow: "0 12px 40px rgba(58, 18, 146, 0.15), 0 0 0 1px var(--db-primary-20) inset",
+            backdropFilter: "blur(20px)",
+            WebkitBackdropFilter: "blur(20px)",
           }}
         >
           <div className="flex items-center gap-2">
@@ -493,10 +491,10 @@ export default function ProfilePage() {
             <button
               onClick={handleSave}
               disabled={saving}
-              className="db-btn-primary px-5 py-2 rounded-lg text-sm font-bold"
+              className="db-btn-primary px-5 py-2 rounded-lg text-sm font-bold shadow-lg"
               style={{
                 background: "var(--db-primary)",
-                color: "var(--db-primary-text)",
+                color: "#ffffff",
                 opacity: saving ? 0.7 : 1,
               }}
             >

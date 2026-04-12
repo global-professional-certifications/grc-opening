@@ -46,15 +46,17 @@ function TagInput({ placeholder, onAdd }: TagInputProps) {
       placeholder={placeholder}
       style={{
         background: "var(--db-surface)",
-        border: `1.5px dashed ${focused ? "var(--db-primary)" : "var(--db-border)"}`,
+        border: "1px solid",
+        borderColor: focused ? "var(--db-primary)" : "var(--db-border)",
         borderRadius: 20,
-        padding: "5px 12px",
+        padding: "6px 14px",
         color: "var(--db-text)",
+        fontWeight: 500,
         fontSize: "0.75rem",
         outline: "none",
-        width: 160,
-        transition: "border-color 0.2s ease",
-        ...MONO,
+        width: 170,
+        transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+        boxShadow: focused ? "0 0 0 4px var(--db-primary-10), inset 0 2px 4px rgba(0,0,0,0.02)" : "inset 0 2px 4px rgba(0,0,0,0.02)",
       }}
     />
   );
@@ -87,16 +89,18 @@ export function SkillsSection({ coreCompetencies, certifications, onChange }: Pr
 
   return (
     <div
-      className="db-card db-card-hover rounded-2xl p-6 space-y-6"
+      className="db-card rounded-2xl p-6 space-y-6 shadow-sm"
       style={{ background: "var(--db-card)", border: "1px solid var(--db-border)" }}
     >
-      <div className="flex items-center gap-2">
-        <span className="material-symbols-outlined" style={{ fontSize: 18, color: "var(--db-primary)" }}>
-          verified
-        </span>
+      <div className="flex items-center gap-3 border-l-4 pl-3" style={{ borderColor: "var(--db-primary)" }}>
+        <div className="p-2 rounded-lg" style={{ background: "var(--db-primary-10)" }}>
+          <span className="material-symbols-outlined" style={{ fontSize: 18, color: "var(--db-primary)" }}>
+            verified
+          </span>
+        </div>
         <h3
-          className="text-xs font-semibold uppercase tracking-widest"
-          style={{ ...MONO, color: "var(--db-text-muted)" }}
+          className="text-sm font-bold uppercase tracking-widest"
+          style={{ color: "var(--db-text)" }}
         >
           Skills &amp; Certifications
         </h3>
@@ -106,7 +110,7 @@ export function SkillsSection({ coreCompetencies, certifications, onChange }: Pr
       <div>
         <p
           className="text-[10px] font-bold uppercase tracking-widest mb-3"
-          style={{ ...MONO, color: "var(--db-text-muted)" }}
+          style={{ color: "var(--db-text-muted)" }}
         >
           Core Competencies
         </p>
@@ -116,9 +120,8 @@ export function SkillsSection({ coreCompetencies, certifications, onChange }: Pr
               key={skill}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold"
               style={{
-                background: "var(--db-primary-20)",
+                background: "var(--db-primary-10)",
                 color: "var(--db-primary)",
-                ...MONO,
               }}
             >
               {skill}
@@ -147,7 +150,7 @@ export function SkillsSection({ coreCompetencies, certifications, onChange }: Pr
       <div>
         <p
           className="text-[10px] font-bold uppercase tracking-widest mb-3"
-          style={{ ...MONO, color: "var(--db-text-muted)" }}
+          style={{ color: "var(--db-text-muted)" }}
         >
           Professional Certifications
         </p>
@@ -157,10 +160,8 @@ export function SkillsSection({ coreCompetencies, certifications, onChange }: Pr
               key={cert.id}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold"
               style={{
-                background: "var(--db-primary-10)",
-                color: "var(--db-primary)",
-                border: "1px solid var(--db-primary-40)",
-                ...MONO,
+                background: "var(--db-primary)",
+                color: "#ffffff",
               }}
             >
               <span className="material-symbols-outlined" style={{ fontSize: 12 }}>
@@ -170,8 +171,8 @@ export function SkillsSection({ coreCompetencies, certifications, onChange }: Pr
               <button
                 onClick={() => removeCertification(cert.id)}
                 style={{
-                  color: "var(--db-primary)",
-                  opacity: 0.65,
+                  color: "#ffffff",
+                  opacity: 0.8,
                   fontSize: 14,
                   lineHeight: 1,
                   marginLeft: 1,

@@ -85,16 +85,18 @@ export function ResumeSection({ resumeUrl, resumeFileName, onChange }: Props) {
 
   return (
     <div
-      className="db-card db-card-hover rounded-2xl p-6 space-y-4"
+      className="db-card rounded-2xl p-6 space-y-4 shadow-sm"
       style={{ background: "var(--db-card)", border: "1px solid var(--db-border)" }}
     >
-      <div className="flex items-center gap-2">
-        <span className="material-symbols-outlined" style={{ fontSize: 18, color: "var(--db-primary)" }}>
-          description
-        </span>
+      <div className="flex items-center gap-3 border-l-4 pl-3" style={{ borderColor: "var(--db-primary)" }}>
+        <div className="p-2 rounded-lg" style={{ background: "var(--db-primary-10)" }}>
+          <span className="material-symbols-outlined" style={{ fontSize: 18, color: "var(--db-primary)" }}>
+            description
+          </span>
+        </div>
         <h3
-          className="text-xs font-semibold uppercase tracking-widest"
-          style={{ ...MONO, color: "var(--db-text-muted)" }}
+          className="text-sm font-bold uppercase tracking-widest"
+          style={{ color: "var(--db-text)" }}
         >
           Resume / CV
         </h3>
@@ -124,7 +126,7 @@ export function ResumeSection({ resumeUrl, resumeFileName, onChange }: Props) {
               >
                 {resumeFileName || "Resume.pdf"}
               </p>
-              <p className="text-xs" style={{ ...MONO, color: "var(--db-text-muted)" }}>
+              <p className="text-xs font-medium" style={{ color: "var(--db-text-muted)" }}>
                 {parsing ? (
                   <span style={{ color: "var(--db-primary)" }}>
                     Extracting fields…
@@ -167,7 +169,7 @@ export function ResumeSection({ resumeUrl, resumeFileName, onChange }: Props) {
               className="db-btn-primary px-3 py-1.5 rounded-lg text-xs font-semibold"
               style={{
                 background: "var(--db-primary)",
-                color: "var(--db-primary-text)",
+                color: "#ffffff",
                 opacity: parsing ? 0.5 : 1,
               }}
             >
@@ -183,6 +185,15 @@ export function ResumeSection({ resumeUrl, resumeFileName, onChange }: Props) {
             background: "var(--db-surface)",
             border: "2px dashed var(--db-border)",
             cursor: "pointer",
+            transition: "all 0.2s ease",
+          }}
+          onMouseEnter={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--db-primary)";
+            (e.currentTarget as HTMLButtonElement).style.background = "var(--db-primary-10)";
+          }}
+          onMouseLeave={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--db-border)";
+            (e.currentTarget as HTMLButtonElement).style.background = "var(--db-surface)";
           }}
         >
           <span
@@ -219,7 +230,7 @@ export function ResumeSection({ resumeUrl, resumeFileName, onChange }: Props) {
             <p className="text-xs font-semibold" style={{ color: "#10b981" }}>
               {fillResult.count} field{fillResult.count !== 1 ? "s" : ""} auto-filled from your resume
             </p>
-            <p className="text-xs mt-0.5" style={{ ...MONO, color: "var(--db-text-muted)", lineHeight: 1.5, overflowWrap: "break-word", wordBreak: "break-word" }}>
+            <p className="text-xs mt-0.5 font-medium" style={{ color: "var(--db-text-muted)", lineHeight: 1.5, overflowWrap: "break-word", wordBreak: "break-word" }}>
               {fillResult.fields.join(" · ")}
             </p>
             <p className="text-xs mt-1.5" style={{ color: "var(--db-text-muted)" }}>
