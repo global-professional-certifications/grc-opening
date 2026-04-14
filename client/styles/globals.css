@@ -155,10 +155,11 @@ body {
 
 /* ─── UTILITY CLASSES ──────────────────────────────────── */
 .auth-layout {
-  height: 100vh;
-  overflow: hidden;
+  min-height: 100vh;
   display: grid;
   grid-template-columns: 3fr 2fr; /* 60% Left, 40% Right */
+  background: white;
+  overflow-y: auto;
 }
 
 @media (max-width: 1024px) {
@@ -166,7 +167,6 @@ body {
     grid-template-columns: 1fr;
     height: auto;
     min-height: 100vh;
-    overflow: visible;
   }
 }
 

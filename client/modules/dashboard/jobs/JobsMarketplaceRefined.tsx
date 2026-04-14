@@ -40,21 +40,19 @@ type DiscoveryResponse = {
 
 type SupportedCurrency = "USD" | "EUR" | "GBP" | "INR" | "CAD" | "AUD";
 
-const SYNE = { fontFamily: "'Syne', sans-serif" };
-const MANROPE = { fontFamily: "'Manrope', sans-serif" };
+const POPPINS = { fontFamily: "'Poppins', sans-serif" };
 const MONO = { fontFamily: "'JetBrains Mono', monospace" };
 const PAGE_SIZE = 4;
-const TEAL = "#00A896";
-const TEAL_SOFT = "#00A896";
-const SURFACE = "#f6fbff";
-const CARD = "#ffffff";
-const PANEL = "#eef5fb";
-const INSET = "#f9fcff";
-const BORDER = "#d8e6f2";
-const TEXT_PRIMARY = "#16263d";
-const TEXT_SECONDARY = "#647d96";
-const TEXT_MUTED = "#8091a5";
-const AMBER = "#f4b11a";
+
+// Brand Colors
+const PRIMARY = "var(--db-primary)";
+const SURFACE = "var(--db-bg)";
+const CARD = "var(--db-card)";
+const BORDER = "var(--db-border)";
+const TEXT_PRIMARY = "var(--db-text)";
+const TEXT_SECONDARY = "var(--db-text-secondary)";
+const TEXT_MUTED = "var(--db-text-muted)";
+const AMBER = "#f59e0b";
 const CURRENCY_RATES: Record<SupportedCurrency, number> = {
   USD: 1,
   EUR: 0.92,
@@ -457,11 +455,11 @@ function formatSalary(value: number, currency: SupportedCurrency): string {
 function DotToggle({ active }: { active: boolean }) {
   return (
     <span
-      className="inline-flex h-[14px] w-[14px] shrink-0 rounded-full items-center justify-center transition-all duration-200 hover:shadow-[0_0_0_4px_rgba(0,168,150,0.15)]"
+      className="inline-flex h-[14px] w-[14px] shrink-0 rounded-full items-center justify-center transition-all duration-200"
       style={{
-        background: active ? TEAL : "#ffffff",
-        border: active ? "none" : "1px solid #bfd0df",
-        boxShadow: active ? "0 0 0 4px rgba(19, 213, 205, 0.08)" : "none",
+        background: active ? PRIMARY : "transparent",
+        border: active ? "none" : `1px solid ${BORDER}`,
+        boxShadow: active ? "0 0 0 4px var(--db-primary-10)" : "none",
       }}
     />
   );
@@ -480,7 +478,7 @@ function SearchField({
 }) {
   return (
     <label className="flex min-w-0 items-center gap-3">
-      <span className="material-symbols-outlined shrink-0" style={{ fontSize: 22, color: TEAL_SOFT }}>
+      <span className="material-symbols-outlined shrink-0" style={{ fontSize: 22, color: PRIMARY }}>
         {icon}
       </span>
       <input
@@ -488,7 +486,7 @@ function SearchField({
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         className="w-full bg-transparent text-[0.95rem] outline-none"
-        style={{ color: TEXT_PRIMARY, ...MANROPE }}
+        style={{ color: TEXT_PRIMARY, ...POPPINS }}
       />
     </label>
   );
@@ -513,7 +511,7 @@ function JobCard({ job, selectedCurrency }: { job: DiscoveryJob; selectedCurrenc
               color: "#2c3a4f",
               fontWeight: 700,
               fontSize: "1rem",
-              ...SYNE,
+              ...POPPINS,
             }}
           >
             {job.companyLogoText}
@@ -521,11 +519,11 @@ function JobCard({ job, selectedCurrency }: { job: DiscoveryJob; selectedCurrenc
 
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-[0.98rem] font-bold" style={{ color: TEAL_SOFT }}>
+              <span className="text-[0.98rem] font-bold" style={{ color: PRIMARY }}>
                 {job.companyName}
               </span>
               {job.verified ? (
-                <span className="material-symbols-outlined" style={{ fontSize: 17, color: TEAL }}>
+                <span className="material-symbols-outlined" style={{ fontSize: 17, color: PRIMARY }}>
                   verified
                 </span>
               ) : null}
@@ -533,7 +531,7 @@ function JobCard({ job, selectedCurrency }: { job: DiscoveryJob; selectedCurrenc
 
             <h3
               className="mt-1 text-[1.42rem] leading-tight md:text-[1.55rem]"
-              style={{ color: TEXT_PRIMARY, fontWeight: 700, ...SYNE }}
+              style={{ color: TEXT_PRIMARY, fontWeight: 700, ...POPPINS }}
             >
               {job.title}
             </h3>
@@ -564,9 +562,9 @@ function JobCard({ job, selectedCurrency }: { job: DiscoveryJob; selectedCurrenc
                   key={tag}
                   className="rounded-full px-2.5 py-1 text-[0.64rem] uppercase tracking-[0.16em]"
                   style={{
-                    background: "#effcfc",
-                    border: "1px solid #bceeed",
-                    color: TEAL,
+                    background: "var(--db-primary-10)",
+                    border: "1px solid var(--db-primary-20)",
+                    color: PRIMARY,
                     fontWeight: 700,
                     ...MONO,
                   }}
@@ -579,13 +577,13 @@ function JobCard({ job, selectedCurrency }: { job: DiscoveryJob; selectedCurrenc
         </div>
 
         <div className="lg:min-w-[208px] lg:text-right">
-          <div className="text-[1.4rem]" style={{ color: "#24364d", fontWeight: 700, ...SYNE }}>
+          <div className="text-[1.4rem]" style={{ color: TEXT_PRIMARY, fontWeight: 700, ...POPPINS }}>
             {formatSalary(job.salaryMin, selectedCurrency)} - {formatSalary(job.salaryMax, selectedCurrency)}
           </div>
           <div
             className="mt-1 text-[0.68rem] uppercase tracking-[0.14em]"
             style={{
-              color: job.applicationWindowLabel.toLowerCase().includes("open") ? TEAL_SOFT : AMBER,
+              color: job.applicationWindowLabel.toLowerCase().includes("open") ? PRIMARY : AMBER,
               fontWeight: 700,
               ...MONO,
             }}
@@ -595,12 +593,12 @@ function JobCard({ job, selectedCurrency }: { job: DiscoveryJob; selectedCurrenc
 
           <a
             href={job.applyUrl}
-            className="mt-5 inline-flex items-center justify-center gap-2 rounded-full px-7 py-3 text-[0.95rem] transition-all hover:scale-105 active:scale-95"
+            className="mt-5 inline-flex items-center justify-center gap-2 rounded-full px-7 py-3 text-[0.95rem] transition-all hover:scale-105 active:scale-95 db-btn-primary"
             style={{
-              background: TEAL,
-              color: "#05181d",
+              background: PRIMARY,
+              color: "var(--db-primary-text)",
               fontWeight: 800,
-              boxShadow: "0 12px 24px rgba(19, 213, 205, 0.18)",
+              boxShadow: "0 12px 24px var(--db-primary-20)",
             }}
           >
             Apply Now
@@ -630,7 +628,7 @@ function JobGridCard({ job, selectedCurrency }: { job: DiscoveryJob; selectedCur
             color: "#2c3a4f",
             fontWeight: 700,
             fontSize: "0.9rem",
-            ...SYNE,
+            ...POPPINS,
           }}
         >
           {job.companyLogoText}
@@ -638,8 +636,8 @@ function JobGridCard({ job, selectedCurrency }: { job: DiscoveryJob; selectedCur
         <div
           className="rounded-full px-2.5 py-1 text-[0.6rem] uppercase tracking-[0.12em]"
           style={{
-            background: job.applicationWindowLabel.toLowerCase().includes("open") ? "rgba(0, 168, 150, 0.08)" : "rgba(244, 177, 26, 0.08)",
-            color: job.applicationWindowLabel.toLowerCase().includes("open") ? TEAL_SOFT : AMBER,
+            background: job.applicationWindowLabel.toLowerCase().includes("open") ? "var(--db-primary-10)" : "rgba(244, 177, 26, 0.08)",
+            color: job.applicationWindowLabel.toLowerCase().includes("open") ? PRIMARY : AMBER,
             fontWeight: 700,
             ...MONO,
           }}
@@ -650,17 +648,17 @@ function JobGridCard({ job, selectedCurrency }: { job: DiscoveryJob; selectedCur
 
       <div className="mt-5 grow">
         <div className="flex items-center gap-1.5">
-          <span className="text-[0.88rem] font-bold" style={{ color: TEAL_SOFT }}>
+          <span className="text-[0.88rem] font-bold" style={{ color: PRIMARY }}>
             {job.companyName}
           </span>
           {job.verified && (
-            <span className="material-symbols-outlined" style={{ fontSize: 16, color: TEAL }}>
+            <span className="material-symbols-outlined" style={{ fontSize: 16, color: PRIMARY }}>
               verified
             </span>
           )}
         </div>
 
-        <h3 className="mt-1 text-[1.25rem] leading-snug" style={{ color: TEXT_PRIMARY, fontWeight: 700, ...SYNE }}>
+        <h3 className="mt-1 text-[1.25rem] leading-snug" style={{ color: TEXT_PRIMARY, fontWeight: 700, ...POPPINS }}>
           {job.title}
         </h3>
 
@@ -683,9 +681,9 @@ function JobGridCard({ job, selectedCurrency }: { job: DiscoveryJob; selectedCur
               key={tag}
               className="rounded-full px-2 py-0.5 text-[0.58rem] uppercase tracking-[0.14em]"
               style={{
-                background: "#f0f9f9",
-                border: "1px solid #c8eded",
-                color: TEAL,
+                background: "var(--db-primary-10)",
+                border: "1px solid var(--db-primary-20)",
+                color: PRIMARY,
                 fontWeight: 700,
                 ...MONO,
               }}
@@ -698,17 +696,17 @@ function JobGridCard({ job, selectedCurrency }: { job: DiscoveryJob; selectedCur
 
       <div className="mt-6 border-t pt-5" style={{ borderColor: BORDER }}>
         <div className="flex items-center justify-between">
-          <div className="text-[1.15rem]" style={{ color: TEXT_PRIMARY, fontWeight: 700, ...SYNE }}>
+          <div className="text-[1.15rem]" style={{ color: TEXT_PRIMARY, fontWeight: 700, ...POPPINS }}>
             {formatSalary(job.salaryMin, selectedCurrency)}
           </div>
           <a
             href={job.applyUrl}
-            className="inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-[0.85rem] transition-all hover:scale-105 active:scale-95"
+            className="inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-[0.85rem] transition-all hover:scale-105 active:scale-95 db-btn-primary"
             style={{
-              background: TEAL,
-              color: "#05181d",
+              background: PRIMARY,
+              color: "var(--db-primary-text)",
               fontWeight: 800,
-              boxShadow: "0 8px 16px rgba(19, 213, 205, 0.15)",
+              boxShadow: "0 8px 16px var(--db-primary-20)",
             }}
           >
             Apply
@@ -807,7 +805,7 @@ export function JobsMarketplaceRefined() {
     : ["1", "2", "3", "...", String(pageCount)];
 
   return (
-    <section className="space-y-10" style={MANROPE}>
+    <section className="space-y-10" style={POPPINS}>
       <div
         className="overflow-hidden rounded-[34px] border"
         style={{
@@ -834,8 +832,8 @@ export function JobsMarketplaceRefined() {
               <button
                 type="button"
                 aria-label="Search jobs"
-                className="inline-flex h-[50px] w-[50px] items-center justify-center justify-self-center rounded-full transition-transform hover:scale-110 active:scale-95 md:h-[54px] md:w-[54px] md:justify-self-end"
-                style={{ background: TEAL, color: "#04141a" }}
+                className="inline-flex h-[50px] w-[50px] items-center justify-center justify-self-center rounded-full transition-transform hover:scale-110 active:scale-95 md:h-[54px] md:w-[54px] md:justify-self-end db-btn-primary"
+                style={{ background: PRIMARY, color: "var(--db-primary-text)" }}
               >
                 <span className="material-symbols-outlined" style={{ fontSize: 28 }}>arrow_forward</span>
               </button>
@@ -843,7 +841,7 @@ export function JobsMarketplaceRefined() {
 
             <div className="flex items-center justify-between gap-5 xl:justify-end">
               <div className="text-right">
-                <div className="text-[0.74rem] uppercase tracking-[0.28em]" style={{ color: TEAL_SOFT, fontWeight: 700, ...MONO }}>
+                <div className="text-[0.74rem] uppercase tracking-[0.28em]" style={{ color: PRIMARY, fontWeight: 700, ...MONO }}>
                   Results
                 </div>
                 <div className="text-[1.03rem] font-semibold" style={{ color: TEXT_PRIMARY }}>
@@ -863,8 +861,8 @@ export function JobsMarketplaceRefined() {
                   onClick={() => setViewMode("list")}
                   className="inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-full transition-all"
                   style={{
-                    background: viewMode === "list" ? "rgba(18, 199, 191, 0.12)" : "transparent",
-                    color: viewMode === "list" ? TEAL : TEXT_SECONDARY,
+                    background: viewMode === "list" ? "var(--db-primary-10)" : "transparent",
+                    color: viewMode === "list" ? PRIMARY : TEXT_SECONDARY,
                   }}
                 >
                   <span className="material-symbols-outlined" style={{ fontSize: 20 }}>view_agenda</span>
@@ -874,8 +872,8 @@ export function JobsMarketplaceRefined() {
                   onClick={() => setViewMode("grid")}
                   className="inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-full transition-all"
                   style={{
-                    background: viewMode === "grid" ? "rgba(18, 199, 191, 0.12)" : "transparent",
-                    color: viewMode === "grid" ? TEAL : TEXT_SECONDARY,
+                    background: viewMode === "grid" ? "var(--db-primary-10)" : "transparent",
+                    color: viewMode === "grid" ? PRIMARY : TEXT_SECONDARY,
                   }}
                 >
                   <span className="material-symbols-outlined" style={{ fontSize: 20 }}>grid_view</span>
@@ -890,14 +888,14 @@ export function JobsMarketplaceRefined() {
             <aside
               className="rounded-[18px] border px-5 py-6"
               style={{
-                background: PANEL,
+                background: "var(--db-surface)",
                 borderColor: BORDER,
               }}
             >
               <div className="space-y-8">
                 <section>
                   <div className="flex items-center justify-between">
-                    <h3 className="text-[0.82rem] uppercase tracking-[0.24em]" style={{ color: TEAL_SOFT, fontWeight: 700, ...MONO }}>
+                    <h3 className="text-[0.82rem] uppercase tracking-[0.24em]" style={{ color: PRIMARY, fontWeight: 700, ...MONO }}>
                       Category
                     </h3>
                     <span className="material-symbols-outlined" style={{ color: TEXT_SECONDARY, fontSize: 18 }}>expand_more</span>
@@ -919,7 +917,7 @@ export function JobsMarketplaceRefined() {
 
                 <section>
                   <div className="flex items-center justify-between">
-                    <h3 className="text-[0.82rem] uppercase tracking-[0.24em]" style={{ color: TEAL_SOFT, fontWeight: 700, ...MONO }}>
+                    <h3 className="text-[0.82rem] uppercase tracking-[0.24em]" style={{ color: PRIMARY, fontWeight: 700, ...MONO }}>
                       Work Mode
                     </h3>
                     <span className="material-symbols-outlined" style={{ color: TEXT_SECONDARY, fontSize: 18 }}>expand_more</span>
@@ -934,9 +932,9 @@ export function JobsMarketplaceRefined() {
                           onClick={() => setSelectedWorkMode((current) => (current === mode ? "" : mode))}
                           className="rounded-full px-4 py-2 text-[0.77rem]"
                           style={{
-                            background: active ? TEAL : CARD,
-                            color: active ? "#04161a" : TEXT_PRIMARY,
-                            border: active ? "none" : "1px solid #cad9e7",
+                            background: active ? PRIMARY : "var(--db-surface)",
+                            color: active ? "var(--db-primary-text)" : TEXT_PRIMARY,
+                            border: active ? "none" : `1px solid ${BORDER}`,
                             fontWeight: 700,
                           }}
                         >
@@ -949,7 +947,7 @@ export function JobsMarketplaceRefined() {
 
                 <section>
                   <div className="flex items-center justify-between">
-                    <h3 className="text-[0.82rem] uppercase tracking-[0.24em]" style={{ color: TEAL_SOFT, fontWeight: 700, ...MONO }}>
+                    <h3 className="text-[0.82rem] uppercase tracking-[0.24em]" style={{ color: PRIMARY, fontWeight: 700, ...MONO }}>
                       Salary Range
                     </h3>
                     <span className="material-symbols-outlined" style={{ color: TEXT_SECONDARY, fontSize: 18 }}>expand_more</span>
@@ -963,9 +961,9 @@ export function JobsMarketplaceRefined() {
                           onClick={() => setSelectedCurrency(curr)}
                           className="rounded-lg px-2.5 py-1 text-[0.68rem] font-bold transition-all"
                           style={{
-                            background: selectedCurrency === curr ? TEAL : PANEL,
-                            color: selectedCurrency === curr ? "#04161a" : TEXT_SECONDARY,
-                            border: `1px solid ${selectedCurrency === curr ? TEAL : BORDER}`,
+                            background: selectedCurrency === curr ? PRIMARY : "var(--db-bg)",
+                            color: selectedCurrency === curr ? "var(--db-primary-text)" : TEXT_SECONDARY,
+                            border: `1px solid ${selectedCurrency === curr ? PRIMARY : BORDER}`,
                             ...MONO,
                           }}
                         >
@@ -981,9 +979,9 @@ export function JobsMarketplaceRefined() {
                       value={salaryCap}
                       onChange={(e) => setSalaryCap(Number(e.target.value))}
                       className="w-full"
-                      style={{ accentColor: TEAL }}
+                      style={{ accentColor: PRIMARY }}
                     />
-                    <div className="mt-5 grid grid-cols-3 gap-2 text-[0.66rem]" style={{ color: TEAL_SOFT, fontWeight: 700, ...MONO }}>
+                    <div className="mt-5 grid grid-cols-3 gap-2 text-[0.66rem]" style={{ color: PRIMARY, fontWeight: 700, ...MONO }}>
                       <span className="text-left">{formatSalary(data.filters.salaryRange.min, selectedCurrency)}</span>
                       <span className="text-center">{formatSalary(Math.max(salaryCap, data.filters.salaryRange.min), selectedCurrency)}</span>
                       <span className="text-right">{formatSalary(data.filters.salaryRange.max, selectedCurrency)}+</span>
@@ -993,7 +991,7 @@ export function JobsMarketplaceRefined() {
 
                 <section>
                   <div className="flex items-center justify-between">
-                    <h3 className="text-[0.82rem] uppercase tracking-[0.24em]" style={{ color: TEAL_SOFT, fontWeight: 700, ...MONO }}>
+                    <h3 className="text-[0.82rem] uppercase tracking-[0.24em]" style={{ color: PRIMARY, fontWeight: 700, ...MONO }}>
                       Experience Level
                     </h3>
                     <span className="material-symbols-outlined" style={{ color: TEXT_SECONDARY, fontSize: 18 }}>expand_more</span>
@@ -1018,12 +1016,12 @@ export function JobsMarketplaceRefined() {
             <button
               type="button"
               onClick={clearFilters}
-              className="group flex w-full items-center justify-center gap-3 rounded-full px-7 py-3.5 text-[0.8rem] uppercase tracking-[0.2em] transition-all hover:scale-[1.05] active:scale-95"
+              className="group flex w-full items-center justify-center gap-3 rounded-full px-7 py-3.5 text-[0.8rem] uppercase tracking-[0.2em] transition-all hover:scale-[1.05] active:scale-95 db-btn-primary"
               style={{
-                background: TEAL,
-                color: "#05181d",
+                background: PRIMARY,
+                color: "var(--db-primary-text)",
                 fontWeight: 800,
-                boxShadow: "0 12px 24px rgba(19, 213, 205, 0.18)",
+                boxShadow: "0 12px 24px var(--db-primary-20)",
                 ...MONO,
               }}
             >
@@ -1057,15 +1055,15 @@ export function JobsMarketplaceRefined() {
               <div
                 className="flex flex-col items-center justify-center rounded-[24px] border px-8 py-12 text-center"
                 style={{
-                  background: "linear-gradient(90deg, rgba(0, 168, 150, 0.12) 0%, rgba(0, 168, 150, 0.05) 100%)",
-                  borderColor: "rgba(0, 168, 150, 0.34)",
-                  color: TEAL,
+                  background: "var(--db-primary-10)",
+                  borderColor: "var(--db-primary-20)",
+                  color: PRIMARY,
                 }}
               >
                 <span className="material-symbols-outlined mb-3" style={{ fontSize: 48, opacity: 0.8 }}>
                   search_off
                 </span>
-                <div style={{ fontWeight: 700, fontSize: "1.1rem", ...SYNE }}>No matching jobs found</div>
+                <div style={{ fontWeight: 700, fontSize: "1.1rem", ...POPPINS }}>No matching jobs found</div>
                 <p className="mt-2 text-[0.92rem]" style={{ color: TEXT_SECONDARY, maxWidth: "300px" }}>
                   Try adjusting your filters or search keywords to find more opportunities.
                 </p>
@@ -1091,7 +1089,7 @@ export function JobsMarketplaceRefined() {
             style={{
               background: CARD,
               borderColor: BORDER,
-              color: TEAL_SOFT,
+              color: PRIMARY,
             }}
           >
             <span className="material-symbols-outlined">chevron_left</span>
@@ -1100,7 +1098,7 @@ export function JobsMarketplaceRefined() {
           <div
             className="flex items-center gap-2 rounded-full border px-3 py-2"
             style={{
-              background: PANEL,
+              background: "var(--db-surface)",
               borderColor: BORDER,
             }}
           >
@@ -1117,8 +1115,8 @@ export function JobsMarketplaceRefined() {
                   }}
                   className="h-10 w-10 rounded-full text-[0.95rem]"
                   style={{
-                    background: isCurrent ? TEAL : "transparent",
-                    color: isCurrent ? "#06171b" : TEXT_SECONDARY,
+                    background: isCurrent ? PRIMARY : "transparent",
+                    color: isCurrent ? "var(--db-primary-text)" : TEXT_SECONDARY,
                     fontWeight: isCurrent ? 800 : 700,
                   }}
                 >
@@ -1136,7 +1134,7 @@ export function JobsMarketplaceRefined() {
             style={{
               background: CARD,
               borderColor: BORDER,
-              color: TEAL_SOFT,
+              color: PRIMARY,
             }}
           >
             <span className="material-symbols-outlined">chevron_right</span>
@@ -1152,12 +1150,12 @@ export function JobsMarketplaceRefined() {
         }}
       >
         <div className="flex items-center gap-5">
-          <div className="flex h-12 w-12 items-center justify-center rounded-[14px]" style={{ background: TEAL, color: "#06161b" }}>
+          <div className="flex h-12 w-12 items-center justify-center rounded-[14px]" style={{ background: PRIMARY, color: "var(--db-primary-text)" }}>
             <span className="material-symbols-outlined">shield_person</span>
           </div>
           <div>
-            <div className="text-[1.1rem]" style={{ color: TEXT_PRIMARY, fontWeight: 700, ...SYNE }}>
-              GRC <span style={{ color: TEAL }}>Openings</span>
+            <div className="text-[1.1rem]" style={{ color: TEXT_PRIMARY, fontWeight: 700, ...POPPINS }}>
+              GRC <span style={{ color: PRIMARY }}>Openings</span>
             </div>
             <p className="mt-1 max-w-[620px] text-[0.96rem]" style={{ color: TEXT_SECONDARY }}>
               The leading niche job board for governance, risk, and compliance professionals worldwide.
@@ -1166,7 +1164,7 @@ export function JobsMarketplaceRefined() {
           </div>
         </div>
 
-        <div className="flex items-center gap-5" style={{ color: TEAL_SOFT }}>
+        <div className="flex items-center gap-5" style={{ color: PRIMARY }}>
           <span className="material-symbols-outlined">language</span>
           <span className="material-symbols-outlined">mail</span>
           <span className="material-symbols-outlined">hub</span>

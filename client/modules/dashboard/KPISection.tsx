@@ -100,12 +100,6 @@ function Card4() {
       </div>
       <div className="flex items-center justify-between">
         <h3 className="text-4xl font-bold tracking-tight">41%</h3>
-        <div className="relative w-12 h-12">
-          <svg className="w-full h-full -rotate-90" viewBox="0 0 64 64">
-            <circle cx="32" cy="32" r="28" fill="transparent" stroke="rgba(255, 255, 255, 0.1)" strokeWidth="6" />
-            <circle cx="32" cy="32" r="28" fill="transparent" stroke="#ffffff" strokeWidth="6" strokeDasharray="175" strokeDashoffset="103" strokeLinecap="round" />
-          </svg>
-        </div>
       </div>
       <p className="mt-4 text-xs opacity-70 font-medium tracking-tight">Top 15% among GRC candidates</p>
     </StatCard>

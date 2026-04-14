@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useEmployerJobs, EmployerJob } from "../../../contexts/EmployerJobsContext";
 
 const MONO = { fontFamily: "'JetBrains Mono', monospace" };
-const SYNE = { fontFamily: "'Syne', sans-serif" };
+const POPPINS = { fontFamily: "'Poppins', sans-serif" };
 
 const CATEGORY_LABELS: Record<string, string> = {
   audit:      'Internal Audit',
@@ -200,7 +200,7 @@ export function ActiveJobListings() {
         style={{ borderBottom: "1px solid var(--db-border)" }}
       >
         <div>
-          <h3 className="text-lg font-semibold" style={{ ...SYNE, color: "var(--db-text)" }}>
+          <h3 className="text-lg font-semibold" style={{ ...POPPINS, color: "var(--db-text)" }}>
             Active Job Listings
           </h3>
           <p className="text-xs mt-0.5" style={{ color: "var(--db-text-muted)" }}>
