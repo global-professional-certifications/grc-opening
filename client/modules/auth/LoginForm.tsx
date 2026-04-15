@@ -5,7 +5,7 @@ import { apiFetch } from "../../lib/api";
 import { setToken, setStoredUser, isFirstLogin, markVisited } from "../../lib/auth";
 import { useUser } from "../../contexts/UserContext";
 import { getDashboardPath, UserRole } from "../../lib/userRole";
-import { useSignIn } from "@clerk/nextjs";
+import { useSignIn, useAuth } from "@clerk/nextjs";
 
 interface LoginResponse {
   token: string;
@@ -28,6 +28,7 @@ export function LoginForm({ onRoleChange }: LoginFormProps) {
   const router = useRouter();
   const { setUser } = useUser();
   const { isLoaded, signIn, setActive } = useSignIn() as any;
+  const { getToken } = useAuth();
 
   const [activeRole, setActiveRole] = useState<"job_seeker" | "employer">("job_seeker");
   const [email, setEmail] = useState("");
@@ -45,7 +46,7 @@ export function LoginForm({ onRoleChange }: LoginFormProps) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!isLoaded) return;
+    if (!signIn) return;
 
     if (!email || !password) {
       setError("Please enter your email and password");
@@ -64,8 +65,8 @@ export function LoginForm({ onRoleChange }: LoginFormProps) {
       if (result.status === "complete") {
         await setActive({ session: result.createdSessionId });
         
-        // 2. Get the token for our backend sync/auth
-        const token = await result.createdSessionId ? (await result.client.sessions.find(s => s.id === result.createdSessionId)?.getToken()) : null;
+        // 2. Get the Clerk session token for our backend
+        const token = await getToken();
         
         if (token) {
            setToken(token);

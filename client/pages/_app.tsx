@@ -4,8 +4,20 @@ import { useState, useEffect } from 'react'
 import { UserProvider } from '../contexts/UserContext'
 import { DashboardThemeProvider } from '../contexts/DashboardThemeContext'
 import { EmployerJobsProvider } from '../contexts/EmployerJobsContext'
-import { ClerkProvider } from '@clerk/nextjs'
+import { ClerkProvider, useAuth } from '@clerk/nextjs'
 import { useRouter } from 'next/router'
+import { registerTokenGetter } from '../lib/api'
+
+// Sits inside ClerkProvider so useAuth() is available.
+// Registers Clerk's getToken so every apiFetch call gets a fresh JWT
+// instead of the stale copy in localStorage (Clerk tokens expire in ~60 s).
+function ClerkTokenRegistrar() {
+  const { getToken } = useAuth()
+  useEffect(() => {
+    registerTokenGetter(getToken)
+  }, [getToken])
+  return null
+}
 
 export default function App({ Component, pageProps }: AppProps) {
   const router = useRouter()
@@ -19,6 +31,7 @@ export default function App({ Component, pageProps }: AppProps) {
 
   return (
     <ClerkProvider publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}>
+      <ClerkTokenRegistrar />
       <UserProvider>
         <EmployerJobsProvider>
           <DashboardThemeProvider>
