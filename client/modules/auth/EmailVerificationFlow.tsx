@@ -6,6 +6,7 @@ import { apiFetch } from "../../lib/api";
 import { setToken, setStoredUser, markVisited } from "../../lib/auth";
 import { useUser } from "../../contexts/UserContext";
 import { getDashboardPath, UserRole } from "../../lib/userRole";
+import { useSignUp } from "@clerk/nextjs";
 
 // ─── Constants ───────────────────────────────────────────
 const RESEND_COOLDOWN = 44; // seconds (issue #42)
@@ -191,6 +192,7 @@ function OtpScreen({ email, onSuccess }: OtpScreenProps) {
   const [resendCooldown, setResendCooldown] = useState(RESEND_COOLDOWN);
   const [resending, setResending] = useState(false);
   const [resendMessage, setResendMessage] = useState("");
+  const { isLoaded, signUp, setActive } = useSignUp() as any;
 
   // Countdown timer
   useEffect(() => {
@@ -207,6 +209,7 @@ function OtpScreen({ email, onSuccess }: OtpScreenProps) {
 
   async function handleVerify(e: React.FormEvent) {
     e.preventDefault();
+    if (!isLoaded) return;
     if (otp.length < 6) {
       setError("Please enter all 6 digits.");
       return;
@@ -214,37 +217,64 @@ function OtpScreen({ email, onSuccess }: OtpScreenProps) {
     setError("");
     setLoading(true);
     try {
-      const res = await apiFetch<VerifyResponse>("/auth/verify-email", {
-        method: "POST",
-        body: JSON.stringify({ email, otp }),
+      // 1. Attempt Clerk verification
+      const completeSignUp = await signUp.attemptEmailAddressVerification({
+        code: otp,
       });
-      onSuccess(res);
+
+      if (completeSignUp.status !== "complete") {
+        console.error("Clerk signup not complete:", completeSignUp);
+        throw new Error("Verification incomplete. Check Clerk dashboard for status.");
+      }
+
+      await setActive({ session: completeSignUp.createdSessionId });
+
+      // 2. Get the token for our backend sync
+      const token = await completeSignUp.createdSessionId ? (await completeSignUp.client.sessions.find(s => s.id === completeSignUp.createdSessionId)?.getToken()) : null;
+
+      // 3. Trigger backend sync with profile data from sessionStorage
+      const pendingProfileRaw = sessionStorage.getItem("grc_pending_profile");
+      const pendingProfile = pendingProfileRaw ? JSON.parse(pendingProfileRaw) : {};
+
+      const syncRes = await apiFetch<VerifyResponse>("/auth/sync", {
+        method: "POST",
+        token: token || undefined,
+        body: JSON.stringify({ 
+          clerkId: completeSignUp.createdUserId,
+          email, 
+          ...pendingProfile 
+        }),
+      });
+
+      // 4. Cleanup and succeed
+      sessionStorage.removeItem("grc_pending_profile");
+      sessionStorage.removeItem("grc_pending_verification_email");
+      onSuccess({ ...syncRes, token: token || "" });
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Invalid or expired code.");
+      const msg = err instanceof Error ? (err as any).errors?.[0]?.message || err.message : "Invalid or expired code.";
+      setError(msg);
     } finally {
       setLoading(false);
     }
   }
 
   const handleResend = useCallback(async () => {
-    if (resendCooldown > 0 || resending) return;
+    if (!isLoaded || resendCooldown > 0 || resending) return;
     setResending(true);
     setResendMessage("");
     setError("");
     try {
-      await apiFetch("/auth/resend-verification", {
-        method: "POST",
-        body: JSON.stringify({ email }),
-      });
+      await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
       setResendMessage("A new code has been sent to your inbox.");
       setOtp("");
       setResendCooldown(RESEND_COOLDOWN);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Could not resend code. Try again.");
+      const msg = err instanceof Error ? (err as any).errors?.[0]?.message || err.message : "Could not resend code. Try again.";
+      setError(msg);
     } finally {
       setResending(false);
     }
-  }, [resendCooldown, resending, email]);
+  }, [isLoaded, resendCooldown, resending, email, signUp]);
 
   const maskedEmail = email.replace(/(.{2}).+(@.+)/, "$1••••$2");
 

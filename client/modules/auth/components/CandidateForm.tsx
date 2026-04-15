@@ -3,6 +3,7 @@ import { useRouter } from "next/router";
 import { ModernInput } from "../../../components/ui/ModernInput";
 import { PasswordStrength } from "./PasswordStrength";
 import { apiFetch } from "../../../lib/api";
+import { useSignUp } from "@clerk/nextjs";
 
 interface RegisterResponse {
   message: string;
@@ -59,6 +60,7 @@ function validate(data: Fields): Partial<Fields> {
 
 export function CandidateForm() {
   const router = useRouter();
+  const { isLoaded, signUp } = useSignUp() as any;
   const [fields, setFields] = useState<Fields>(EMPTY);
   const [errors, setErrors] = useState<Partial<Fields>>({});
   const [submitted, setSubmitted] = useState(false);
@@ -72,6 +74,8 @@ export function CandidateForm() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!isLoaded) return;
+
     setSubmitted(true);
     const errs = validate(fields);
     setErrors(errs);
@@ -79,30 +83,30 @@ export function CandidateForm() {
 
     setLoading(true);
     try {
-      const res = await apiFetch<RegisterResponse>("/auth/register", {
-        method: "POST",
-        body: JSON.stringify({
-          email: fields.email,
-          password: fields.password,
-          confirmPassword: fields.confirmPassword,
-          role: "JOB_SEEKER",
-          firstName: fields.firstName,
-          middleName: fields.middleName,
-          lastName: fields.lastName,
-          professionalTitle: fields.professionalTitle,
-          country: fields.country,
-        }),
+      // 1. Clerk Sign Up
+      await signUp.create({
+        emailAddress: fields.email,
+        password: fields.password,
       });
-      if (res.requiresEmailVerification) {
-        sessionStorage.setItem("grc_pending_verification_email", fields.email);
-        router.push("/verify-email");
-        return;
-      }
 
-      sessionStorage.removeItem("grc_pending_verification_email");
-      router.push(`/auth/login?verified=true&email=${encodeURIComponent(fields.email)}`);
+      // 2. Prepare email verification
+      await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
+
+      // 3. Store profile data for the sync step after verification
+      sessionStorage.setItem("grc_pending_profile", JSON.stringify({
+        role: "JOB_SEEKER",
+        firstName: fields.firstName,
+        middleName: fields.middleName,
+        lastName: fields.lastName,
+        professionalTitle: fields.professionalTitle,
+        country: fields.country,
+      }));
+      sessionStorage.setItem("grc_pending_verification_email", fields.email);
+
+      // 4. Redirect to our custom verify-email page
+      router.push("/verify-email");
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Registration failed.";
+      const msg = err instanceof Error ? (err as any).errors?.[0]?.message || err.message : "Registration failed.";
       setErrors(prev => ({ ...prev, email: msg }));
     } finally {
       setLoading(false);
