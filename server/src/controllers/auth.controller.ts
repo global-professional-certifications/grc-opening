@@ -3,10 +3,12 @@ import { PrismaClient, Role } from '@prisma/client';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
+import { createClerkClient } from '@clerk/clerk-sdk-node';
 import { sendOtpEmail, sendPasswordResetEmail } from '../services/email.service';
 import { shouldBypassEmailVerificationForEmail } from '../config/dev-auth';
 
 const prisma = new PrismaClient();
+const clerkClient = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY });
 
 const OTP_TTL_MS = 10 * 60 * 1000;         // 10 minutes
 const OTP_RESEND_COOLDOWN_MS = 44 * 1000;  // 44 seconds (issue #42)
@@ -462,6 +464,118 @@ export const resetPassword = async (req: Request, res: Response): Promise<void> 
     res.status(200).json({ message: 'Password reset successfully. You can now log in.' });
   } catch (error) {
     console.error('Reset password error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+// ─────────────────────────────────────────────────────────
+// POST /auth/sync   { clerkId, email, role, ...profileData }
+// ─────────────────────────────────────────────────────────
+export const syncClerkUser = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { 
+      clerkId, role, email: rawEmail,
+      firstName, middleName, lastName, country, professionalTitle,
+      companyName, representativeFirstName, representativeMiddleName, representativeLastName, industry, companySize, website
+    } = req.body;
+
+    const email = (rawEmail as string)?.trim().toLowerCase();
+    const requestedRole = role as Role;
+
+    if (!clerkId || !email || !requestedRole) {
+      res.status(400).json({ error: 'Missing required fields (clerkId, email, role)' });
+      return;
+    }
+
+    // Verify token if provided (optional but safer)
+    const authHeader = req.headers.authorization;
+    if (authHeader) {
+      const token = authHeader.split(' ')[1];
+      try {
+        const decoded = await clerkClient.verifyToken(token);
+        if (decoded.sub !== clerkId) {
+          res.status(401).json({ error: 'Clerk ID mismatch' });
+          return;
+        }
+      } catch (err) {
+        res.status(401).json({ error: 'Invalid Clerk token' });
+        return;
+      }
+    }
+
+    // Atomic upsert of User and Profile
+    const user = await prisma.$transaction(async (tx) => {
+      let u = await tx.user.findUnique({ where: { clerkId } });
+      
+      if (!u) {
+        u = await tx.user.create({
+          data: { 
+            email, 
+            clerkId, 
+            role: requestedRole, 
+            emailVerified: true // If they reached here, Clerk verified them
+          },
+        });
+      }
+
+      if (requestedRole === Role.EMPLOYER) {
+        const existingProfile = await tx.employerProfile.findUnique({ where: { userId: u.id } });
+        if (!existingProfile) {
+          await tx.employerProfile.create({
+            data: { 
+              userId: u.id, 
+              companyName, 
+              representativeFirstName, 
+              representativeMiddleName, 
+              representativeLastName, 
+              industry, 
+              companySize, 
+              website 
+            },
+          });
+        }
+      } else if (requestedRole === Role.JOB_SEEKER) {
+        const existingProfile = await tx.seekerProfile.findUnique({ where: { userId: u.id } });
+        if (!existingProfile) {
+          await tx.seekerProfile.create({
+            data: { 
+              userId: u.id, 
+              firstName, 
+              middleName, 
+              lastName, 
+              country, 
+              headline: professionalTitle 
+            },
+          });
+        }
+      }
+
+      return u;
+    });
+
+    res.status(200).json({
+      message: 'User synced successfully',
+      user: { id: user.id, email: user.email, role: user.role }
+    });
+  } catch (error) {
+    console.error('Sync error:', error);
+    res.status(500).json({ error: 'Internal server error during sync' });
+  }
+};
+
+// ─────────────────────────────────────────────────────────
+// GET /auth/me
+// ─────────────────────────────────────────────────────────
+export const getMe = async (req: Request, res: Response): Promise<void> => {
+  try {
+    // req.user is set by the authenticateClerk middleware
+    if (!req.user) {
+      res.status(401).json({ error: 'Not authenticated' });
+      return;
+    }
+    
+    res.status(200).json({ user: req.user });
+  } catch (error) {
+    console.error('getMe error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 };

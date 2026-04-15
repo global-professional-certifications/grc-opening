@@ -5,6 +5,7 @@ import { apiFetch } from "../../lib/api";
 import { setToken, setStoredUser, isFirstLogin, markVisited } from "../../lib/auth";
 import { useUser } from "../../contexts/UserContext";
 import { getDashboardPath, UserRole } from "../../lib/userRole";
+import { useSignIn } from "@clerk/nextjs";
 
 interface LoginResponse {
   token: string;
@@ -26,6 +27,7 @@ interface LoginFormProps {
 export function LoginForm({ onRoleChange }: LoginFormProps) {
   const router = useRouter();
   const { setUser } = useUser();
+  const { isLoaded, signIn, setActive } = useSignIn() as any;
 
   const [activeRole, setActiveRole] = useState<"job_seeker" | "employer">("job_seeker");
   const [email, setEmail] = useState("");
@@ -43,6 +45,8 @@ export function LoginForm({ onRoleChange }: LoginFormProps) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!isLoaded) return;
+
     if (!email || !password) {
       setError("Please enter your email and password");
       return;
@@ -51,47 +55,62 @@ export function LoginForm({ onRoleChange }: LoginFormProps) {
     setLoading(true);
 
     try {
-      const res = await apiFetch<LoginResponse>("/auth/login", {
-        method: "POST",
-        body: JSON.stringify({ 
-          email, 
-          password, 
-          role: activeRole === "employer" ? "EMPLOYER" : "JOB_SEEKER" 
-        }),
+      // 1. Clerk Sign In
+      const result = await signIn.create({
+        identifier: email,
+        password,
       });
 
-      setToken(res.token);
-
-      let firstName = "";
-      let lastName = "";
-      let headline = "";
-
-      try {
-        if (res.user.role === "JOB_SEEKER") {
-          const profileRes = await apiFetch<SeekerProfileResponse>("/profile/seeker");
-          firstName = profileRes.profile.firstName;
-          lastName = profileRes.profile.lastName;
-          headline = profileRes.profile.headline ?? "";
-        } else if (res.user.role === "EMPLOYER") {
-          const profileRes = await apiFetch<EmployerProfileResponse>("/profile/employer");
-          firstName = profileRes.profile.companyName;
+      if (result.status === "complete") {
+        await setActive({ session: result.createdSessionId });
+        
+        // 2. Get the token for our backend sync/auth
+        const token = await result.createdSessionId ? (await result.client.sessions.find(s => s.id === result.createdSessionId)?.getToken()) : null;
+        
+        if (token) {
+           setToken(token);
         }
-      } catch {
-        firstName = email.split("@")[0];
-      }
+        
+        // 3. Fetch the logged-in user from our backend to get role and verify DB sync
+        const meRes = await apiFetch<{ user: { id: string; role: string; email_verified: boolean } }>("/auth/me");
+        const dbUser = { 
+          id: meRes.user.id,
+          role: meRes.user.role,
+          emailVerified: meRes.user.email_verified,
+          email 
+        };
 
-      const storedUser = { ...res.user, firstName, lastName, headline };
-      setUser(storedUser);
-      setStoredUser(storedUser);
+        let firstName = "";
+        let lastName = "";
+        let headline = "";
 
-      const roleEnum = (res.user.role === "EMPLOYER" ? "employer" : "job_seeker") as UserRole;
-      import("../../lib/userRole").then(lib => lib.saveRole(roleEnum));
+        try {
+          if (dbUser.role === "JOB_SEEKER") {
+            const profileRes = await apiFetch<SeekerProfileResponse>("/profile/seeker");
+            firstName = profileRes.profile.firstName;
+            lastName = profileRes.profile.lastName;
+            headline = profileRes.profile.headline ?? "";
+          } else if (dbUser.role === "EMPLOYER") {
+            const profileRes = await apiFetch<EmployerProfileResponse>("/profile/employer");
+            firstName = profileRes.profile.companyName;
+          }
+        } catch {
+          firstName = email.split("@")[0];
+        }
 
-      if (isFirstLogin(res.user.id)) {
-        markVisited(res.user.id);
-        router.push(roleEnum === "employer" ? "/employer/profile" : "/dashboard/profile");
-      } else {
-        router.push(getDashboardPath(roleEnum));
+        const storedUser = { ...dbUser, firstName, lastName, headline };
+        setUser(storedUser);
+        setStoredUser(storedUser);
+
+        const roleEnum = (dbUser.role === "EMPLOYER" ? "employer" : "job_seeker") as UserRole;
+        import("../../lib/userRole").then(lib => lib.saveRole(roleEnum));
+
+        if (isFirstLogin(dbUser.id)) {
+          markVisited(dbUser.id);
+          router.push(roleEnum === "employer" ? "/employer/profile" : "/dashboard/profile");
+        } else {
+          router.push(getDashboardPath(roleEnum));
+        }
       }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Login failed. Please check your credentials.");

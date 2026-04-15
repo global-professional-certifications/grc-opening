@@ -10,6 +10,7 @@
     "prisma": "prisma"
   },
   "dependencies": {
+    "@clerk/clerk-sdk-node": "^4.13.23",
     "@prisma/client": "^5.22.0",
     "@prisma/config": "^7.7.0",
     "@types/multer": "^2.1.0",
