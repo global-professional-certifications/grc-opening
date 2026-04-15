@@ -6,7 +6,7 @@ import { apiFetch } from "../../lib/api";
 import { setToken, setStoredUser, markVisited } from "../../lib/auth";
 import { useUser } from "../../contexts/UserContext";
 import { getDashboardPath, UserRole } from "../../lib/userRole";
-import { useSignUp } from "@clerk/nextjs";
+import { useSignUp, useAuth } from "@clerk/nextjs";
 
 // ─── Constants ───────────────────────────────────────────
 const RESEND_COOLDOWN = 44; // seconds (issue #42)
@@ -193,6 +193,7 @@ function OtpScreen({ email, onSuccess }: OtpScreenProps) {
   const [resending, setResending] = useState(false);
   const [resendMessage, setResendMessage] = useState("");
   const { isLoaded, signUp, setActive } = useSignUp() as any;
+  const { getToken } = useAuth();
 
   // Countdown timer
   useEffect(() => {
@@ -209,7 +210,7 @@ function OtpScreen({ email, onSuccess }: OtpScreenProps) {
 
   async function handleVerify(e: React.FormEvent) {
     e.preventDefault();
-    if (!isLoaded) return;
+    if (!signUp) return;
     if (otp.length < 6) {
       setError("Please enter all 6 digits.");
       return;
@@ -229,8 +230,9 @@ function OtpScreen({ email, onSuccess }: OtpScreenProps) {
 
       await setActive({ session: completeSignUp.createdSessionId });
 
-      // 2. Get the token for our backend sync
-      const token = await completeSignUp.createdSessionId ? (await completeSignUp.client.sessions.find(s => s.id === completeSignUp.createdSessionId)?.getToken()) : null;
+      // 2. Get the Clerk session token for our backend
+      const token = await getToken();
+      if (!token) throw new Error("Failed to retrieve session token. Please try again.");
 
       // 3. Trigger backend sync with profile data from sessionStorage
       const pendingProfileRaw = sessionStorage.getItem("grc_pending_profile");
@@ -238,18 +240,18 @@ function OtpScreen({ email, onSuccess }: OtpScreenProps) {
 
       const syncRes = await apiFetch<VerifyResponse>("/auth/sync", {
         method: "POST",
-        token: token || undefined,
-        body: JSON.stringify({ 
+        token,
+        body: JSON.stringify({
           clerkId: completeSignUp.createdUserId,
-          email, 
-          ...pendingProfile 
+          email,
+          ...pendingProfile
         }),
       });
 
       // 4. Cleanup and succeed
       sessionStorage.removeItem("grc_pending_profile");
       sessionStorage.removeItem("grc_pending_verification_email");
-      onSuccess({ ...syncRes, token: token || "" });
+      onSuccess({ ...syncRes, token });
     } catch (err: unknown) {
       const msg = err instanceof Error ? (err as any).errors?.[0]?.message || err.message : "Invalid or expired code.";
       setError(msg);

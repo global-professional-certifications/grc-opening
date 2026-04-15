@@ -320,6 +320,11 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
+    if (!user.passwordHash) {
+      res.status(401).json({ error: 'This account uses a different sign-in method. Please sign in with Clerk.' });
+      return;
+    }
+
     const passwordMatch = await bcrypt.compare(password, user.passwordHash);
     if (!passwordMatch) {
       res.status(401).json({ error: 'Invalid credentials' });
@@ -554,7 +559,7 @@ export const syncClerkUser = async (req: Request, res: Response): Promise<void> 
 
     res.status(200).json({
       message: 'User synced successfully',
-      user: { id: user.id, email: user.email, role: user.role }
+      user: { id: user.id, email: user.email, role: user.role, emailVerified: user.emailVerified }
     });
   } catch (error) {
     console.error('Sync error:', error);

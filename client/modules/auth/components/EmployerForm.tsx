@@ -2,14 +2,7 @@ import React, { useState } from "react";
 import { useRouter } from "next/router";
 import { ModernInput } from "../../../components/ui/ModernInput";
 import { PasswordStrength } from "./PasswordStrength";
-import { apiFetch } from "../../../lib/api";
 import { useSignUp } from "@clerk/nextjs";
-
-interface RegisterResponse {
-  message: string;
-  requiresEmailVerification: boolean;
-  emailVerified: boolean;
-}
 
 const INDUSTRIES = [
   { value: "", label: "Select Industry" },
@@ -88,7 +81,7 @@ function validate(data: Fields): Partial<Fields> {
 
 export function EmployerForm() {
   const router = useRouter();
-  const { isLoaded, signUp } = useSignUp() as any;
+  const { signUp } = useSignUp() as any;
   const [fields, setFields] = useState<Fields>(EMPTY);
   const [errors, setErrors] = useState<Partial<Fields>>({});
   const [submitted, setSubmitted] = useState(false);
@@ -102,7 +95,7 @@ export function EmployerForm() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!isLoaded) return;
+    if (!signUp) return;
 
     setSubmitted(true);
     const errs = validate(fields);
