@@ -19,7 +19,9 @@ export async function apiFetch<T>(path: string, options?: RequestInit & { token?
   if (!actualToken) {
     if (_clerkTokenGetter) {
       actualToken = await _clerkTokenGetter();
-    } else {
+    }
+    // Always fall back to localStorage (used by local auth when Clerk is not active)
+    if (!actualToken) {
       actualToken = getStoredToken();
     }
   }

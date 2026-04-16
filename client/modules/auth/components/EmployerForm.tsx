@@ -1,8 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { ModernInput } from "../../../components/ui/ModernInput";
 import { PasswordStrength } from "./PasswordStrength";
-import { useSignUp } from "@clerk/nextjs";
+import { setToken, setStoredUser } from "../../../lib/auth";
+import { useUser } from "../../../contexts/UserContext";
+import { UserRole } from "../../../lib/userRole";
 
 const INDUSTRIES = [
   { value: "", label: "Select Industry" },
@@ -81,11 +83,12 @@ function validate(data: Fields): Partial<Fields> {
 
 export function EmployerForm() {
   const router = useRouter();
-  const { signUp } = useSignUp() as any;
+  const { setUser } = useUser();
   const [fields, setFields] = useState<Fields>(EMPTY);
   const [errors, setErrors] = useState<Partial<Fields>>({});
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
+
 
   function set(key: keyof Fields, value: string) {
     const next = { ...fields, [key]: value };
@@ -95,7 +98,6 @@ export function EmployerForm() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!signUp) return;
 
     setSubmitted(true);
     const errs = validate(fields);
@@ -104,32 +106,48 @@ export function EmployerForm() {
 
     setLoading(true);
     try {
-      // 1. Clerk Sign Up
-      await signUp.create({
-        emailAddress: fields.workEmail,
-        password: fields.password,
+      // 1. Call Local Auth API instead of Clerk
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/local/register-employer`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: fields.workEmail,
+          password: fields.password,
+          companyName: fields.companyName,
+          firstName: fields.firstName,
+          middleName: fields.middleName,
+          lastName: fields.lastName,
+          industry: fields.industry,
+          companySize: fields.companySize,
+        }),
       });
 
-      // 2. Prepare email verification
-      await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Registration failed");
 
-      // 3. Store profile data for the sync step after verification
-      sessionStorage.setItem("grc_pending_profile", JSON.stringify({
-        role: "EMPLOYER",
-        companyName: fields.companyName,
-        representativeFirstName: fields.firstName,
-        representativeMiddleName: fields.middleName,
-        representativeLastName: fields.lastName,
-        industry: fields.industry,
-        companySize: fields.companySize,
-      }));
-      sessionStorage.setItem("grc_pending_verification_email", fields.workEmail);
+      // 2. Store the local token & initialize auth bridge
+      localStorage.setItem("grc_local_token", data.token);
+      setToken(data.token); // Updates api.ts bridge
+      
+      const dbUser = { 
+        id: data.user.id,
+        role: data.user.role,
+        emailVerified: true,
+        email: fields.workEmail
+      };
 
-      // 4. Redirect to verify-email
-      router.push("/verify-email");
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? (err as any).errors?.[0]?.message || err.message : "Registration failed.";
-      setErrors({ workEmail: msg });
+      // 3. Update Global State
+      setUser(dbUser as any);
+      setStoredUser(dbUser as any);
+      
+      const roleEnum = "employer" as UserRole;
+      import("../../../lib/userRole").then(lib => lib.saveRole(roleEnum));
+
+      // 4. Redirect to dashboard
+      router.push("/employer/dashboard");
+    } catch (err: any) {
+      console.error("[LocalRegistration] Error:", err);
+      setErrors({ workEmail: err.message || "Registration failed." });
     } finally {
       setLoading(false);
     }
@@ -219,7 +237,11 @@ export function EmployerForm() {
         disabled={loading}
         className="w-full py-3.5 mt-1 rounded-xl bg-[#3a1292] text-white font-bold text-[15px] shadow-lg shadow-[#3a1292]/20 hover:bg-[#2e0e74] transition-all active:scale-[0.98] disabled:opacity-70 flex items-center justify-center gap-3"
       >
-        {loading ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <>Get Started <span className="material-symbols-outlined text-[20px]">arrow_forward</span></>}
+        {loading ? (
+          <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+        ) : (
+          <>Get Started <span className="material-symbols-outlined text-[20px]">arrow_forward</span></>
+        )}
       </button>
 
       <p className="text-center text-[12px] text-gray-500 leading-relaxed px-4">

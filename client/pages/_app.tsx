@@ -31,7 +31,8 @@ export default function App({ Component, pageProps }: AppProps) {
 
   return (
     <ClerkProvider publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}>
-      <ClerkTokenRegistrar />
+      {/* ClerkTokenRegistrar disabled — using local JWT auth. Re-enable when Clerk is re-integrated. */}
+      {/* <ClerkTokenRegistrar /> */}
       <UserProvider>
         <EmployerJobsProvider>
           <DashboardThemeProvider>
