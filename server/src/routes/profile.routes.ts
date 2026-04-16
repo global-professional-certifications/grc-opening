@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { requireRole, authenticateClerk } from '../middleware/clerk.middleware';
+import { authenticateLocal, requireRole } from '../middleware/auth-local.middleware';
 import {
   getSeekerProfile,
   updateSeekerProfile,
@@ -10,7 +10,7 @@ import {
 const router: Router = Router();
 
 // All layout endpoints require authentication
-router.use(authenticateClerk);
+router.use(authenticateLocal);
 
 // ==========================================
 // JOB SEEKER ROUTES

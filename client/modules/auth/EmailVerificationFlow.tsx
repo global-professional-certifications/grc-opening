@@ -248,6 +248,10 @@ function OtpScreen({ email, onSuccess }: OtpScreenProps) {
         }),
       });
 
+      if (!syncRes) {
+        throw new Error("Backend synchronization failed. Please contact support.");
+      }
+
       // 4. Cleanup and succeed
       sessionStorage.removeItem("grc_pending_profile");
       sessionStorage.removeItem("grc_pending_verification_email");
