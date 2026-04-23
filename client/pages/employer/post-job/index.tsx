@@ -1,7 +1,9 @@
 import { useEffect, useRef } from 'react';
 import Head from 'next/head';
+import { useRouter } from 'next/router';
 import { EmployerDashboardLayout } from '../../../components/layout/EmployerDashboardLayout';
-import { JobPostingProvider, useJobPosting } from '../../../contexts/JobPostingContext';
+import { JobPostingProvider, useJobPosting, JobPostingData, WorkMode, JobType } from '../../../contexts/JobPostingContext';
+import { apiFetch } from '@/lib/api';
 import { PostJobProgress } from '../../../modules/employer/post-job/PostJobProgress';
 import { Step1Details } from '../../../modules/employer/post-job/Step1Details';
 import { Step2Requirements } from '../../../modules/employer/post-job/Step2Requirements';
@@ -13,8 +15,54 @@ const SYNE = { fontFamily: "'Syne', sans-serif" };
 // ─── Inner flow (has access to context) ──────────────────────────────────────
 
 function PostJobFlow() {
-  const { currentStep, isDirty } = useJobPosting();
+  const { currentStep, isDirty, setData, setEditId, editId } = useJobPosting();
+  const router = useRouter();
   const prevStepRef = useRef(currentStep);
+  const prefillAttemptedRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!router.isReady) return;
+    const qEditId = typeof router.query.editId === 'string' ? router.query.editId : null;
+    if (!qEditId) {
+      if (editId) setEditId(null);
+      return;
+    }
+    if (prefillAttemptedRef.current === qEditId) return;
+    prefillAttemptedRef.current = qEditId;
+    setEditId(qEditId);
+    apiFetch<{ job: {
+      title: string; description: string; location: string | null; workMode: string;
+      category: string | null; jobType: string | null; seniority: string | null; experience: string | null;
+      responsibilities: string | null; qualifications: string | null; niceToHave: string | null;
+      currency: string | null; undisclosedSalary: boolean;
+      salaryMin: number | null; salaryMax: number | null;
+      deadline: string | null;
+      certifications: { name: string }[];
+    } }>(`/jobs/${qEditId}`).then(res => {
+      const j = res.job;
+      const wmMap: Record<string, WorkMode> = { REMOTE: 'Remote', HYBRID: 'Hybrid', ON_SITE: 'On-site' };
+      const prefilled: JobPostingData = {
+        title:              j.title,
+        category:           j.category ?? '',
+        workMode:           (wmMap[j.workMode] ?? '') as WorkMode | '',
+        location:           j.location ?? '',
+        jobType:            (j.jobType as JobType) ?? '',
+        deadline:           j.deadline ? j.deadline.slice(0, 10) : '',
+        salaryMin:          j.salaryMin != null ? String(j.salaryMin) : '',
+        salaryMax:          j.salaryMax != null ? String(j.salaryMax) : '',
+        currency:           j.currency ?? 'USD',
+        undisclosedSalary:  j.undisclosedSalary,
+        description:        j.description,
+        responsibilities:   j.responsibilities ?? '',
+        qualifications:     j.qualifications ?? '',
+        experience:         j.experience ?? '',
+        seniority:          j.seniority ?? '',
+        certifications:     j.certifications.map(c => c.name),
+        niceToHave:         j.niceToHave ?? '',
+      };
+      setData(prefilled);
+    }).catch(err => console.error('Failed to prefill job for edit:', err));
+  }, [router.isReady, router.query.editId, setData, setEditId, editId]);
 
   // Warn on browser close / tab navigate away when there are unsaved changes
   useEffect(() => {

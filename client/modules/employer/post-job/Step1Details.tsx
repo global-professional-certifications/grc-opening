@@ -4,7 +4,7 @@ import { Input } from '../../../components/forms/Input';
 import { Select } from '../../../components/forms/Select';
 import { RadioGroup } from '../../../components/forms/RadioGroup';
 import { RichTextarea, extractText } from '../../../components/forms/RichTextarea';
-import { saveJobDraftAPI } from '../../../lib/api/jobs';
+import { saveJobDraftAPI } from '@/lib/api/jobs';
 
 const MONO = { fontFamily: "'JetBrains Mono', monospace" };
 const SYNE = { fontFamily: "'Syne', sans-serif" };
@@ -81,6 +81,10 @@ function validate(data: ReturnType<typeof useJobPosting>['data']) {
   if (!data.title.trim())             errors.title       = 'Job title is required';
   if (!data.category)                 errors.category    = 'Please select a category';
   if (!data.workMode)                 errors.workMode    = 'Please select a work mode';
+  if (!data.deadline)                 errors.deadline    = 'Please select an application deadline';
+  if ((data.workMode === 'On-site' || data.workMode === 'Hybrid') && !data.location.trim()) {
+    errors.location = 'Location is required for On-site and Hybrid roles';
+  }
   if (!data.jobType)                  errors.jobType     = 'Please select a job type';
   if (!extractText(data.description)) errors.description = 'Job description is required';
   if (
@@ -190,6 +194,21 @@ export function Step1Details() {
             />
             <ErrLine msg={errors.category} />
           </div>
+
+          {/* Deadline */}
+          <div id="field-deadline" className="flex flex-col gap-2">
+            <FieldLabel>APPLICATION DEADLINE</FieldLabel>
+            <input
+              type="date"
+              value={data.deadline}
+              onChange={(e) => updateData({ deadline: e.target.value })}
+              className="grc-input"
+              style={{ ...MONO }}
+              min={new Date().toISOString().slice(0, 10)}
+              aria-invalid={!!errors.deadline}
+            />
+            <ErrLine msg={errors.deadline} />
+          </div>
         </div>
       </SectionCard>
 
@@ -207,7 +226,10 @@ export function Step1Details() {
                 { label: 'On-site', value: 'On-site' },
               ]}
               value={data.workMode}
-              onChange={(val) => updateData({ workMode: val as typeof data.workMode })}
+              onChange={(val) => {
+                const wm = val as typeof data.workMode;
+                updateData(wm === 'Remote' ? { workMode: wm, location: '' } : { workMode: wm });
+              }}
             />
             <ErrLine msg={errors.workMode} />
           </div>
@@ -226,6 +248,26 @@ export function Step1Details() {
             <ErrLine msg={errors.jobType} />
           </div>
         </div>
+
+        {(data.workMode === 'On-site' || data.workMode === 'Hybrid') && (
+          <div id="field-location" className="flex flex-col gap-2 mt-5">
+            <label className="grc-label" style={{ ...MONO }}>
+              LOCATION <span style={{ color: 'var(--db-primary)' }}>*</span>
+            </label>
+            <input
+              type="text"
+              value={data.location}
+              onChange={(e) => updateData({ location: e.target.value })}
+              placeholder={data.workMode === 'Hybrid'
+                ? 'e.g. Mumbai, India (office days)'
+                : 'e.g. Bangalore, India'}
+              className="grc-input"
+              style={{ ...MONO }}
+              aria-invalid={!!errors.location}
+            />
+            <ErrLine msg={errors.location} />
+          </div>
+        )}
       </SectionCard>
 
       {/* ── Section 3: Salary ── */}

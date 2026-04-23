@@ -11,431 +11,76 @@ type DiscoveryJob = {
   category: string;
   location: string;
   workMode: 'Remote' | 'Hybrid' | 'On-site';
+  jobType: string;
+  seniority: string;
   experienceLevel: string;
   postedAtLabel: string;
+  deadline: string | null;
   salaryMin: number;
   salaryMax: number;
   salaryCurrency: string;
+  undisclosedSalary: boolean;
   applicationWindowLabel: string;
   applyUrl: string;
   tags: string[];
   verified: boolean;
+  description: string;
+  responsibilities: string;
+  qualifications: string;
+  niceToHave: string;
+  isSaved: boolean;
+  isApplied: boolean;
+  applicationId: string | null;
 };
 
-const MOCK_DISCOVERY_JOBS: DiscoveryJob[] = [
-  {
-    id: 'disc-1',
-    companyName: 'Stripe',
-    companyLogoText: 'S',
-    title: 'Senior Risk & Compliance Manager',
-    category: 'Risk Management',
-    location: 'Dublin, IE',
-    workMode: 'Remote',
-    experienceLevel: 'Senior (5-8y)',
-    postedAtLabel: 'Posted 2 days ago',
-    salaryMin: 110000,
-    salaryMax: 135000,
-    salaryCurrency: 'USD',
-    applicationWindowLabel: 'Closes Mar 15',
-    applyUrl: '/dashboard/jobs/apply/disc-1',
-    tags: ['CISA', 'SOX', 'GDPR'],
-    verified: true,
-  },
-  {
-    id: 'disc-2',
-    companyName: 'Revolut',
-    companyLogoText: 'R',
-    title: 'Head of Information Security Audit',
-    category: 'IT Audit',
-    location: 'London, UK',
-    workMode: 'Hybrid',
-    experienceLevel: 'Manager (8y+)',
-    postedAtLabel: 'Posted 5 hours ago',
-    salaryMin: 145000,
-    salaryMax: 180000,
-    salaryCurrency: 'USD',
-    applicationWindowLabel: 'Closes Apr 02',
-    applyUrl: '/dashboard/jobs/apply/disc-2',
-    tags: ['IT Audit', 'CRISC', 'PCI DSS'],
-    verified: true,
-  },
-  {
-    id: 'disc-3',
-    companyName: 'Coinbase',
-    companyLogoText: 'C',
-    title: 'Global Compliance Analyst',
-    category: 'Compliance',
-    location: 'New York, US',
-    workMode: 'Remote',
-    experienceLevel: 'Senior (5-8y)',
-    postedAtLabel: 'Posted 1 week ago',
-    salaryMin: 95000,
-    salaryMax: 115000,
-    salaryCurrency: 'USD',
-    applicationWindowLabel: 'Open indefinitely',
-    applyUrl: '/dashboard/jobs/apply/disc-3',
-    tags: ['AML/KYC', 'FINRA'],
-    verified: false,
-  },
-  {
-    id: 'disc-4',
-    companyName: 'Notion',
-    companyLogoText: 'N',
-    title: 'Governance, Risk & Controls Lead',
-    category: 'Risk Management',
-    location: 'San Francisco, US',
-    workMode: 'Hybrid',
-    experienceLevel: 'Senior (5-8y)',
-    postedAtLabel: 'Posted today',
-    salaryMin: 130000,
-    salaryMax: 162000,
-    salaryCurrency: 'USD',
-    applicationWindowLabel: 'Closes Apr 10',
-    applyUrl: '/dashboard/jobs/apply/disc-4',
-    tags: ['ERM', 'Controls Testing'],
-    verified: true,
-  },
-  {
-    id: 'disc-5',
-    companyName: 'Atlassian',
-    companyLogoText: 'A',
-    title: 'Privacy & Regulatory Compliance Specialist',
-    category: 'Compliance',
-    location: 'Bengaluru, IN',
-    workMode: 'Remote',
-    experienceLevel: 'Senior (5-8y)',
-    postedAtLabel: 'Posted 3 days ago',
-    salaryMin: 85000,
-    salaryMax: 110000,
-    salaryCurrency: 'USD',
-    applicationWindowLabel: 'Closes Apr 18',
-    applyUrl: '/dashboard/jobs/apply/disc-5',
-    tags: ['ISO 27701', 'GDPR'],
-    verified: true,
-  },
-  {
-    id: 'disc-6',
-    companyName: 'Monzo',
-    companyLogoText: 'M',
-    title: 'Operational Risk Manager',
-    category: 'Risk Management',
-    location: 'Remote, UK',
-    workMode: 'Remote',
-    experienceLevel: 'Manager (8y+)',
-    postedAtLabel: 'Posted 6 days ago',
-    salaryMin: 105000,
-    salaryMax: 140000,
-    salaryCurrency: 'USD',
-    applicationWindowLabel: 'Closes Apr 22',
-    applyUrl: '/dashboard/jobs/apply/disc-6',
-    tags: ['RCSA', 'Vendor Risk'],
-    verified: false,
-  },
-  {
-    id: 'disc-7',
-    companyName: 'PwC',
-    companyLogoText: 'P',
-    title: 'Senior IT Audit Consultant',
-    category: 'IT Audit',
-    location: 'Mumbai, IN',
-    workMode: 'On-site',
-    experienceLevel: 'Senior (5-8y)',
-    postedAtLabel: 'Posted yesterday',
-    salaryMin: 70000,
-    salaryMax: 98000,
-    salaryCurrency: 'USD',
-    applicationWindowLabel: 'Closes Apr 12',
-    applyUrl: '/dashboard/jobs/apply/disc-7',
-    tags: ['IT Audit', 'SOC 2', 'ISO 27001'],
-    verified: true,
-  },
-  {
-    id: 'disc-8',
-    companyName: 'HSBC',
-    companyLogoText: 'H',
-    title: 'Director, Enterprise Compliance Oversight',
-    category: 'Compliance',
-    location: 'Singapore, SG',
-    workMode: 'Hybrid',
-    experienceLevel: 'Manager (8y+)',
-    postedAtLabel: 'Posted 4 days ago',
-    salaryMin: 165000,
-    salaryMax: 220000,
-    salaryCurrency: 'USD',
-    applicationWindowLabel: 'Closes Apr 28',
-    applyUrl: '/dashboard/jobs/apply/disc-8',
-    tags: ['MAS', 'Conduct Risk'],
-    verified: true,
-  },
-  {
-    id: 'disc-9',
-    companyName: 'Microsoft',
-    companyLogoText: 'M',
-    title: 'GRC & Security Architect',
-    category: 'Risk Management',
-    location: 'Redmond, US',
-    workMode: 'Remote',
-    experienceLevel: 'Senior (5-8y)',
-    postedAtLabel: 'Posted 1 day ago',
-    salaryMin: 155000,
-    salaryMax: 190000,
-    salaryCurrency: 'USD',
-    applicationWindowLabel: 'Closes May 15',
-    applyUrl: '/dashboard/jobs/apply/disc-9',
-    tags: ['NIST', 'Azure', 'Zero Trust'],
-    verified: true,
-  },
-  {
-    id: 'disc-10',
-    companyName: 'Google',
-    companyLogoText: 'G',
-    title: 'Privacy Engineering Lead',
-    category: 'Compliance',
-    location: 'Mountain View, US',
-    workMode: 'Hybrid',
-    experienceLevel: 'Manager (8y+)',
-    postedAtLabel: 'Posted 3 hours ago',
-    salaryMin: 170000,
-    salaryMax: 215000,
-    salaryCurrency: 'USD',
-    applicationWindowLabel: 'Closes May 20',
-    applyUrl: '/dashboard/jobs/apply/disc-10',
-    tags: ['GDPR', 'Privacy by Design'],
-    verified: true,
-  },
-  {
-    id: 'disc-11',
-    companyName: 'Meta',
-    companyLogoText: 'M',
-    title: 'Regulatory Compliance Counsel',
-    category: 'Compliance',
-    location: 'Berlin, DE',
-    workMode: 'Remote',
-    experienceLevel: 'Senior (5-8y)',
-    postedAtLabel: 'Posted 1 week ago',
-    salaryMin: 140000,
-    salaryMax: 175000,
-    salaryCurrency: 'USD',
-    applicationWindowLabel: 'Open indefinitely',
-    applyUrl: '/dashboard/jobs/apply/disc-11',
-    tags: ['Digital Services Act', 'Legal'],
-    verified: true,
-  },
-  {
-    id: 'disc-12',
-    companyName: 'KPMG',
-    companyLogoText: 'K',
-    title: 'IT Audit Senior Associate',
-    category: 'IT Audit',
-    location: 'Toronto, CA',
-    workMode: 'On-site',
-    experienceLevel: 'Senior (5-8y)',
-    postedAtLabel: 'Posted 5 days ago',
-    salaryMin: 85000,
-    salaryMax: 115000,
-    salaryCurrency: 'USD',
-    applicationWindowLabel: 'Closes Jun 01',
-    applyUrl: '/dashboard/jobs/apply/disc-12',
-    tags: ['IT Audit', 'SOC 1', 'ISO 27001'],
-    verified: true,
-  },
-  {
-    id: 'disc-13',
-    companyName: 'Deloitte',
-    companyLogoText: 'D',
-    title: 'Risk Transformation Director',
-    category: 'Risk Management',
-    location: 'London, UK',
-    workMode: 'Hybrid',
-    experienceLevel: 'Manager (8y+)',
-    postedAtLabel: 'Posted 2 days ago',
-    salaryMin: 160000,
-    salaryMax: 205000,
-    salaryCurrency: 'USD',
-    applicationWindowLabel: 'Closes May 10',
-    applyUrl: '/dashboard/jobs/apply/disc-13',
-    tags: ['ERM', 'Digital Risk'],
-    verified: true,
-  },
-  {
-    id: 'disc-14',
-    companyName: 'Amazon',
-    companyLogoText: 'A',
-    title: 'Cloud Compliance Specialist',
-    category: 'Compliance',
-    location: 'Seattle, US',
-    workMode: 'Remote',
-    experienceLevel: 'Senior (5-8y)',
-    postedAtLabel: 'Posted today',
-    salaryMin: 130000,
-    salaryMax: 165000,
-    salaryCurrency: 'USD',
-    applicationWindowLabel: 'Open indefinitely',
-    applyUrl: '/dashboard/jobs/apply/disc-14',
-    tags: ['AWS', 'FedRAMP', 'HIPAA'],
-    verified: true,
-  },
-  {
-    id: 'disc-15',
-    companyName: 'Goldman Sachs',
-    companyLogoText: 'G',
-    title: 'AML/KYC Compliance Manager',
-    category: 'Compliance',
-    location: 'New York, US',
-    workMode: 'Hybrid',
-    experienceLevel: 'Manager (8y+)',
-    postedAtLabel: 'Posted 1 week ago',
-    salaryMin: 150000,
-    salaryMax: 185000,
-    salaryCurrency: 'USD',
-    applicationWindowLabel: 'Closes May 30',
-    applyUrl: '/dashboard/jobs/apply/disc-15',
-    tags: ['FINRA', 'AML', 'KYC'],
-    verified: true,
-  },
-  {
-    id: 'disc-16',
-    companyName: 'Shopify',
-    companyLogoText: 'S',
-    title: 'Data Governance Specialist',
-    category: 'Risk Management',
-    location: 'Ottawa, CA',
-    workMode: 'Remote',
-    experienceLevel: 'Senior (5-8y)',
-    postedAtLabel: 'Posted 3 days ago',
-    salaryMin: 95000,
-    salaryMax: 125000,
-    salaryCurrency: 'USD',
-    applicationWindowLabel: 'Closes Jun 15',
-    applyUrl: '/dashboard/jobs/apply/disc-16',
-    tags: ['Data Privacy', 'Pipelines'],
-    verified: true,
-  },
-  {
-    id: 'disc-17',
-    companyName: 'Spotify',
-    companyLogoText: 'S',
-    title: 'Content Risk & Integrity Lead',
-    category: 'Risk Management',
-    location: 'Stockholm, SE',
-    workMode: 'Hybrid',
-    experienceLevel: 'Manager (8y+)',
-    postedAtLabel: 'Posted 4 days ago',
-    salaryMin: 110000,
-    salaryMax: 145000,
-    salaryCurrency: 'USD',
-    applicationWindowLabel: 'Closes Jun 20',
-    applyUrl: '/dashboard/jobs/apply/disc-17',
-    tags: ['Trust & Safety', 'Audit'],
-    verified: true,
-  },
-  {
-    id: 'disc-18',
-    companyName: 'Tesla',
-    companyLogoText: 'T',
-    title: 'Environmental & Safety Compliance Manager',
-    category: 'Compliance',
-    location: 'Austin, US',
-    workMode: 'On-site',
-    experienceLevel: 'Manager (8y+)',
-    postedAtLabel: 'Posted 6 days ago',
-    salaryMin: 120000,
-    salaryMax: 155000,
-    salaryCurrency: 'USD',
-    applicationWindowLabel: 'Closes Jul 01',
-    applyUrl: '/dashboard/jobs/apply/disc-18',
-    tags: ['OSHA', 'EPA'],
-    verified: false,
-  },
-  {
-    id: 'disc-19',
-    companyName: 'TikTok',
-    companyLogoText: 'T',
-    title: 'Global Trust & Safety Policy Analyst',
-    category: 'Risk Management',
-    location: 'Singapore, SG',
-    workMode: 'Hybrid',
-    experienceLevel: 'Senior (5-8y)',
-    postedAtLabel: 'Posted yesterday',
-    salaryMin: 105000,
-    salaryMax: 135000,
-    salaryCurrency: 'USD',
-    applicationWindowLabel: 'Closes Jul 05',
-    applyUrl: '/dashboard/jobs/apply/disc-19',
-    tags: ['Policy', 'Governance'],
-    verified: true,
-  },
-  {
-    id: 'disc-20',
-    companyName: 'Binance',
-    companyLogoText: 'B',
-    title: 'Crypto Regulatory Compliance Officer',
-    category: 'Compliance',
-    location: 'Dubai, AE',
-    workMode: 'Remote',
-    experienceLevel: 'Senior (5-8y)',
-    postedAtLabel: 'Posted 2 days ago',
-    salaryMin: 140000,
-    salaryMax: 180000,
-    salaryCurrency: 'USD',
-    applicationWindowLabel: 'Open indefinitely',
-    applyUrl: '/dashboard/jobs/apply/disc-20',
-    tags: ['VARA', 'Crypto Compliance'],
-    verified: true,
-  },
-  {
-    id: 'disc-21',
-    companyName: 'JPMorgan Chase',
-    companyLogoText: 'J',
-    title: 'Technology Audit Manager',
-    category: 'IT Audit',
-    location: 'Hong Kong, HK',
-    workMode: 'Hybrid',
-    experienceLevel: 'Manager (8y+)',
-    postedAtLabel: 'Posted 1 day ago',
-    salaryMin: 125000,
-    salaryMax: 160000,
-    salaryCurrency: 'USD',
-    applicationWindowLabel: 'Closes Jun 30',
-    applyUrl: '/dashboard/jobs/apply/disc-21',
-    tags: ['IT Audit', 'Cloud Security', 'FinTech'],
-    verified: true,
-  },
-  {
-    id: 'disc-22',
-    companyName: 'EY',
-    companyLogoText: 'E',
-    title: 'Senior Manager - IT Risk & Audit',
-    category: 'IT Audit',
-    location: 'Sydney, AU',
-    workMode: 'On-site',
-    experienceLevel: 'Manager (8y+)',
-    postedAtLabel: 'Posted 2 days ago',
-    salaryMin: 145000,
-    salaryMax: 185000,
-    salaryCurrency: 'USD',
-    applicationWindowLabel: 'Closes Jul 15',
-    applyUrl: '/dashboard/jobs/apply/disc-22',
-    tags: ['IT Audit', 'CISA', 'GRC Tech'],
-    verified: true,
-  },
-];
 
-// Configuration for validating GRC related category tags (Issue #22)
-const VALID_GRC_CATEGORIES = [
-  'Risk Management',
-  'Compliance',
-  'Audit',
-  'Information Security',
-  'Data Privacy',
-  'Corporate Governance',
-  'Regulatory Affairs'
-];
+
+function startOfToday(): Date {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+function parseDateOnlyToEndOfDay(value: unknown): Date | null {
+  if (typeof value !== 'string') return null;
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+
+  // Accept YYYY-MM-DD from <input type="date">
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(trimmed);
+  if (m) {
+    const year = Number(m[1]);
+    const month = Number(m[2]);
+    const day = Number(m[3]);
+    if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) return null;
+    const dt = new Date(year, month - 1, day, 23, 59, 59, 999);
+    if (Number.isNaN(dt.getTime())) return null;
+    return dt;
+  }
+
+  const dt = new Date(trimmed);
+  if (Number.isNaN(dt.getTime())) return null;
+  return dt;
+}
+
+function applicationWindowLabel(deadline: Date | null): string {
+  if (!deadline) return 'Open indefinitely';
+  const fmt = new Intl.DateTimeFormat('en', { year: 'numeric', month: 'short', day: '2-digit' });
+  return `Apply by ${fmt.format(deadline)}`;
+}
 
 export const createJob = async (req: Request, res: Response): Promise<void> => {
   try {
     const userId = req.user!.id;
-    const { title, description, location, workMode, salaryMin, salaryMax, certifications } = req.body;
+    const {
+      title, description, location, workMode,
+      category, jobType, seniority, experience,
+      responsibilities, qualifications, niceToHave,
+      currency, undisclosedSalary,
+      salaryMin, salaryMax,
+      certifications,
+      deadline,
+    } = req.body;
 
     // 1. Ensure the Employer Profile exists before creating a job
     const employerProfile = await prisma.employerProfile.findUnique({
@@ -453,23 +98,28 @@ export const createJob = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    let parsedWorkMode: WorkMode = WorkMode.ON_SITE;
-    if (workMode && Object.values(WorkMode).includes(workMode as WorkMode)) {
-      parsedWorkMode = workMode as WorkMode;
+    const parsedDeadline = parseDateOnlyToEndOfDay(deadline);
+    if (!parsedDeadline) {
+      res.status(400).json({ error: 'Deadline is required (YYYY-MM-DD)' });
+      return;
+    }
+    if (parsedDeadline.getTime() < startOfToday().getTime()) {
+      res.status(400).json({ error: 'Deadline must be today or later' });
+      return;
     }
 
-    // 3. Process categories/certifications (Issue #22 - Enforce GRC categories)
-    // If certifications array is provided, validate each one against the whitelist
-    const validCerts: { name: string }[] = [];
-    if (Array.isArray(certifications)) {
-      for (const cert of certifications) {
-        if (!VALID_GRC_CATEGORIES.includes(cert)) {
-          res.status(400).json({ error: `Invalid GRC category provided: ${cert}. Valid categories are: ${VALID_GRC_CATEGORIES.join(', ')}` });
-          return;
-        }
-        validCerts.push({ name: cert });
-      }
-    }
+    const workModeKey = String(workMode ?? '').toUpperCase().replace('-', '_');
+    const workModeMap: Record<string, WorkMode> = {
+      'REMOTE': WorkMode.REMOTE,
+      'HYBRID': WorkMode.HYBRID,
+      'ON_SITE': WorkMode.ON_SITE,
+    };
+    const parsedWorkMode: WorkMode = workModeMap[workModeKey] ?? WorkMode.ON_SITE;
+
+    // 3. Store certifications as provided (free-form tags, e.g. CISA, CIA)
+    const validCerts: { name: string }[] = Array.isArray(certifications)
+      ? certifications.map((name: string) => ({ name }))
+      : [];
 
     // 4. Record new JobPosting in database
     const job = await prisma.job.create({
@@ -477,18 +127,24 @@ export const createJob = async (req: Request, res: Response): Promise<void> => {
         employerId: employerProfile.id,
         title,
         description,
-        location,
-        workMode: parsedWorkMode,
-        salaryMin: salaryMin ? parseInt(salaryMin) : null,
-        salaryMax: salaryMax ? parseInt(salaryMax) : null,
-        status: JobStatus.PUBLISHED, // Draft by default unless indicated? Let's make it published
-        certifications: {
-          create: validCerts
-        }
+        location:         location        ?? null,
+        workMode:         parsedWorkMode,
+        status:           JobStatus.PUBLISHED,
+        deadline:         parsedDeadline,
+        category:         category        ?? null,
+        jobType:          jobType         ?? null,
+        seniority:        seniority       ?? null,
+        experience:       experience      ?? null,
+        responsibilities: responsibilities ?? null,
+        qualifications:   qualifications  ?? null,
+        niceToHave:       niceToHave      ?? null,
+        currency:         currency        ?? 'USD',
+        undisclosedSalary: undisclosedSalary === true || undisclosedSalary === 'true',
+        salaryMin:        (!undisclosedSalary && salaryMin) ? parseInt(salaryMin) : null,
+        salaryMax:        (!undisclosedSalary && salaryMax) ? parseInt(salaryMax) : null,
+        certifications: { create: validCerts },
       },
-      include: {
-        certifications: true
-      }
+      include: { certifications: true },
     });
 
     res.status(201).json({ message: 'Job created successfully', job });
@@ -498,25 +154,261 @@ export const createJob = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
+export const updateJob = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = req.user!.id;
+    const id = String(req.params.id);
+    const {
+      title, description, location, workMode,
+      category, jobType, seniority, experience,
+      responsibilities, qualifications, niceToHave,
+      currency, undisclosedSalary,
+      salaryMin, salaryMax,
+      certifications,
+      deadline,
+    } = req.body;
+
+    const employerProfile = await prisma.employerProfile.findUnique({ where: { userId } });
+    if (!employerProfile) { res.status(403).json({ error: 'Employer profile required' }); return; }
+
+    const existing = await prisma.job.findUnique({ where: { id } });
+    if (!existing) { res.status(404).json({ error: 'Job not found' }); return; }
+    if (existing.employerId !== employerProfile.id) {
+      res.status(403).json({ error: 'Unauthorized to edit this job' });
+      return;
+    }
+
+    if (!title || !description) {
+      res.status(400).json({ error: 'Title and description are required' });
+      return;
+    }
+
+    const workModeKey = String(workMode ?? '').toUpperCase().replace('-', '_');
+    const workModeMap: Record<string, WorkMode> = {
+      'REMOTE': WorkMode.REMOTE,
+      'HYBRID': WorkMode.HYBRID,
+      'ON_SITE': WorkMode.ON_SITE,
+    };
+    const parsedWorkMode: WorkMode = workModeMap[workModeKey] ?? existing.workMode;
+
+    const undisclosed = undisclosedSalary === true || undisclosedSalary === 'true';
+    const validCerts: { name: string }[] = Array.isArray(certifications)
+      ? certifications.map((name: string) => ({ name }))
+      : [];
+
+    const parsedDeadline = deadline === undefined ? undefined : parseDateOnlyToEndOfDay(deadline);
+    if (deadline !== undefined && !parsedDeadline) {
+      res.status(400).json({ error: 'Invalid deadline (expected YYYY-MM-DD)' });
+      return;
+    }
+    if (parsedDeadline && parsedDeadline.getTime() < startOfToday().getTime()) {
+      res.status(400).json({ error: 'Deadline must be today or later' });
+      return;
+    }
+
+    const job = await prisma.$transaction(async (tx) => {
+      await tx.jobCertification.deleteMany({ where: { jobId: id } });
+      return tx.job.update({
+        where: { id },
+        data: {
+          title,
+          description,
+          location:         location        ?? null,
+          workMode:         parsedWorkMode,
+          category:         category        ?? null,
+          jobType:          jobType         ?? null,
+          seniority:        seniority       ?? null,
+          experience:       experience      ?? null,
+          responsibilities: responsibilities ?? null,
+          qualifications:   qualifications  ?? null,
+          niceToHave:       niceToHave      ?? null,
+          currency:         currency        ?? 'USD',
+          undisclosedSalary: undisclosed,
+          salaryMin:        (!undisclosed && salaryMin) ? parseInt(salaryMin) : null,
+          salaryMax:        (!undisclosed && salaryMax) ? parseInt(salaryMax) : null,
+          ...(parsedDeadline !== undefined ? { deadline: parsedDeadline } : {}),
+          certifications: { create: validCerts },
+        },
+        include: { certifications: true },
+      });
+    });
+
+    res.status(200).json({ message: 'Job updated successfully', job });
+  } catch (error) {
+    console.error('Error updating job posting:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+function workModeToLabel(wm: WorkMode): 'Remote' | 'Hybrid' | 'On-site' {
+  if (wm === WorkMode.REMOTE) return 'Remote';
+  if (wm === WorkMode.HYBRID) return 'Hybrid';
+  return 'On-site';
+}
+
+function getPostedAtLabel(createdAt: Date): string {
+  const hours = (Date.now() - createdAt.getTime()) / 3600000;
+  if (hours < 1) return 'Posted just now';
+  if (hours < 24) return `Posted ${Math.floor(hours)} hours ago`;
+  const days = Math.floor(hours / 24);
+  if (days === 1) return 'Posted yesterday';
+  if (days < 7) return `Posted ${days} days ago`;
+  return `Posted ${Math.floor(days / 7)} weeks ago`;
+}
+
 export const getDiscoveryJobs = async (req: Request, res: Response): Promise<void> => {
   try {
-    const categories = Array.from(new Set(MOCK_DISCOVERY_JOBS.map((job) => job.category)));
-    const workModes = Array.from(new Set(MOCK_DISCOVERY_JOBS.map((job) => job.workMode)));
-    const experienceLevels = Array.from(new Set(MOCK_DISCOVERY_JOBS.map((job) => job.experienceLevel)));
+    const userId = req.user!.id;
+
+    const q = typeof req.query.q === 'string' ? req.query.q.trim() : '';
+    const loc = typeof req.query.location === 'string' ? req.query.location.trim() : '';
+    const page = Math.max(1, Number.parseInt(String(req.query.page ?? '1'), 10) || 1);
+    const pageSizeRaw = Number.parseInt(String(req.query.page_size ?? '100'), 10) || 100;
+    const pageSize = Math.min(200, Math.max(1, pageSizeRaw));
+    const skip = (page - 1) * pageSize;
+
+    const andFilters: any[] = [
+      // Keep existing jobs (deadline=null) visible, but enforce deadline gating for new jobs.
+      { OR: [{ deadline: null }, { deadline: { gte: startOfToday() } }] },
+    ];
+
+    if (q) {
+      andFilters.push({
+        OR: [
+          { title: { contains: q, mode: 'insensitive' } },
+          { location: { contains: q, mode: 'insensitive' } },
+          { employer: { companyName: { contains: q, mode: 'insensitive' } } },
+        ],
+      });
+    }
+
+    if (loc) {
+      andFilters.push({ location: { contains: loc, mode: 'insensitive' } });
+    }
+
+    const where = {
+      status: JobStatus.PUBLISHED,
+      AND: andFilters,
+    };
+
+    const [totalCount, dbJobs, seekerProfile] = await Promise.all([
+      prisma.job.count({ where }),
+      prisma.job.findMany({
+        where,
+        include: { employer: true, certifications: true },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: pageSize,
+      }),
+      prisma.seekerProfile.findUnique({ where: { userId } }),
+    ]);
+
+    let savedJobIds = new Set<string>();
+    let appliedJobIds = new Set<string>();
+    let applicationIdByJobId = new Map<string, string>();
+    if (seekerProfile) {
+      const [saved, applied] = await Promise.all([
+        prisma.savedJob.findMany({
+          where: { seekerId: seekerProfile.id },
+          select: { jobId: true },
+        }),
+        prisma.application.findMany({
+          where: { seekerId: seekerProfile.id, status: { not: ApplicationStatus.WITHDRAWN } },
+          select: { jobId: true, id: true },
+        }),
+      ]);
+      savedJobIds = new Set(saved.map(s => s.jobId));
+      appliedJobIds = new Set(applied.map(a => a.jobId));
+      applicationIdByJobId = new Map(applied.map(a => [a.jobId, a.id]));
+    }
+
+    const realJobs: DiscoveryJob[] = dbJobs.map(job => ({
+      id:                   job.id,
+      companyName:          job.employer.companyName,
+      companyLogoText:      job.employer.companyName.charAt(0).toUpperCase(),
+      title:                job.title,
+      category:             job.category ?? job.certifications[0]?.name ?? '',
+      location:             job.location ?? '',
+      workMode:             workModeToLabel(job.workMode),
+      jobType:              job.jobType ?? '',
+      seniority:            job.seniority ?? '',
+      experienceLevel:      job.experience ?? '',
+      postedAtLabel:        getPostedAtLabel(job.createdAt),
+      deadline:             job.deadline ? job.deadline.toISOString() : null,
+      salaryMin:            job.salaryMin ?? 0,
+      salaryMax:            job.salaryMax ?? 0,
+      salaryCurrency:       job.currency ?? 'USD',
+      undisclosedSalary:    job.undisclosedSalary,
+      applicationWindowLabel: applicationWindowLabel(job.deadline ?? null),
+      applyUrl:             '#',
+      tags:                 job.certifications.map(c => c.name),
+      verified:             true,
+      description:          job.description,
+      responsibilities:     job.responsibilities ?? '',
+      qualifications:       job.qualifications ?? '',
+      niceToHave:           job.niceToHave ?? '',
+      isSaved:              savedJobIds.has(job.id),
+      isApplied:            appliedJobIds.has(job.id),
+      applicationId:        applicationIdByJobId.get(job.id) ?? null,
+    }));
+
+    const [categoryRows, experienceRows] = await Promise.all([
+      prisma.job.findMany({
+        where,
+        select: { category: true },
+        distinct: ['category'],
+        take: 200,
+      }),
+      prisma.job.findMany({
+        where,
+        select: { experience: true },
+        distinct: ['experience'],
+        take: 200,
+      }),
+    ]);
+
+    const categories = categoryRows
+      .map((r) => r.category ?? '')
+      .map((v) => v.trim())
+      .filter(Boolean)
+      .sort((a, b) => a.localeCompare(b));
+
+    const experienceLevels = experienceRows
+      .map((r) => r.experience ?? '')
+      .map((v) => v.trim())
+      .filter(Boolean)
+      .sort((a, b) => a.localeCompare(b));
+
+    const workModes: Array<'Remote' | 'Hybrid' | 'On-site'> = ['Remote', 'Hybrid', 'On-site'];
+
+    // Normalize salary bounds to USD so the slider works with mixed-currency postings
+    const CURRENCY_TO_USD: Record<string, number> = {
+      USD: 1, EUR: 1 / 0.92, GBP: 1 / 0.79, INR: 1 / 83.1, CAD: 1 / 1.36, AUD: 1 / 1.52,
+    };
+    const salaryValuesUSD = realJobs
+      .flatMap(j => [
+        { v: j.salaryMin, c: j.salaryCurrency },
+        { v: j.salaryMax, c: j.salaryCurrency },
+      ])
+      .filter(x => x.v > 0)
+      .map(x => x.v * (CURRENCY_TO_USD[x.c] ?? 1));
 
     res.status(200).json({
-      jobs: MOCK_DISCOVERY_JOBS,
+      jobs: realJobs,
       filters: {
         categories,
         workModes,
         experienceLevels,
         salaryRange: {
-          min: Math.min(...MOCK_DISCOVERY_JOBS.map((job) => job.salaryMin)),
-          max: Math.max(...MOCK_DISCOVERY_JOBS.map((job) => job.salaryMax)),
+          min: salaryValuesUSD.length ? Math.min(...salaryValuesUSD) : 0,
+          max: salaryValuesUSD.length ? Math.max(...salaryValuesUSD) : 250000,
         },
       },
       meta: {
-        totalJobs: MOCK_DISCOVERY_JOBS.length,
+        totalJobs: totalCount, // backwards compatible
+        totalCount,
+        page,
+        pageSize,
       },
     });
   } catch (error) {
@@ -683,6 +575,182 @@ export const closeJob = async (req: Request, res: Response): Promise<void> => {
     res.status(200).json({ message: 'Job posting closed successfully', job: closedJob });
   } catch (error) {
     console.error('Error closing job posting:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+// ==========================================
+// GET /jobs/:id — Job detail (any authenticated user)
+// ==========================================
+export const getJobById = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const id = req.params.id;
+    const userId = req.user!.id;
+    const userRole = req.user!.role;
+
+    const job = await prisma.job.findUnique({
+      where: { id: String(id) },
+      include: {
+        employer: true,
+        certifications: true,
+        _count: { select: { applications: true } },
+      },
+    });
+
+    if (!job) {
+      res.status(404).json({ error: 'Job not found' });
+      return;
+    }
+
+    let hasApplied = false;
+    let isSaved = false;
+    if (userRole === 'JOB_SEEKER') {
+      const seekerProfile = await prisma.seekerProfile.findUnique({ where: { userId } });
+      if (seekerProfile) {
+        const [existing, saved] = await Promise.all([
+          prisma.application.findFirst({ where: { jobId: String(id), seekerId: seekerProfile.id } }),
+          prisma.savedJob.findFirst({ where: { jobId: String(id), seekerId: seekerProfile.id } }),
+        ]);
+        hasApplied = !!existing;
+        isSaved = !!saved;
+      }
+    }
+
+    res.status(200).json({ job: { ...job, hasApplied, isSaved } });
+  } catch (error) {
+    console.error('Error fetching job by ID:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+// ==========================================
+// POST /jobs/:id/save — Seeker saves a job
+// ==========================================
+export const saveJob = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = req.user!.id;
+    const jobId = String(req.params.id);
+
+    const seekerProfile = await prisma.seekerProfile.findUnique({ where: { userId } });
+    if (!seekerProfile) { res.status(404).json({ error: 'Seeker profile not found' }); return; }
+
+    await prisma.savedJob.upsert({
+      where: { seekerId_jobId: { seekerId: seekerProfile.id, jobId } },
+      create: { seekerId: seekerProfile.id, jobId },
+      update: {},
+    });
+
+    res.status(200).json({ message: 'Job saved' });
+  } catch (error) {
+    console.error('Error saving job:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+// ==========================================
+// DELETE /jobs/:id/save — Seeker unsaves a job
+// ==========================================
+// ==========================================
+// GET /jobs/saved — Seeker's saved jobs
+// ==========================================
+export const getSavedJobs = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = req.user!.id;
+    const seekerProfile = await prisma.seekerProfile.findUnique({ where: { userId } });
+    if (!seekerProfile) { res.status(404).json({ error: 'Seeker profile not found' }); return; }
+
+    const [saved, applied] = await Promise.all([
+      prisma.savedJob.findMany({
+        where: { seekerId: seekerProfile.id },
+        orderBy: { savedAt: 'desc' },
+        include: { job: { include: { employer: true, certifications: true } } },
+      }),
+      prisma.application.findMany({
+        where: { seekerId: seekerProfile.id, status: { not: ApplicationStatus.WITHDRAWN } },
+        select: { jobId: true, id: true },
+      }),
+    ]);
+    const appliedJobIdsSaved = new Set(applied.map(a => a.jobId));
+    const applicationIdByJobIdSaved = new Map(applied.map(a => [a.jobId, a.id]));
+
+    const jobs: DiscoveryJob[] = saved.map(({ job }) => ({
+      id:                   job.id,
+      companyName:          job.employer.companyName,
+      companyLogoText:      job.employer.companyName.charAt(0).toUpperCase(),
+      title:                job.title,
+      category:             job.category ?? job.certifications[0]?.name ?? '',
+      location:             job.location ?? '',
+      workMode:             workModeToLabel(job.workMode),
+      jobType:              job.jobType ?? '',
+      seniority:            job.seniority ?? '',
+      experienceLevel:      job.experience ?? '',
+      postedAtLabel:        getPostedAtLabel(job.createdAt),
+      deadline:             job.deadline ? job.deadline.toISOString() : null,
+      salaryMin:            job.salaryMin ?? 0,
+      salaryMax:            job.salaryMax ?? 0,
+      salaryCurrency:       job.currency ?? 'USD',
+      undisclosedSalary:    job.undisclosedSalary,
+      applicationWindowLabel: 'Open indefinitely',
+      applyUrl:             '#',
+      tags:                 job.certifications.map(c => c.name),
+      verified:             true,
+      description:          job.description,
+      responsibilities:     job.responsibilities ?? '',
+      qualifications:       job.qualifications ?? '',
+      niceToHave:           job.niceToHave ?? '',
+      isSaved:              true,
+      isApplied:            appliedJobIdsSaved.has(job.id),
+      applicationId:        applicationIdByJobIdSaved.get(job.id) ?? null,
+    }));
+
+    res.status(200).json({ jobs });
+  } catch (error) {
+    console.error('Error fetching saved jobs:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+export const withdrawJobApplication = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = req.user!.id;
+    const jobId = String(req.params.id);
+
+    const seekerProfile = await prisma.seekerProfile.findUnique({ where: { userId } });
+    if (!seekerProfile) { res.status(404).json({ error: 'Seeker profile not found' }); return; }
+
+    const application = await prisma.application.findFirst({
+      where: { jobId, seekerId: seekerProfile.id },
+    });
+    if (!application) { res.status(404).json({ error: 'Application not found' }); return; }
+    if (application.status !== ApplicationStatus.PENDING) {
+      res.status(400).json({ error: 'Only pending applications can be withdrawn' });
+      return;
+    }
+
+    await prisma.application.delete({ where: { id: application.id } });
+
+    res.status(200).json({ message: 'Application withdrawn successfully' });
+  } catch (error) {
+    console.error('Error withdrawing application:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+export const unsaveJob = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = req.user!.id;
+    const jobId = String(req.params.id);
+
+    const seekerProfile = await prisma.seekerProfile.findUnique({ where: { userId } });
+    if (!seekerProfile) { res.status(404).json({ error: 'Seeker profile not found' }); return; }
+
+    await prisma.savedJob.deleteMany({
+      where: { seekerId: seekerProfile.id, jobId },
+    });
+
+    res.status(200).json({ message: 'Job unsaved' });
+  } catch (error) {
+    console.error('Error unsaving job:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 };

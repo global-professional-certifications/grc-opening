@@ -10,6 +10,7 @@ import healthRouter from './routes/health';
 import authRouter from './routes/auth.routes';
 import profileRouter from './routes/profile.routes';
 import jobRouter from './routes/job.routes';
+import applicationRouter from './routes/application.routes';
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -33,6 +34,7 @@ app.use('/health', healthRouter);
 app.use('/auth', authRouter);
 app.use('/profile', profileRouter);
 app.use('/jobs', jobRouter);
+app.use('/applications', applicationRouter);
 
 // Start server
 app.listen(PORT, () => {

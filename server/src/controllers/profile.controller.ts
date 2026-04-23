@@ -35,7 +35,7 @@ export const getSeekerProfile = async (req: Request, res: Response): Promise<voi
 export const updateSeekerProfile = async (req: Request, res: Response): Promise<void> => {
   try {
     const userId = req.user!.id;
-    const { firstName, lastName, headline, bio, location, linkedInUrl, avatarUrl, country, workExperiences, certifications } = req.body;
+    const { firstName, lastName, headline, bio, location, linkedInUrl, avatarUrl, country, phone, skills, workExperiences, certifications } = req.body;
 
     const profile = await prisma.seekerProfile.findUnique({ where: { userId } });
     if (!profile) {
@@ -55,7 +55,8 @@ export const updateSeekerProfile = async (req: Request, res: Response): Promise<
           ...(linkedInUrl !== undefined && { linkedInUrl }),
           ...(avatarUrl !== undefined && { avatarUrl }),
           ...(country !== undefined && { country }),
-        },
+          ...(phone !== undefined && { phone }),
+        } as any,
       });
 
       if (workExperiences !== undefined) {
@@ -100,6 +101,21 @@ export const updateSeekerProfile = async (req: Request, res: Response): Promise<
             })),
           });
         }
+      }
+
+      if (skills !== undefined) {
+        await (tx.seekerProfile as any).update({
+          where: { id: profile.id },
+          data: {
+            skills: {
+              set: [],
+              connectOrCreate: (skills as string[]).map((name: string) => ({
+                where: { name },
+                create: { name },
+              })),
+            },
+          },
+        });
       }
     });
 
@@ -149,7 +165,13 @@ export const getEmployerProfile = async (req: Request, res: Response): Promise<v
 export const updateEmployerProfile = async (req: Request, res: Response): Promise<void> => {
   try {
     const userId = req.user!.id;
-    const { companyName, description, website, representativeName, industry, companySize } = req.body;
+    const {
+      companyName, description, website, industry, companySize,
+      tagline, foundedYear, logoUrl,
+      phone, contactPhoneCode, contactName, contactEmail,
+      address, city, state, country, countryCode,
+      linkedInUrl, twitterUrl,
+    } = req.body;
 
     const profile = await prisma.employerProfile.findUnique({ where: { userId } });
     if (!profile) {
@@ -159,14 +181,28 @@ export const updateEmployerProfile = async (req: Request, res: Response): Promis
 
     const updatedProfile = await prisma.employerProfile.update({
       where: { userId },
+      include: { user: { select: { email: true, emailVerified: true, role: true } } },
       data: {
-        ...(companyName && { companyName }),
-        ...(description !== undefined && { description }),
-        ...(website !== undefined && { website }),
-        ...(representativeName !== undefined && { representativeName }),
-        ...(industry !== undefined && { industry }),
-        ...(companySize !== undefined && { companySize }),
-      },
+        ...(companyName             !== undefined && { companyName }),
+        ...(description             !== undefined && { description }),
+        ...(website                 !== undefined && { website }),
+        ...(industry                !== undefined && { industry }),
+        ...(companySize             !== undefined && { companySize }),
+        ...(tagline                 !== undefined && { tagline }),
+        ...(foundedYear             !== undefined && { foundedYear }),
+        ...(logoUrl                 !== undefined && { logoUrl }),
+        ...(phone                   !== undefined && { phone }),
+        ...(contactPhoneCode        !== undefined && { contactPhoneCode }),
+        ...(contactName             !== undefined && { contactName }),
+        ...(contactEmail            !== undefined && { contactEmail }),
+        ...(address                 !== undefined && { address }),
+        ...(city                    !== undefined && { city }),
+        ...(state                   !== undefined && { state }),
+        ...(country                 !== undefined && { country }),
+        ...(countryCode             !== undefined && { countryCode }),
+        ...(linkedInUrl             !== undefined && { linkedInUrl }),
+        ...(twitterUrl              !== undefined && { twitterUrl }),
+      } as any,
     });
 
     res.status(200).json({ message: 'Profile updated successfully', profile: updatedProfile });

@@ -1,13 +1,3 @@
-/**
- * EmployerJobsContext — Single source of truth for the employer's job list.
- *
- * ─ Frontend-only implementation ─
- * Jobs are stored in localStorage so they survive page reloads.
- * When the real backend is ready, replace the localStorage reads/writes
- * with apiFetch calls inside fetchJobs(), addJob(), and closeJob().
- *
- * API integration points are clearly marked with "// TODO: replace with apiFetch"
- */
 import {
   createContext,
   useContext,
@@ -16,6 +6,8 @@ import {
   useCallback,
   ReactNode,
 } from 'react';
+import { apiFetch } from '../lib/api';
+import { buildJobPayload } from '../lib/api/jobs';
 import { JobPostingData } from './JobPostingContext';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -41,43 +33,50 @@ export interface EmployerJob {
   niceToHave: string;
   status: EmployerJobStatus;
   applicantCount: number;
-  createdAt: string; // ISO string
+  createdAt: string;
 }
 
 interface EmployerJobsContextType {
   jobs: EmployerJob[];
   loading: boolean;
-  /** Add a newly published job to the list */
-  addJob: (data: JobPostingData) => EmployerJob;
-  /** Close an active job */
-  closeJob: (id: string) => void;
-  /** Derived stats */
+  addJob: (data: JobPostingData) => Promise<EmployerJob>;
+  editJob: (id: string, data: JobPostingData) => Promise<EmployerJob>;
+  closeJob: (id: string) => Promise<void>;
   activeCount: number;
   closedCount: number;
   totalApplicants: number;
 }
 
-// ─── Storage ──────────────────────────────────────────────────────────────────
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
-const STORAGE_KEY = 'grc_employer_jobs';
+const WORKMODE_FROM_API: Record<string, string> = {
+  'REMOTE': 'Remote',
+  'HYBRID': 'Hybrid',
+  'ON_SITE': 'On-site',
+};
 
-function loadJobsFromStorage(): EmployerJob[] {
-  if (typeof window === 'undefined') return [];
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return [];
-    return JSON.parse(raw) as EmployerJob[];
-  } catch {
-    return [];
-  }
-}
-
-function saveJobsToStorage(jobs: EmployerJob[]) {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(jobs));
-  } catch {
-    // Storage full — fail silently
-  }
+function mapApiJob(j: any): EmployerJob {
+  return {
+    id:               j.id,
+    title:            j.title,
+    category:         j.category ?? '',
+    workMode:         WORKMODE_FROM_API[j.workMode] ?? j.workMode,
+    jobType:          j.jobType ?? '',
+    salaryMin:        String(j.salaryMin ?? ''),
+    salaryMax:        String(j.salaryMax ?? ''),
+    currency:         j.currency ?? 'USD',
+    undisclosedSalary: j.undisclosedSalary ?? false,
+    description:      j.description ?? '',
+    responsibilities: j.responsibilities ?? '',
+    qualifications:   j.qualifications ?? '',
+    experience:       j.experience ?? '',
+    seniority:        j.seniority ?? '',
+    certifications:   j.certifications?.map((c: any) => c.name) ?? [],
+    niceToHave:       j.niceToHave ?? '',
+    status:           j.status === 'PUBLISHED' ? 'ACTIVE' : j.status === 'CLOSED' ? 'CLOSED' : 'DRAFT',
+    applicantCount:   j._count?.applications ?? 0,
+    createdAt:        j.createdAt,
+  };
 }
 
 // ─── Context ──────────────────────────────────────────────────────────────────
@@ -88,76 +87,52 @@ export function EmployerJobsProvider({ children }: { children: ReactNode }) {
   const [jobs, setJobs] = useState<EmployerJob[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Load from localStorage on mount
-  // TODO: replace with apiFetch<{ jobs: EmployerJob[] }>('/jobs/my-postings')
   useEffect(() => {
-    const stored = loadJobsFromStorage();
-    setJobs(stored);
-    setLoading(false);
+    apiFetch<{ jobs: any[] }>('/jobs/my-postings')
+      .then(res => setJobs(res.jobs.map(mapApiJob)))
+      .catch(() => setJobs([]))
+      .finally(() => setLoading(false));
   }, []);
 
-  // Persist whenever jobs change
-  useEffect(() => {
-    if (!loading) {
-      saveJobsToStorage(jobs);
-    }
-  }, [jobs, loading]);
-
-  /**
-   * Converts raw JobPostingData (from the multi-step form) into a full EmployerJob
-   * and prepends it to the list (newest first).
-   *
-   * TODO: when backend is ready:
-   *   const res = await apiFetch<{ job: EmployerJob }>('/jobs', {
-   *     method: 'POST',
-   *     body: JSON.stringify({ ...payload, status: 'ACTIVE' }),
-   *   });
-   *   setJobs(prev => [res.job, ...prev]);
-   */
-  const addJob = useCallback((data: JobPostingData): EmployerJob => {
-    const newJob: EmployerJob = {
-      id: `job_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
-      title: data.title.trim(),
-      category: data.category,
-      workMode: data.workMode,
-      jobType: data.jobType,
-      salaryMin: data.salaryMin,
-      salaryMax: data.salaryMax,
-      currency: data.currency,
-      undisclosedSalary: data.undisclosedSalary,
-      description: data.description,
-      responsibilities: data.responsibilities,
-      qualifications: data.qualifications,
-      experience: data.experience,
-      seniority: data.seniority,
-      certifications: data.certifications,
-      niceToHave: data.niceToHave,
-      status: 'ACTIVE',
-      applicantCount: 0,
-      createdAt: new Date().toISOString(),
-    };
-
-    setJobs((prev) => [newJob, ...prev]);
+  const addJob = useCallback(async (data: JobPostingData): Promise<EmployerJob> => {
+    const payload = buildJobPayload(data);
+    const res = await apiFetch<{ job: any }>('/jobs', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+    const newJob = mapApiJob({ ...res.job, _count: { applications: 0 } });
+    setJobs(prev => [newJob, ...prev]);
     return newJob;
   }, []);
 
-  /**
-   * Close a job by id.
-   * TODO: replace with apiFetch(`/jobs/${id}/close`, { method: 'PATCH' })
-   */
-  const closeJob = useCallback((id: string) => {
-    setJobs((prev) =>
-      prev.map((j) => (j.id === id ? { ...j, status: 'CLOSED' as EmployerJobStatus } : j))
+  const editJob = useCallback(async (id: string, data: JobPostingData): Promise<EmployerJob> => {
+    const payload = buildJobPayload(data);
+    const res = await apiFetch<{ job: any }>(`/jobs/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    });
+    setJobs(prev => prev.map(j => {
+      if (j.id !== id) return j;
+      const merged = mapApiJob({ ...res.job, _count: { applications: j.applicantCount } });
+      return merged;
+    }));
+    return mapApiJob({ ...res.job, _count: { applications: 0 } });
+  }, []);
+
+  const closeJob = useCallback(async (id: string): Promise<void> => {
+    await apiFetch(`/jobs/${id}/close`, { method: 'PATCH' });
+    setJobs(prev =>
+      prev.map(j => (j.id === id ? { ...j, status: 'CLOSED' as EmployerJobStatus } : j))
     );
   }, []);
 
-  const activeCount = jobs.filter((j) => j.status === 'ACTIVE').length;
-  const closedCount = jobs.filter((j) => j.status === 'CLOSED').length;
+  const activeCount = jobs.filter(j => j.status === 'ACTIVE').length;
+  const closedCount = jobs.filter(j => j.status === 'CLOSED').length;
   const totalApplicants = jobs.reduce((sum, j) => sum + j.applicantCount, 0);
 
   return (
     <EmployerJobsContext.Provider
-      value={{ jobs, loading, addJob, closeJob, activeCount, closedCount, totalApplicants }}
+      value={{ jobs, loading, addJob, editJob, closeJob, activeCount, closedCount, totalApplicants }}
     >
       {children}
     </EmployerJobsContext.Provider>

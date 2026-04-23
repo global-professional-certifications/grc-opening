@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { apiFetch } from "../../../lib/api";
+import { useRouter } from "next/router";
+import { apiFetch } from "@/lib/api";
 
 const MONO = { fontFamily: "'JetBrains Mono', monospace" };
 const SYNE = { fontFamily: "'Syne', sans-serif" };
@@ -36,7 +37,7 @@ function getInitials(name: string): string {
     .slice(0, 2);
 }
 
-function ApplicantCard({ applicant, colorIdx }: { applicant: Applicant; colorIdx: number }) {
+function ApplicantCard({ applicant, colorIdx, onReview }: { applicant: Applicant; colorIdx: number; onReview: () => void }) {
   const color = AVATAR_COLORS[colorIdx % AVATAR_COLORS.length];
   const initials = getInitials(applicant.seekerName);
 
@@ -92,7 +93,8 @@ function ApplicantCard({ applicant, colorIdx }: { applicant: Applicant; colorIdx
           {timeAgo(applicant.appliedAt)}
         </span>
         <button
-          className="text-xs font-semibold px-3 py-1 rounded-full transition-all db-btn-primary"
+          onClick={onReview}
+          className="text-xs font-semibold px-3 py-1 rounded-full transition-all db-btn-primary cursor-pointer"
           style={{ background: "var(--db-primary)", color: "var(--db-primary-text)" }}
         >
           Review
@@ -118,8 +120,13 @@ function SkeletonCard() {
 }
 
 export function LatestApplicants() {
+  const router = useRouter();
   const [applicants, setApplicants] = useState<Applicant[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const handleReview = (applicationId: string) => {
+    router.push({ pathname: "/employer/applicants", query: { focus: applicationId } });
+  };
 
   useEffect(() => {
     apiFetch<{ applicants: Applicant[] }>("/jobs/recent-applicants")
@@ -168,7 +175,7 @@ export function LatestApplicants() {
           : (
             <>
               {applicants.map((a, idx) => (
-                <ApplicantCard key={a.id} applicant={a} colorIdx={idx} />
+                <ApplicantCard key={a.id} applicant={a} colorIdx={idx} onReview={() => handleReview(a.id)} />
               ))}
               {/* "More" card */}
               <div

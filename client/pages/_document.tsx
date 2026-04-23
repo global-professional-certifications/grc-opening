@@ -33,6 +33,7 @@ export default function Document() {
           html[data-db-theme="light"], html:not([data-db-theme]) {
             --db-bg:             #F8FAFC;
             --db-surface:        #ffffff;
+            --db-dialog-bg:      var(--db-surface);
             --db-card:           rgba(255, 255, 255, 0.7);
             --db-card-shadow:    0 4px 20px rgba(58, 18, 146, 0.05), inset 0 0 0 1px rgba(255,255,255,0.4);
             --db-section-shadow: 0 4px 12px rgba(58, 18, 146, 0.04);
@@ -68,6 +69,7 @@ export default function Document() {
           html[data-db-theme="dark"] {
             --db-bg:             #0a0a0c;
             --db-surface:        #111116;
+            --db-dialog-bg:      var(--db-surface);
             --db-card:           rgba(21, 21, 30, 0.7);
             --db-card-shadow:    0 4px 20px rgba(0,0,0,0.4), inset 0 0 0 1px rgba(255,255,255,0.02);
             --db-section-shadow: 0 4px 12px rgba(0,0,0,0.3);

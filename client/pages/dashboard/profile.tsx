@@ -16,6 +16,7 @@ interface ApiProfilePayload {
     middleName: string | null;
     lastName: string;
     headline: string | null;
+    phone: string | null;
     bio: string | null;
     location: string | null;
     linkedInUrl: string | null;
@@ -45,6 +46,7 @@ function mapApiToForm(api: ApiProfilePayload): ProfileFormData {
     lastName: p.lastName,
     professionalTitle: p.headline ?? "",
     email: p.user.email,
+    phone: p.phone ?? "",
     location: p.location ?? "",
     linkedInUrl: p.linkedInUrl ?? "",
     summary: p.bio ?? "",
@@ -79,6 +81,7 @@ const EMPTY_PROFILE: ProfileFormData = {
   lastName: "",
   professionalTitle: "",
   email: "",
+  phone: "",
   location: "",
   linkedInUrl: "",
   summary: "",
@@ -170,23 +173,35 @@ export default function ProfilePage() {
   }
 
   useEffect(() => {
-    // Check localStorage first (user-scoped cache)
+    // Check localStorage first (user-scoped cache), but validate it has all required fields
     if (storageKey) {
       try {
         const cached = localStorage.getItem(storageKey);
         if (cached) {
           const parsed = JSON.parse(cached) as ProfileFormData;
-          setFormData(parsed);
-          setOriginal(parsed);
-          setLoading(false);
-          return;
+          // Invalidate cache if it's missing fields added after the initial release (phone, skills)
+          const isValid = parsed.phone !== undefined && Array.isArray(parsed.coreCompetencies);
+          if (isValid) {
+            setFormData(parsed);
+            setOriginal(parsed);
+            setLoading(false);
+            // Still fetch from API in background to ensure fresh data
+            loadProfileFromApi().then((data) => {
+              setFormData(data);
+              setOriginal(data);
+              localStorage.setItem(storageKey, JSON.stringify(data));
+            }).catch(() => { /* keep cached data on background fetch error */ });
+            return;
+          }
+          // Cache is stale — clear it and fetch fresh
+          localStorage.removeItem(storageKey);
         }
       } catch {
         // ignore parse errors, fall through to API
       }
     }
 
-    // No local cache — fetch from API
+    // No valid local cache — fetch from API
     loadProfileFromApi()
       .then((data) => {
         setFormData(data);
@@ -225,6 +240,7 @@ export default function ProfilePage() {
           lastName: formData.lastName,
           headline: formData.professionalTitle,
           bio: formData.summary,
+          phone: formData.phone,
           location: formData.location,
           linkedInUrl: formData.linkedInUrl,
           workExperiences: formData.workExperience.map((wx) => ({
@@ -236,6 +252,7 @@ export default function ProfilePage() {
             current: wx.current,
             description: wx.description,
           })),
+          skills: formData.coreCompetencies,
           certifications: formData.certifications.map((c) => ({ name: c.name })),
         }),
       });

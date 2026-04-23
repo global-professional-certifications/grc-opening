@@ -1,57 +1,43 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/router";
 import { ModernInput } from "../../../components/ui/ModernInput";
 import { PasswordStrength } from "./PasswordStrength";
 import { setToken, setStoredUser } from "../../../lib/auth";
 import { useUser } from "../../../contexts/UserContext";
 import { UserRole } from "../../../lib/userRole";
-
-const COUNTRIES = [
-  { value: "", label: "Select Country" },
-  { value: "us", label: "United States" },
-  { value: "in", label: "India" },
-  { value: "uk", label: "United Kingdom" },
-  { value: "ca", label: "Canada" },
-  { value: "au", label: "Australia" },
-  { value: "sg", label: "Singapore" },
-];
+import { getCurrencyFromLocation, COUNTRIES } from "../../../lib/currencyMap";
+import { ModernSelect } from "../../../components/ui/ModernSelect";
 
 interface Fields {
   firstName: string;
   middleName: string;
   lastName: string;
-  professionalTitle: string;
   email: string;
   password: string;
-  confirmPassword: string;
-  country: string;
+  location: string;
 }
 
 const EMPTY: Fields = {
   firstName: "",
   middleName: "",
   lastName: "",
-  professionalTitle: "",
   email: "",
   password: "",
-  confirmPassword: "",
-  country: "",
+  location: "",
 };
 
 function validate(data: Fields): Partial<Fields> {
   const errs: Partial<Fields> = {};
   if (!data.firstName.trim()) errs.firstName = "Required";
   if (!data.lastName.trim()) errs.lastName = "Required";
-  if (!data.professionalTitle.trim()) errs.professionalTitle = "Field required";
   if (!data.email.trim()) errs.email = "Email required";
   else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) errs.email = "Invalid email";
   if (!data.password) errs.password = "Required";
   else if (data.password.length < 8) errs.password = "Min 8 chars";
-  if (!data.confirmPassword) errs.confirmPassword = "Confirm password";
-  else if (data.password !== data.confirmPassword) errs.confirmPassword = "Mismatch";
-  if (!data.country) errs.country = "Select country";
+  if (!data.location.trim()) errs.location = "Required";
   return errs;
 }
+
 
 export function CandidateForm() {
   const router = useRouter();
@@ -61,7 +47,6 @@ export function CandidateForm() {
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
 
-
   function set(key: keyof Fields, value: string) {
     const next = { ...fields, [key]: value };
     setFields(next);
@@ -70,7 +55,6 @@ export function CandidateForm() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-
     setSubmitted(true);
     const errs = validate(fields);
     setErrors(errs);
@@ -78,7 +62,6 @@ export function CandidateForm() {
 
     setLoading(true);
     try {
-      // 1. Call Local Auth API instead of Clerk
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/local/register-candidate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -88,45 +71,27 @@ export function CandidateForm() {
           firstName: fields.firstName,
           middleName: fields.middleName,
           lastName: fields.lastName,
-          professionalTitle: fields.professionalTitle,
-          country: fields.country,
+          location: fields.location,
         }),
       });
 
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Registration failed");
 
-      // 2. Store the local token & initialize auth bridge
       localStorage.setItem("grc_local_token", data.token);
-      setToken(data.token); // Updates api.ts bridge
-      
-      const dbUser = { 
-        id: data.user.id,
-        role: data.user.role,
-        emailVerified: true,
-        email: fields.email
-      };
+      setToken(data.token);
+      const pref = getCurrencyFromLocation(fields.location);
+      if (pref) localStorage.setItem("grc_preferred_currency", pref);
 
-      // 3. Update Global State
+      const dbUser = { id: data.user.id, role: data.user.role, emailVerified: true, email: fields.email };
       setUser(dbUser as any);
-      const storedUser = { ...dbUser, firstName: fields.firstName, lastName: fields.lastName, headline: fields.professionalTitle };
-      setStoredUser(storedUser as any);
-      
-      const roleEnum = "job_seeker" as UserRole;
-      import("../../../lib/userRole").then(lib => lib.saveRole(roleEnum));
+      setStoredUser({ ...dbUser, firstName: fields.firstName, lastName: fields.lastName, location: fields.location } as any);
+      import("../../../lib/userRole").then(lib => lib.saveRole("job_seeker" as UserRole));
 
-      // 4. Redirect to dashboard
       router.push("/dashboard");
     } catch (err: any) {
-      console.error("[LocalRegistration] Error:", err);
-      setErrors(prev => ({ ...prev, email: err.message || "Registration failed." }));
-      const clerkErrors = err?.errors;
-      if (clerkErrors && Array.isArray(clerkErrors) && clerkErrors.length > 0) {
-        setErrors(prev => ({ ...prev, email: clerkErrors[0].longMessage || clerkErrors[0].message || "Registration failed." }));
-      } else {
-        const msg = err instanceof Error ? err.message : "Registration failed.";
-        setErrors(prev => ({ ...prev, email: msg }));
-      }
+      const msg = err instanceof Error ? err.message : "Registration failed.";
+      setErrors(prev => ({ ...prev, email: msg }));
     } finally {
       setLoading(false);
     }
@@ -134,7 +99,8 @@ export function CandidateForm() {
 
   return (
     <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-3" style={{ fontFamily: "'Poppins', sans-serif" }}>
-      {/* 3-Column Name Grid */}
+
+      {/* Name row */}
       <div className="grid grid-cols-3 gap-3">
         <ModernInput
           label="First Name" placeholder="John" id="firstName"
@@ -154,14 +120,7 @@ export function CandidateForm() {
       </div>
 
       <ModernInput
-        label="Professional Title" placeholder="GRC Analyst / Compliance Specialist" id="title"
-        icon="badge"
-        value={fields.professionalTitle} onChange={e => set("professionalTitle", e.target.value)}
-        error={errors.professionalTitle}
-      />
-
-      <ModernInput
-        label="Email Address" type="email" placeholder="name@company.com" id="email"
+        label="Email Address" type="email" placeholder="name@email.com" id="email"
         icon="mail"
         value={fields.email} onChange={e => set("email", e.target.value)}
         error={errors.email}
@@ -177,38 +136,14 @@ export function CandidateForm() {
           />
           <PasswordStrength password={fields.password} />
         </div>
-        <ModernInput
-          label="Confirm Password" type="password" id="confirmPassword"
-          icon="lock"
-          value={fields.confirmPassword} onChange={e => set("confirmPassword", e.target.value)}
-          error={errors.confirmPassword}
+        <ModernSelect
+          label="Country" id="location"
+          icon="public"
+          options={COUNTRIES}
+          placeholder="Select country"
+          value={fields.location} onChange={e => set("location", e.target.value)}
+          error={errors.location}
         />
-      </div>
-
-      <div className="flex flex-col gap-1">
-        <label className="text-[13px] font-semibold text-gray-500 tracking-tight" style={{ fontFamily: "'Poppins', sans-serif" }}>
-          Country
-        </label>
-        <select
-          value={fields.country}
-          onChange={e => set("country", e.target.value)}
-          className={`
-            w-full py-2.5 px-4 bg-[#f9fafb] rounded-xl border border-gray-200 outline-none text-[14.5px] font-medium transition-all
-            ${errors.country ? "border-red-500 focus:ring-red-500/10" : "focus:border-[#3a1292] focus:ring-4 focus:ring-[#3a1292]/10 shadow-sm"}
-            cursor-pointer appearance-none
-          `}
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%233a1292' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`,
-            backgroundPosition: 'right 14px center',
-            backgroundRepeat: 'no-repeat',
-            backgroundSize: '16px'
-          }}
-        >
-          {COUNTRIES.map(c => (
-             <option key={c.value} value={c.value}>{c.label}</option>
-          ))}
-        </select>
-        {errors.country && <span className="text-[11px] font-medium text-red-500 mt-0.5 ml-1">{errors.country}</span>}
       </div>
 
       <button
@@ -216,29 +151,11 @@ export function CandidateForm() {
         disabled={loading}
         className="w-full py-3.5 rounded-xl bg-[#3a1292] text-white font-bold text-[15px] shadow-lg shadow-[#3a1292]/20 hover:bg-[#2e0e74] transition-all active:scale-[0.98] disabled:opacity-70 flex items-center justify-center gap-3"
       >
-        {loading ? (
-          <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-        ) : (
-          <>Create Account <span className="material-symbols-outlined text-[20px]">arrow_forward</span></>
-        )}
+        {loading
+          ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+          : <>Create Account <span className="material-symbols-outlined text-[20px]">arrow_forward</span></>
+        }
       </button>
-
-{/* Hiding Google Auth for now as it is not implemented */}
-{/* 
-      <div className="relative flex items-center py-1">
-        <div className="flex-grow border-t border-gray-100"></div>
-        <span className="flex-shrink mx-4 text-[10px] font-bold text-gray-400 tracking-[0.2em] uppercase">OR</span>
-        <div className="flex-grow border-t border-gray-100"></div>
-      </div>
-
-      <button
-        type="button"
-        className="w-full py-3 rounded-xl bg-white border border-gray-200 text-gray-700 font-bold text-[14px] hover:bg-gray-50 flex items-center justify-center gap-3 transition-all"
-      >
-        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/smartlock/google.svg" className="w-5 h-5" alt="Google" />
-        Continue with Google
-      </button> 
-*/}
 
       <p className="text-center text-[14px] text-gray-500 font-medium mt-1">
         Already have an account?{" "}

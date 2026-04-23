@@ -10,9 +10,8 @@ const prisma = new PrismaClient();
 // ---------------------------------------------------------
 export const registerCandidateLocal = async (req: Request, res: Response) => {
   try {
-    const { email, password, firstName, middleName, lastName, country, professionalTitle } = req.body;
-    
-    // Check if user exists
+    const { email, password, firstName, middleName, lastName, location } = req.body;
+
     const existing = await prisma.user.findUnique({ where: { email: email.toLowerCase() } });
     if (existing) return res.status(400).json({ error: 'Email already registered.' });
 
@@ -32,11 +31,10 @@ export const registerCandidateLocal = async (req: Request, res: Response) => {
         data: {
           userId: u.id,
           firstName,
-          middleName,
+          middleName: middleName || null,
           lastName,
-          country,
-          headline: professionalTitle
-        }
+          location: location || null,
+        } as any,
       });
 
       return u;
@@ -55,8 +53,8 @@ export const registerCandidateLocal = async (req: Request, res: Response) => {
 // ---------------------------------------------------------
 export const registerEmployerLocal = async (req: Request, res: Response) => {
   try {
-    const { email, password, companyName, firstName, middleName, lastName, industry, companySize } = req.body;
-    
+    const { email, password, companyName, firstName, middleName, lastName, location } = req.body;
+
     // Check if user exists
     const existing = await prisma.user.findUnique({ where: { email: email.toLowerCase() } });
     if (existing) return res.status(400).json({ error: 'Email already registered.' });
@@ -78,11 +76,10 @@ export const registerEmployerLocal = async (req: Request, res: Response) => {
           userId: u.id,
           companyName,
           representativeFirstName: firstName,
-          representativeMiddleName: middleName,
+          representativeMiddleName: middleName || null,
           representativeLastName: lastName,
-          industry,
-          companySize
-        }
+          ...(location ? { city: location } : {}),
+        } as any,
       });
 
       return u;
@@ -101,13 +98,24 @@ export const registerEmployerLocal = async (req: Request, res: Response) => {
 // ---------------------------------------------------------
 export const loginLocal = async (req: Request, res: Response) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, role: requestedRole } = req.body;
     const user = await prisma.user.findUnique({ where: { email: email.toLowerCase() } });
 
     if (!user || !user.passwordHash) return res.status(400).json({ error: 'Invalid credentials.' });
 
     const isValid = await bcrypt.compare(password, user.passwordHash);
     if (!isValid) return res.status(400).json({ error: 'Invalid credentials.' });
+
+    // Enforce role-specific login: toggle on client must match the account's role
+    if (requestedRole === 'EMPLOYER' || requestedRole === 'JOB_SEEKER') {
+      if (user.role !== requestedRole) {
+        const expectedLabel = user.role === Role.EMPLOYER ? 'Employer' : 'Job Seeker';
+        const attemptedLabel = requestedRole === 'EMPLOYER' ? 'Employer' : 'Job Seeker';
+        return res.status(403).json({
+          error: `This account is registered as a ${expectedLabel}. Please switch to "${expectedLabel}" to sign in (you selected "${attemptedLabel}").`,
+        });
+      }
+    }
 
     const payload = { userId: user.id, role: user.role };
     console.log("[AuthLocalController] Signing token for:", user.email, "payload:", payload);

@@ -3,10 +3,10 @@ import type { AppProps } from 'next/app'
 import { useState, useEffect } from 'react'
 import { UserProvider } from '../contexts/UserContext'
 import { DashboardThemeProvider } from '../contexts/DashboardThemeContext'
-import { EmployerJobsProvider } from '../contexts/EmployerJobsContext'
 import { ClerkProvider, useAuth } from '@clerk/nextjs'
 import { useRouter } from 'next/router'
 import { registerTokenGetter } from '../lib/api'
+import { EmployerJobsProvider } from '../contexts/EmployerJobsContext';
 
 // Sits inside ClerkProvider so useAuth() is available.
 // Registers Clerk's getToken so every apiFetch call gets a fresh JWT
@@ -34,8 +34,7 @@ export default function App({ Component, pageProps }: AppProps) {
       {/* ClerkTokenRegistrar disabled — using local JWT auth. Re-enable when Clerk is re-integrated. */}
       {/* <ClerkTokenRegistrar /> */}
       <UserProvider>
-        <EmployerJobsProvider>
-          <DashboardThemeProvider>
+        <DashboardThemeProvider>
             {/* Global Theme Toggle - Hidden on Landing Page */}
             {router.pathname !== '/' && router.pathname !== '/home' && (
               <button className="theme-toggle" onClick={toggleTheme} aria-label="Toggle theme">
@@ -61,8 +60,7 @@ export default function App({ Component, pageProps }: AppProps) {
               </button>
             )}
             <Component {...pageProps} theme={theme} />
-          </DashboardThemeProvider>
-        </EmployerJobsProvider>
+        </DashboardThemeProvider>
       </UserProvider>
     </ClerkProvider>
   )

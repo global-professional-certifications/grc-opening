@@ -64,7 +64,7 @@ function Field({ label, value, onChange, type = "text", placeholder, colSpan }: 
 interface Props {
   data: Pick<
     ProfileFormData,
-    "firstName" | "lastName" | "professionalTitle" | "email" | "location" | "linkedInUrl"
+    "firstName" | "lastName" | "professionalTitle" | "email" | "phone" | "location" | "linkedInUrl"
   >;
   onChange: (updates: Partial<ProfileFormData>) => void;
 }
@@ -124,6 +124,13 @@ export function PersonalInfoSection({ data, onChange }: Props) {
           value={data.location}
           onChange={(v) => onChange({ location: v })}
           placeholder="London, United Kingdom"
+        />
+        <Field
+          label="Phone Number"
+          value={data.phone ?? ""}
+          onChange={(v) => onChange({ phone: v })}
+          type="tel"
+          placeholder="+1 555 000 0000"
         />
         <Field
           label="LinkedIn URL"

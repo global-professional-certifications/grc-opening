@@ -1,10 +1,11 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { DashboardLayout } from "../../components/layout/DashboardLayout";
 import { KPISection } from "../../modules/dashboard/KPISection";
 import { RecommendedJobs } from "../../modules/dashboard/RecommendedJobs";
 import { RecentApplications } from "../../modules/dashboard/RecentApplications";
 import { ProfileCompletion } from "../../modules/dashboard/ProfileCompletion";
 import { GRCInsight } from "../../modules/dashboard/GRCInsight";
+import { SavedJobsPopover } from "../../modules/dashboard/SavedJobsPopover";
 import { useDashboardTheme } from "../../contexts/DashboardThemeContext";
 import { useUser } from "../../contexts/UserContext";
 
@@ -40,7 +41,19 @@ function getGreeting() {
 function DashboardHeader() {
   const { theme, toggleTheme } = useDashboardTheme();
   const { user } = useUser();
-  const firstName = user?.firstName || user?.email?.split("@")[0] || "there";
+  const [profile, setProfile] = useState<any>(null);
+
+  useEffect(() => {
+    if (!user) return;
+    const endpoint = user.role === "EMPLOYER" ? "/profile/employer" : "/profile/seeker";
+    import("../../lib/api").then(({ apiFetch }) => {
+      apiFetch<{ profile: any }>(endpoint)
+        .then(res => setProfile(res.profile))
+        .catch(console.error);
+    });
+  }, [user]);
+
+  const firstName = profile?.firstName || profile?.representativeFirstName || user?.firstName || user?.email?.split("@")[0] || "there";
 
   return (
     <header className="flex items-center justify-between">
@@ -54,15 +67,8 @@ function DashboardHeader() {
       </div>
 
       <div className="flex items-center gap-4">
-        {/* Notification bell */}
-        <button
-          className="w-10 h-10 flex items-center justify-center rounded-full border transition-all duration-200 shadow-sm hover:shadow-md hover:scale-105 relative"
-          style={{ background: "rgba(255, 255, 255, 0.05)", borderColor: "var(--db-border)" }}
-          aria-label="Notifications"
-        >
-          <span className="material-symbols-outlined" style={{ fontSize: 20, color: "var(--db-text-secondary)" }}>notifications</span>
-          <span className="absolute top-2 right-2.5 w-2 h-2 bg-red-500 rounded-full" style={{ border: "2px solid var(--db-card)" }} />
-        </button>
+        {/* Saved jobs popover (replaces notification bell) */}
+        <SavedJobsPopover />
 
         {/* Divider */}
         <div className="h-8 w-px bg-slate-800" style={{ background: "var(--db-border)" }} />
