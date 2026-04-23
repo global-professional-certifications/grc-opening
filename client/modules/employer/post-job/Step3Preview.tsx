@@ -154,9 +154,9 @@ function SuccessScreen({ jobId }: { jobId: string }) {
 // ─── Main component ────────────────────────────────────────────────────────────
 
 export function Step3Preview() {
-  const { data, prevStep, goToStep, reset } = useJobPosting();
+  const { data, prevStep, goToStep, reset, editId } = useJobPosting();
   const { user } = useUser();
-  const { addJob } = useEmployerJobs();
+  const { addJob, editJob } = useEmployerJobs();
   const router = useRouter();
 
   const [isPublishing, setIsPublishing] = useState(false);
@@ -180,12 +180,10 @@ export function Step3Preview() {
     setPublishError(null);
 
     try {
-      // addJob() writes to the shared EmployerJobsContext (localStorage-backed)
-      // and returns the new job object synchronously.
-      // TODO: when backend is ready, also call publishJobAPI(data) here and
-      // use the returned server id instead of the locally generated one.
-      const newJob = addJob(data);
-      setPublishedId(newJob.id);
+      const savedJob = editId
+        ? await editJob(editId, data)
+        : await addJob(data);
+      setPublishedId(savedJob.id);
       setShowSuccess(true);
 
       // State is already updated — safe to redirect immediately
@@ -291,7 +289,9 @@ export function Step3Preview() {
             <SectionHeader label="Details at a Glance" onEdit={() => goToStep(1)} />
             <div className="flex flex-wrap gap-2">
               <MetaPill icon="payments"     label={salaryDisplay} />
-              {data.workMode   && <MetaPill icon="location_on"  label={data.workMode} />}
+              {data.workMode === 'Remote' && <MetaPill icon="wifi"      label="Remote" />}
+              {data.workMode === 'Hybrid'  && <MetaPill icon="home_work" label={data.location ? `Hybrid · ${data.location}` : 'Hybrid'} />}
+              {data.workMode === 'On-site' && <MetaPill icon="apartment" label={data.location || 'On-site'} />}
               {data.jobType    && <MetaPill icon="schedule"      label={data.jobType} />}
               {data.experience && <MetaPill icon="trending_up"   label={`${data.experience} yrs exp`} />}
               {data.seniority  && <MetaPill icon="military_tech" label={data.seniority} />}
@@ -369,12 +369,12 @@ export function Step3Preview() {
           {isPublishing ? (
             <>
               <span className="w-4 h-4 rounded-full border-2 border-current border-t-transparent animate-spin" />
-              Publishing…
+              {editId ? 'Saving…' : 'Publishing…'}
             </>
           ) : (
             <>
-              <span className="material-symbols-outlined" style={{ fontSize: 20 }}>rocket_launch</span>
-              Publish Job
+              <span className="material-symbols-outlined" style={{ fontSize: 20 }}>{editId ? 'save' : 'rocket_launch'}</span>
+              {editId ? 'Save changes' : 'Publish Job'}
             </>
           )}
         </button>

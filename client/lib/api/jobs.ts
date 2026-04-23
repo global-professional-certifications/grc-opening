@@ -21,25 +21,23 @@ export interface JobDraftResponse {
 
 export function buildJobPayload(data: JobPostingData) {
   return {
-    title: data.title.trim(),
-    category: data.category,
-    workMode: data.workMode,               // 'Remote' | 'Hybrid' | 'On-site'
-    jobType: data.jobType,                 // 'Full-time' | 'Contract' | 'Freelance'
-    salary: data.undisclosedSalary
-      ? { disclosed: false }
-      : {
-          disclosed: true,
-          min: data.salaryMin ? Number(data.salaryMin) : null,
-          max: data.salaryMax ? Number(data.salaryMax) : null,
-          currency: data.currency,
-        },
-    description: data.description.trim(),
-    responsibilities: data.responsibilities.trim(),
-    qualifications: data.qualifications.trim(),
-    experience: data.experience || null,
-    seniority: data.seniority || null,
-    certifications: data.certifications,
-    niceToHave: data.niceToHave.trim() || null,
+    title:            data.title.trim(),
+    category:         data.category         || undefined,
+    workMode:         data.workMode,
+    location:         data.location.trim()    || undefined,
+    jobType:          data.jobType           || undefined,
+    deadline:         data.deadline          || undefined,
+    undisclosedSalary: data.undisclosedSalary,
+    salaryMin:        (!data.undisclosedSalary && data.salaryMin)  ? Number(data.salaryMin)  : undefined,
+    salaryMax:        (!data.undisclosedSalary && data.salaryMax)  ? Number(data.salaryMax)  : undefined,
+    currency:         (!data.undisclosedSalary && data.currency)   ? data.currency           : undefined,
+    description:      data.description.trim(),
+    responsibilities: data.responsibilities.trim() || undefined,
+    qualifications:   data.qualifications.trim()   || undefined,
+    experience:       data.experience  || undefined,
+    seniority:        data.seniority   || undefined,
+    certifications:   data.certifications,
+    niceToHave:       data.niceToHave.trim() || undefined,
   };
 }
 

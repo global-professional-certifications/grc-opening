@@ -20,6 +20,7 @@ export interface ProfileFormData {
   lastName: string;
   professionalTitle: string;
   email: string;
+  phone?: string;
   location: string;
   linkedInUrl: string;
   summary: string;

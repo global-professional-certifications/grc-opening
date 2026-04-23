@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { DashboardThemeProvider, useDashboardTheme } from "../../contexts/DashboardThemeContext";
 import { useUser } from "../../contexts/UserContext";
+import { EmployerJobsProvider } from "../../contexts/EmployerJobsContext";
 
 const SYNE    = { fontFamily: "'Syne', sans-serif" };
 const MONO    = { fontFamily: "'JetBrains Mono', monospace" };
@@ -22,19 +23,36 @@ function EmployerDashboardLayoutInner({ children }: { children: React.ReactNode 
   const { theme } = useDashboardTheme();
   void theme;
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { user } = useUser();
+  const { user, logout } = useUser();
   const router = useRouter();
+  const [employerProfile, setEmployerProfile] = useState<{ companyName?: string } | null>(null);
 
-  // Derive display values from real user context
-  const companyName = user?.firstName || "—";
-  const initials = companyName
-    .split(" ")
+  // Load employer profile for real company name in the nameplate
+  useEffect(() => {
+    if (!user || user.role !== "EMPLOYER") return;
+    import("../../lib/api").then(({ apiFetch }) => {
+      apiFetch<{ profile: { companyName?: string } }>("/profile/employer")
+        .then(res => setEmployerProfile(res.profile))
+        .catch(() => setEmployerProfile(null));
+    });
+  }, [user]);
+
+  // Derive display values: employer profile's companyName, then fall back to user email's local part
+  const displayName =
+    employerProfile?.companyName ||
+    user?.firstName ||
+    (user?.email ? user.email.split("@")[0] : "") ||
+    "Employer";
+  const initials = displayName
+    .split(/[\s._-]+/)
     .map((w: string) => w[0] ?? "")
     .join("")
     .toUpperCase()
-    .slice(0, 2) || "?";
+    .slice(0, 2) || "E";
 
-  // Guard: Redirect non-employers or unauthenticated users
+  // Guard: Redirect non-employers or unauthenticated users.
+  // Blocks rendering until role is verified so a seeker never sees employer content.
+  const [roleChecked, setRoleChecked] = useState(false);
   useEffect(() => {
     if (typeof window === "undefined") return;
     const token = localStorage.getItem("grc_token");
@@ -42,12 +60,24 @@ function EmployerDashboardLayoutInner({ children }: { children: React.ReactNode 
       router.replace("/auth/login");
       return;
     }
-    
-    // Redirect seekers away from employer pages
-    if (user && user.role !== "EMPLOYER") {
+    if (!user) return;
+    if (user.role !== "EMPLOYER") {
       router.replace("/dashboard");
+      return;
     }
+    setRoleChecked(true);
   }, [router, user]);
+
+  if (!roleChecked) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ background: "var(--db-bg)", color: "var(--db-text-muted)" }}>
+        <div className="flex flex-col items-center gap-3">
+          <span className="h-6 w-6 rounded-full border-2 border-current border-t-transparent animate-spin" />
+          <p className="text-xs">Verifying access…</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen overflow-x-hidden" style={MANROPE}>
@@ -124,14 +154,15 @@ function EmployerDashboardLayoutInner({ children }: { children: React.ReactNode 
               <div className="space-y-0.5">
                 <NavItem href="/employer/profile"  icon="business"  label="Company Profile" />
                 <NavItem href="/employer/settings" icon="settings"  label="Settings" />
-                <a
-                  href="/"
-                  className="db-nav-item"
+                <button
+                  type="button"
+                  onClick={() => { logout(); router.replace('/auth/login'); }}
+                  className="db-nav-item w-full text-left"
                   style={{ color: "var(--db-sidebar-nav-text)" }}
                 >
                   <span className="material-symbols-outlined" style={{ fontSize: 20 }}>logout</span>
                   <span className="text-sm font-medium">Logout</span>
-                </a>
+                </button>
               </div>
             </div>
           </nav>
@@ -158,7 +189,7 @@ function EmployerDashboardLayoutInner({ children }: { children: React.ReactNode 
               </div>
               <div className="overflow-hidden">
                 <p className="text-sm font-bold truncate" style={{ color: "var(--db-sidebar-user-text)" }}>
-                  {companyName}
+                  {displayName}
                 </p>
                 <p className="text-[10px] uppercase tracking-wide" style={{ ...MONO, color: "var(--db-primary)" }}>
                   Employer
@@ -209,7 +240,9 @@ function EmployerDashboardLayoutInner({ children }: { children: React.ReactNode 
 export function EmployerDashboardLayout({ children }: { children: React.ReactNode }) {
   return (
     <DashboardThemeProvider>
-      <EmployerDashboardLayoutInner>{children}</EmployerDashboardLayoutInner>
+      <EmployerJobsProvider>
+        <EmployerDashboardLayoutInner>{children}</EmployerDashboardLayoutInner>
+      </EmployerJobsProvider>
     </DashboardThemeProvider>
   );
 }

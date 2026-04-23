@@ -5,6 +5,7 @@ import { apiFetch } from "../../lib/api";
 import { setToken, setStoredUser, isFirstLogin, markVisited } from "../../lib/auth";
 import { useUser } from "../../contexts/UserContext";
 import { getDashboardPath, UserRole } from "../../lib/userRole";
+import { COUNTRY_CODE_TO_CURRENCY, getCurrencyFromLocation } from "../../lib/currencyMap";
 
 interface LoginResponse {
   token: string;
@@ -51,11 +52,12 @@ export function LoginForm({ onRoleChange }: LoginFormProps) {
     setLoading(true);
 
     try {
-      // 1. Call Local Auth API instead of Clerk
+      // 1. Call Local Auth API — pass selected role so the server can enforce role-specific login
+      const requestedRole = activeRole === "employer" ? "EMPLOYER" : "JOB_SEEKER";
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/local/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, role: requestedRole }),
       });
 
       const data = await response.json();
@@ -81,6 +83,16 @@ export function LoginForm({ onRoleChange }: LoginFormProps) {
       
       const roleEnum = (dbUser.role === "EMPLOYER" ? "employer" : "job_seeker") as UserRole;
       import("../../lib/userRole").then(lib => lib.saveRole(roleEnum));
+
+      // Set default currency from country/location for seekers (if not already set)
+      if (dbUser.role === "JOB_SEEKER" && !localStorage.getItem("grc_preferred_currency")) {
+        apiFetch<{ profile: { country?: string; location?: string } }>("/profile/seeker").then(r => {
+          const currency =
+            COUNTRY_CODE_TO_CURRENCY[(r.profile?.country ?? "").toLowerCase()] ??
+            getCurrencyFromLocation(r.profile?.location ?? "");
+          if (currency) localStorage.setItem("grc_preferred_currency", currency);
+        }).catch(() => {});
+      }
 
       // 5. Redirect based on role
       router.push(dbUser.role === "EMPLOYER" ? "/employer/dashboard" : "/dashboard");

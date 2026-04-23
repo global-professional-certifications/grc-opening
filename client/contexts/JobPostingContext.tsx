@@ -7,7 +7,9 @@ export interface JobPostingData {
   title: string;
   category: string;
   workMode: WorkMode | '';
+  location: string;
   jobType: JobType | '';
+  deadline: string;
   salaryMin: string;
   salaryMax: string;
   currency: string;
@@ -25,11 +27,15 @@ export interface JobPostingData {
 interface JobPostingContextType {
   data: JobPostingData;
   updateData: (updates: Partial<JobPostingData>) => void;
+  setData: (d: JobPostingData) => void;
   currentStep: number;
   goToStep: (step: number) => void;
   nextStep: () => void;
   prevStep: () => void;
   reset: () => void;
+  // Edit mode
+  editId: string | null;
+  setEditId: (id: string | null) => void;
   // Draft system
   saveDraft: () => void;
   clearDraft: () => void;
@@ -41,7 +47,9 @@ const defaultData: JobPostingData = {
   title: '',
   category: '',
   workMode: '',
+  location: '',
   jobType: '',
+  deadline: '',
   salaryMin: '',
   salaryMax: '',
   currency: 'USD',
@@ -87,6 +95,7 @@ export function JobPostingProvider({ children }: { children: ReactNode }) {
   const [currentStep, setCurrentStep] = useState(1);
   const [draftSavedAt, setDraftSavedAt] = useState<Date | null>(null);
   const [isDirty, setIsDirty] = useState(false);
+  const [editId, setEditId] = useState<string | null>(null);
 
   // Restore draft from localStorage on mount
   useEffect(() => {
@@ -142,11 +151,14 @@ export function JobPostingProvider({ children }: { children: ReactNode }) {
       value={{
         data,
         updateData,
+        setData,
         currentStep,
         goToStep,
         nextStep,
         prevStep,
         reset,
+        editId,
+        setEditId,
         saveDraft,
         clearDraft,
         draftSavedAt,
