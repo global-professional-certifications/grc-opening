@@ -10,12 +10,16 @@ const prisma = new PrismaClient();
 // ---------------------------------------------------------
 export const registerCandidateLocal = async (req: Request, res: Response) => {
   try {
-    const { email, password, firstName, middleName, lastName, location } = req.body;
+    const { email, password, fullName, phone } = req.body;
 
     const existing = await prisma.user.findUnique({ where: { email: email.toLowerCase() } });
     if (existing) return res.status(400).json({ error: 'Email already registered.' });
 
     const passwordHash = await bcrypt.hash(password, 10);
+
+    const names = (fullName || '').trim().split(' ');
+    const firstName = names[0] || '';
+    const lastName = names.slice(1).join(' ') || '';
 
     const user = await prisma.$transaction(async (tx) => {
       const u = await tx.user.create({
@@ -31,9 +35,8 @@ export const registerCandidateLocal = async (req: Request, res: Response) => {
         data: {
           userId: u.id,
           firstName,
-          middleName: middleName || null,
           lastName,
-          location: location || null,
+          phone: phone || null,
         } as any,
       });
 
@@ -53,7 +56,7 @@ export const registerCandidateLocal = async (req: Request, res: Response) => {
 // ---------------------------------------------------------
 export const registerEmployerLocal = async (req: Request, res: Response) => {
   try {
-    const { email, password, companyName, firstName, middleName, lastName, location } = req.body;
+    const { email, password, companyName } = req.body;
 
     // Check if user exists
     const existing = await prisma.user.findUnique({ where: { email: email.toLowerCase() } });
@@ -75,10 +78,7 @@ export const registerEmployerLocal = async (req: Request, res: Response) => {
         data: {
           userId: u.id,
           companyName,
-          representativeFirstName: firstName,
-          representativeMiddleName: middleName || null,
-          representativeLastName: lastName,
-          ...(location ? { city: location } : {}),
+          contactEmail: email.toLowerCase(),
         } as any,
       });
 

@@ -1,43 +1,34 @@
 import React, { useState } from "react";
 import { useRouter } from "next/router";
 import { ModernInput } from "../../../components/ui/ModernInput";
-import { ModernSelect } from "../../../components/ui/ModernSelect";
 import { PasswordStrength } from "./PasswordStrength";
 import { setToken, setStoredUser } from "../../../lib/auth";
 import { useUser } from "../../../contexts/UserContext";
 import { UserRole } from "../../../lib/userRole";
-import { COUNTRIES } from "../../../lib/currencyMap";
 
 interface Fields {
-  firstName: string;
-  middleName: string;
-  lastName: string;
   companyName: string;
   workEmail: string;
   password: string;
-  location: string;
+  confirmPassword: string;
 }
 
 const EMPTY: Fields = {
-  firstName: "",
-  middleName: "",
-  lastName: "",
   companyName: "",
   workEmail: "",
   password: "",
-  location: "",
+  confirmPassword: "",
 };
 
 function validate(data: Fields): Partial<Fields> {
   const errs: Partial<Fields> = {};
-  if (!data.firstName.trim()) errs.firstName = "Required";
-  if (!data.lastName.trim()) errs.lastName = "Required";
   if (!data.companyName.trim()) errs.companyName = "Required";
   if (!data.workEmail.trim()) errs.workEmail = "Required";
   else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.workEmail)) errs.workEmail = "Invalid email";
   if (!data.password) errs.password = "Required";
   else if (data.password.length < 8) errs.password = "Min 8 chars";
-  if (!data.location.trim()) errs.location = "Required";
+  if (!data.confirmPassword) errs.confirmPassword = "Required";
+  else if (data.confirmPassword !== data.password) errs.confirmPassword = "Passwords do not match";
   return errs;
 }
 
@@ -71,10 +62,6 @@ export function EmployerForm() {
           email: fields.workEmail,
           password: fields.password,
           companyName: fields.companyName,
-          firstName: fields.firstName,
-          middleName: fields.middleName,
-          lastName: fields.lastName,
-          location: fields.location,
         }),
       });
 
@@ -101,25 +88,6 @@ export function EmployerForm() {
   return (
     <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-3" style={{ fontFamily: "'Poppins', sans-serif" }}>
 
-      {/* Name row */}
-      <div className="grid grid-cols-3 gap-3">
-        <ModernInput
-          label="First Name" placeholder="John" id="firstName"
-          value={fields.firstName} onChange={e => set("firstName", e.target.value)}
-          error={errors.firstName}
-        />
-        <ModernInput
-          label="Middle Name" placeholder="D." id="middleName"
-          value={fields.middleName} onChange={e => set("middleName", e.target.value)}
-          error={errors.middleName}
-        />
-        <ModernInput
-          label="Last Name" placeholder="Doe" id="lastName"
-          value={fields.lastName} onChange={e => set("lastName", e.target.value)}
-          error={errors.lastName}
-        />
-      </div>
-
       <ModernInput
         label="Company Name" placeholder="e.g. Acme GRC Solutions" id="companyName"
         icon="business"
@@ -134,30 +102,27 @@ export function EmployerForm() {
         error={errors.workEmail}
       />
 
-      <div className="grid grid-cols-2 gap-3">
-        <div className="flex flex-col gap-2">
-          <ModernInput
-            label="Password" type="password" id="empPassword"
-            icon="lock"
-            value={fields.password} onChange={e => set("password", e.target.value)}
-            error={errors.password}
-          />
-          <PasswordStrength password={fields.password} />
-        </div>
-        <ModernSelect
-          label="Country" id="location"
-          icon="public"
-          options={COUNTRIES}
-          placeholder="Select country"
-          value={fields.location} onChange={e => set("location", e.target.value)}
-          error={errors.location}
+      <div className="flex flex-col gap-2">
+        <ModernInput
+          label="Password" type="password" id="empPassword"
+          icon="lock"
+          value={fields.password} onChange={e => set("password", e.target.value)}
+          error={errors.password}
         />
+        <PasswordStrength password={fields.password} />
       </div>
+
+      <ModernInput
+        label="Confirm Password" type="password" id="confirmPassword"
+        icon="lock"
+        value={fields.confirmPassword} onChange={e => set("confirmPassword", e.target.value)}
+        error={errors.confirmPassword}
+      />
 
       <button
         type="submit"
         disabled={loading}
-        className="w-full py-3.5 mt-1 rounded-xl bg-[#3a1292] text-white font-bold text-[15px] shadow-lg shadow-[#3a1292]/20 hover:bg-[#2e0e74] transition-all active:scale-[0.98] disabled:opacity-70 flex items-center justify-center gap-3"
+        className="w-full py-3.5 mt-2 rounded-xl bg-[#3a1292] text-white font-bold text-[15px] shadow-lg shadow-[#3a1292]/20 hover:bg-[#2e0e74] transition-all active:scale-[0.98] disabled:opacity-70 flex items-center justify-center gap-3"
       >
         {loading
           ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />

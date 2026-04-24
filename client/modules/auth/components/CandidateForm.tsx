@@ -5,39 +5,35 @@ import { PasswordStrength } from "./PasswordStrength";
 import { setToken, setStoredUser } from "../../../lib/auth";
 import { useUser } from "../../../contexts/UserContext";
 import { UserRole } from "../../../lib/userRole";
-import { getCurrencyFromLocation, COUNTRIES } from "../../../lib/currencyMap";
-import { ModernSelect } from "../../../components/ui/ModernSelect";
 
 interface Fields {
-  firstName: string;
-  middleName: string;
-  lastName: string;
+  fullName: string;
   email: string;
+  phone: string;
   password: string;
-  location: string;
+  confirmPassword: string;
 }
 
 const EMPTY: Fields = {
-  firstName: "",
-  middleName: "",
-  lastName: "",
+  fullName: "",
   email: "",
+  phone: "",
   password: "",
-  location: "",
+  confirmPassword: "",
 };
 
 function validate(data: Fields): Partial<Fields> {
   const errs: Partial<Fields> = {};
-  if (!data.firstName.trim()) errs.firstName = "Required";
-  if (!data.lastName.trim()) errs.lastName = "Required";
+  if (!data.fullName.trim()) errs.fullName = "Required";
   if (!data.email.trim()) errs.email = "Email required";
   else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) errs.email = "Invalid email";
+  if (!data.phone.trim()) errs.phone = "Required";
   if (!data.password) errs.password = "Required";
   else if (data.password.length < 8) errs.password = "Min 8 chars";
-  if (!data.location.trim()) errs.location = "Required";
+  if (!data.confirmPassword) errs.confirmPassword = "Required";
+  else if (data.confirmPassword !== data.password) errs.confirmPassword = "Passwords do not match";
   return errs;
 }
-
 
 export function CandidateForm() {
   const router = useRouter();
@@ -68,10 +64,8 @@ export function CandidateForm() {
         body: JSON.stringify({
           email: fields.email,
           password: fields.password,
-          firstName: fields.firstName,
-          middleName: fields.middleName,
-          lastName: fields.lastName,
-          location: fields.location,
+          fullName: fields.fullName,
+          phone: fields.phone,
         }),
       });
 
@@ -80,12 +74,10 @@ export function CandidateForm() {
 
       localStorage.setItem("grc_local_token", data.token);
       setToken(data.token);
-      const pref = getCurrencyFromLocation(fields.location);
-      if (pref) localStorage.setItem("grc_preferred_currency", pref);
 
       const dbUser = { id: data.user.id, role: data.user.role, emailVerified: true, email: fields.email };
       setUser(dbUser as any);
-      setStoredUser({ ...dbUser, firstName: fields.firstName, lastName: fields.lastName, location: fields.location } as any);
+      setStoredUser({ ...dbUser, fullName: fields.fullName, phone: fields.phone } as any);
       import("../../../lib/userRole").then(lib => lib.saveRole("job_seeker" as UserRole));
 
       router.push("/dashboard");
@@ -100,24 +92,12 @@ export function CandidateForm() {
   return (
     <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-3" style={{ fontFamily: "'Poppins', sans-serif" }}>
 
-      {/* Name row */}
-      <div className="grid grid-cols-3 gap-3">
-        <ModernInput
-          label="First Name" placeholder="John" id="firstName"
-          value={fields.firstName} onChange={e => set("firstName", e.target.value)}
-          error={errors.firstName}
-        />
-        <ModernInput
-          label="Middle Name" placeholder="D." id="middleName"
-          value={fields.middleName} onChange={e => set("middleName", e.target.value)}
-          error={errors.middleName}
-        />
-        <ModernInput
-          label="Last Name" placeholder="Doe" id="lastName"
-          value={fields.lastName} onChange={e => set("lastName", e.target.value)}
-          error={errors.lastName}
-        />
-      </div>
+      <ModernInput
+        label="Full Name" placeholder="John Doe" id="fullName"
+        icon="person"
+        value={fields.fullName} onChange={e => set("fullName", e.target.value)}
+        error={errors.fullName}
+      />
 
       <ModernInput
         label="Email Address" type="email" placeholder="name@email.com" id="email"
@@ -126,30 +106,34 @@ export function CandidateForm() {
         error={errors.email}
       />
 
-      <div className="grid grid-cols-2 gap-3">
-        <div className="flex flex-col gap-2">
-          <ModernInput
-            label="Password" type="password" id="password"
-            icon="lock"
-            value={fields.password} onChange={e => set("password", e.target.value)}
-            error={errors.password}
-          />
-          <PasswordStrength password={fields.password} />
-        </div>
-        <ModernSelect
-          label="Country" id="location"
-          icon="public"
-          options={COUNTRIES}
-          placeholder="Select country"
-          value={fields.location} onChange={e => set("location", e.target.value)}
-          error={errors.location}
+      <ModernInput
+        label="Phone Number" type="tel" placeholder="+1 234 567 8900" id="phone"
+        icon="phone"
+        value={fields.phone} onChange={e => set("phone", e.target.value)}
+        error={errors.phone}
+      />
+
+      <div className="flex flex-col gap-2">
+        <ModernInput
+          label="Password" type="password" id="password"
+          icon="lock"
+          value={fields.password} onChange={e => set("password", e.target.value)}
+          error={errors.password}
         />
+        <PasswordStrength password={fields.password} />
       </div>
+
+      <ModernInput
+        label="Confirm Password" type="password" id="confirmPassword"
+        icon="lock"
+        value={fields.confirmPassword} onChange={e => set("confirmPassword", e.target.value)}
+        error={errors.confirmPassword}
+      />
 
       <button
         type="submit"
         disabled={loading}
-        className="w-full py-3.5 rounded-xl bg-[#3a1292] text-white font-bold text-[15px] shadow-lg shadow-[#3a1292]/20 hover:bg-[#2e0e74] transition-all active:scale-[0.98] disabled:opacity-70 flex items-center justify-center gap-3"
+        className="w-full py-3.5 rounded-xl bg-[#3a1292] text-white font-bold text-[15px] shadow-lg shadow-[#3a1292]/20 hover:bg-[#2e0e74] transition-all active:scale-[0.98] disabled:opacity-70 flex items-center justify-center gap-3 mt-2"
       >
         {loading
           ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
