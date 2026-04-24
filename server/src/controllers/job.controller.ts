@@ -92,6 +92,11 @@ export const createJob = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
+    if (!(employerProfile as any).isVerified) {
+      res.status(403).json({ error: 'Company not verified. Contact admin to get your company verified before posting jobs.' });
+      return;
+    }
+
     // 2. Validate essential fields
     if (!title || !description) {
       res.status(400).json({ error: 'Title and description are required' });
@@ -129,7 +134,7 @@ export const createJob = async (req: Request, res: Response): Promise<void> => {
         description,
         location:         location        ?? null,
         workMode:         parsedWorkMode,
-        status:           JobStatus.PUBLISHED,
+        status:           'PENDING_REVIEW' as JobStatus,
         deadline:         parsedDeadline,
         category:         category        ?? null,
         jobType:          jobType         ?? null,

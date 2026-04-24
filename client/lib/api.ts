@@ -14,15 +14,14 @@ export function registerTokenGetter(fn: () => Promise<string | null>): void {
 export async function apiFetch<T>(path: string, options?: RequestInit & { token?: string }): Promise<T> {
   const { token, ...fetchOptions } = options || {};
 
-  // Priority: explicit token > Clerk auto-refresh > localStorage fallback
+  // Priority: explicit token > Clerk auto-refresh > grc_token (regular users only)
   let actualToken: string | null = token ?? null;
   if (!actualToken) {
     if (_clerkTokenGetter) {
       actualToken = await _clerkTokenGetter();
     }
-    // Always fall back to localStorage (used by local auth when Clerk is not active)
     if (!actualToken) {
-      actualToken = getStoredToken();
+      actualToken = getStoredToken(); // grc_token
     }
   }
 
@@ -41,5 +40,23 @@ export async function apiFetch<T>(path: string, options?: RequestInit & { token?
     throw new Error(body.error || `Request failed: ${res.status}`);
   }
 
+  return res.json() as Promise<T>;
+}
+
+export async function adminFetch<T>(path: string, options?: RequestInit): Promise<T> {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('grc_local_token') : null;
+  const res = await fetch(`${BASE_URL}${path}`, {
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...options?.headers,
+    },
+    ...options,
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.error || `Request failed: ${res.status}`);
+  }
   return res.json() as Promise<T>;
 }
