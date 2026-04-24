@@ -16,6 +16,7 @@ export const getSeekerProfile = async (req: Request, res: Response): Promise<voi
         user: { select: { email: true, emailVerified: true, role: true } },
         skills: true,
         workExperiences: { orderBy: { sortOrder: 'asc' } },
+        educations: { orderBy: { sortOrder: 'asc' } },
         certifications: { orderBy: { sortOrder: 'asc' } },
       }
     });
@@ -35,7 +36,7 @@ export const getSeekerProfile = async (req: Request, res: Response): Promise<voi
 export const updateSeekerProfile = async (req: Request, res: Response): Promise<void> => {
   try {
     const userId = req.user!.id;
-    const { firstName, lastName, headline, bio, location, linkedInUrl, avatarUrl, country, phone, skills, workExperiences, certifications } = req.body;
+    const { firstName, lastName, headline, bio, location, linkedInUrl, avatarUrl, country, phone, skills, workExperiences, educations, certifications } = req.body;
 
     const profile = await prisma.seekerProfile.findUnique({ where: { userId } });
     if (!profile) {
@@ -87,6 +88,34 @@ export const updateSeekerProfile = async (req: Request, res: Response): Promise<
         }
       }
 
+      if (educations !== undefined) {
+        await tx.education.deleteMany({ where: { seekerId: profile.id } });
+        if (educations.length > 0) {
+          interface EducationInput {
+            institution: string;
+            degree?: string;
+            field?: string;
+            gpa?: string;
+            startDate?: string;
+            endDate?: string;
+            description?: string;
+          }
+          await tx.education.createMany({
+            data: educations.map((edu: EducationInput, idx: number) => ({
+              seekerId: profile.id,
+              institution: edu.institution,
+              degree: edu.degree ?? null,
+              field: edu.field ?? null,
+              gpa: edu.gpa ?? null,
+              startDate: edu.startDate ?? null,
+              endDate: edu.endDate ?? null,
+              description: edu.description ?? null,
+              sortOrder: idx,
+            })),
+          });
+        }
+      }
+
       if (certifications !== undefined) {
         await tx.seekerCertification.deleteMany({ where: { seekerId: profile.id } });
         if (certifications.length > 0) {
@@ -125,6 +154,7 @@ export const updateSeekerProfile = async (req: Request, res: Response): Promise<
         user: { select: { email: true, emailVerified: true, role: true } },
         skills: true,
         workExperiences: { orderBy: { sortOrder: 'asc' } },
+        educations: { orderBy: { sortOrder: 'asc' } },
         certifications: { orderBy: { sortOrder: 'asc' } },
       },
     });

@@ -7,7 +7,9 @@ import { ResumeSection } from "../../components/profile/ResumeSection";
 import { PersonalInfoSection } from "../../components/profile/PersonalInfoSection";
 import { SummarySection } from "../../components/profile/SummarySection";
 import { WorkExperienceSection } from "../../components/profile/WorkExperienceSection";
+import { EducationSection } from "../../components/profile/EducationSection";
 import { SkillsSection } from "../../components/profile/SkillsSection";
+import { CertificationsSection } from "../../components/profile/CertificationsSection";
 import type { ProfileFormData } from "../../components/profile/types";
 
 interface ApiProfilePayload {
@@ -31,6 +33,16 @@ interface ApiProfilePayload {
       startDate: string;
       endDate: string | null;
       current: boolean;
+      description: string | null;
+    }[];
+    educations: {
+      id: string;
+      institution: string;
+      degree: string | null;
+      field: string | null;
+      gpa: string | null;
+      startDate: string | null;
+      endDate: string | null;
       description: string | null;
     }[];
     certifications: { id: string; name: string }[];
@@ -60,6 +72,16 @@ function mapApiToForm(api: ApiProfilePayload): ProfileFormData {
       current: wx.current,
       description: wx.description ?? "",
     })),
+    education: p.educations.map((edu) => ({
+      id: edu.id,
+      institution: edu.institution,
+      degree: edu.degree ?? "",
+      field: edu.field ?? "",
+      gpa: edu.gpa ?? "",
+      startDate: edu.startDate ?? "",
+      endDate: edu.endDate ?? "",
+      description: edu.description ?? "",
+    })),
     coreCompetencies: p.skills.map((s) => s.name),
     certifications: p.certifications.map((c) => ({ id: c.id, name: c.name })),
     resumeUrl: p.resumeUrl,
@@ -86,6 +108,7 @@ const EMPTY_PROFILE: ProfileFormData = {
   linkedInUrl: "",
   summary: "",
   workExperience: [],
+  education: [],
   coreCompetencies: [],
   certifications: [],
   resumeUrl: null,
@@ -252,11 +275,25 @@ export default function ProfilePage() {
             current: wx.current,
             description: wx.description,
           })),
+          educations: formData.education.map((edu) => ({
+            institution: edu.institution,
+            degree: edu.degree,
+            field: edu.field,
+            gpa: edu.gpa,
+            startDate: edu.startDate,
+            endDate: edu.endDate,
+            description: edu.description,
+          })),
           skills: formData.coreCompetencies,
           certifications: formData.certifications.map((c) => ({ name: c.name })),
         }),
       });
       const saved = mapApiToForm(res);
+      // Preserve local resume data if it was uploaded and the backend hasn't updated its URL yet
+      if (formData.resumeUrl && (!saved.resumeUrl || formData.resumeUrl.startsWith("blob:"))) {
+        saved.resumeUrl = formData.resumeUrl;
+        saved.resumeFileName = formData.resumeFileName;
+      }
       setFormData(saved);
       setOriginal(saved);
       if (storageKey) {
@@ -459,9 +496,20 @@ export default function ProfilePage() {
             onChange={handleChange}
           />
 
-          {/* Skills & Certifications */}
+          {/* Education */}
+          <EducationSection
+            education={formData.education}
+            onChange={handleChange}
+          />
+
+          {/* Skills */}
           <SkillsSection
             coreCompetencies={formData.coreCompetencies}
+            onChange={handleChange}
+          />
+
+          {/* Certifications */}
+          <CertificationsSection
             certifications={formData.certifications}
             onChange={handleChange}
           />
