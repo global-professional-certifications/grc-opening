@@ -29,12 +29,14 @@ export type ParsedResume = Partial<
     | "lastName"
     | "professionalTitle"
     | "email"
+    | "phone"
     | "location"
     | "linkedInUrl"
     | "summary"
     | "coreCompetencies"
     | "certifications"
     | "workExperience"
+    | "education"
   >
 >;
 
@@ -157,17 +159,20 @@ const SECTION_MAP: Record<string, string> = {
   "proficiencies": "skills",
   "technologies": "skills",
 
-  // Certifications / Education
+  // Certifications
   "certifications": "certifications",
   "certification": "certifications",
   "certificates": "certifications",
   "licenses": "certifications",
   "accreditations": "certifications",
-  "education": "certifications",
-  "education & certifications": "certifications",
-  "qualifications": "certifications",
-  "training": "certifications",
-  "courses": "certifications",
+
+  // Education
+  "education": "education",
+  "education & certifications": "education",
+  "qualifications": "education",
+  "training": "education",
+  "academic profile": "education",
+  "academic qualifications": "education",
 };
 
 function getSectionKey(line: string): string | null {
@@ -210,6 +215,12 @@ function extractEmail(text: string): string | undefined {
 function extractLinkedIn(text: string): string | undefined {
   const m = text.match(/(?:https?:\/\/)?(?:www\.)?linkedin\.com\/in\/([\w-]+)\/?/i);
   return m ? `linkedin.com/in/${m[1]}` : undefined;
+}
+
+/** Phone Number */
+function extractPhone(text: string): string | undefined {
+  const m = text.match(/(?:\+?\d{1,3}[\s.-]?)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}/);
+  return m ? m[0] : undefined;
 }
 
 /**
@@ -410,6 +421,63 @@ function extractWorkExperience(lines: string[]): WorkExperience[] {
   return experiences.slice(0, 10); // cap at 10 positions
 }
 
+/**
+ * Education — similar to work experience block splitting.
+ */
+function extractEducation(lines: string[]): any[] {
+  if (!lines || lines.length === 0) return [];
+
+  const educations: any[] = [];
+  let block: string[] = [];
+
+  function flushBlock() {
+    if (block.length < 1) return;
+
+    const blockText = block.join(" ");
+
+    DATE_RE.lastIndex = 0;
+    const dates = blockText.match(DATE_RE) ?? [];
+
+    const contentLines = block.filter((l) => {
+      const stripped = l.replace(new RegExp(DATE_RE_SOURCE, "gi"), "").replace(/[-–—|·,/\s]/g, "").trim();
+      return stripped.length > 3;
+    });
+
+    const institutionOrDegree = clean(contentLines[0] ?? "");
+    const degreeOrField = clean(contentLines[1] ?? "");
+    
+    // Attempt to find GPA in the block text
+    const gpaMatch = blockText.match(/(?:GPA|CGPA)[\s:]*([\d.]+(?:\/[\d.]+)?|\d{1,2}%)/i);
+    const gpa = gpaMatch ? gpaMatch[1] : "";
+
+    if (institutionOrDegree.length > 2) {
+      educations.push({
+        id: genId(),
+        institution: institutionOrDegree,
+        degree: degreeOrField.length > 2 ? degreeOrField : "",
+        field: "",
+        gpa: gpa,
+        startDate: dates[0] ?? "",
+        endDate: dates[1] ?? "",
+        description: contentLines.slice(2).join(" ").slice(0, 500),
+      });
+    }
+    block = [];
+  }
+
+  for (const line of lines) {
+    if (dateTest(line) || /university|college|institute|academy|bachelor|master|phd|bsc|ba|msc|ma/i.test(line)) {
+      if (block.length > 0) flushBlock();
+      block.push(line);
+    } else {
+      block.push(line);
+    }
+  }
+  flushBlock();
+
+  return educations.slice(0, 5); // cap at 5
+}
+
 // ─────────────────────────────────────────────────────────────
 // Master parser
 // ─────────────────────────────────────────────────────────────
@@ -421,6 +489,7 @@ export function parseResumeText(rawText: string): ParsedResume {
 
   // ── Contact fields (scan full text for robustness) ──────
   const email = extractEmail(fullText);
+  const phone = extractPhone(fullText);
   const linkedInUrl = extractLinkedIn(fullText);
   // Location scans lines (not raw text) so anchored regex prevents
   // the city name from absorbing preceding name tokens.
@@ -435,6 +504,7 @@ export function parseResumeText(rawText: string): ParsedResume {
   const skills = extractSkills(sections["skills"] ?? []);
   const certs = extractCertifications(sections["certifications"] ?? []);
   const workExp = extractWorkExperience(sections["experience"] ?? []);
+  const education = extractEducation(sections["education"] ?? []);
 
   const result: ParsedResume = {};
 
@@ -444,12 +514,14 @@ export function parseResumeText(rawText: string): ParsedResume {
   }
   if (title) result.professionalTitle = title;
   if (email) result.email = email;
+  if (phone) result.phone = phone;
   if (location) result.location = location;
   if (linkedInUrl) result.linkedInUrl = linkedInUrl;
   if (summary) result.summary = summary;
   if (skills.length > 0) result.coreCompetencies = skills;
   if (certs.length > 0) result.certifications = certs;
   if (workExp.length > 0) result.workExperience = workExp;
+  if (education.length > 0) result.education = education;
 
   return result;
 }

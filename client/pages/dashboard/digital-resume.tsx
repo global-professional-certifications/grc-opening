@@ -27,6 +27,16 @@ interface ApiProfilePayload {
       current: boolean;
       description: string | null;
     }[];
+    educations?: {
+      id: string;
+      institution: string;
+      degree: string | null;
+      field: string | null;
+      gpa: string | null;
+      startDate: string | null;
+      endDate: string | null;
+      description: string | null;
+    }[];
     certifications: { id: string; name: string }[];
     user: { email: string };
   };
@@ -52,8 +62,18 @@ function mapApiToForm(api: ApiProfilePayload): ProfileFormData {
       endDate: wx.endDate ?? "",
       current: wx.current,
       description: wx.description ?? "",
-    })),
-    coreCompetencies: p.skills.map((s) => s.name),
+    })) || [],
+    education: p.educations?.map((edu: any) => ({
+      id: edu.id,
+      institution: edu.institution,
+      degree: edu.degree ?? "",
+      field: edu.field ?? "",
+      gpa: edu.gpa ?? "",
+      startDate: edu.startDate ?? "",
+      endDate: edu.endDate ?? "",
+      description: edu.description ?? "",
+    })) || [],
+    coreCompetencies: p.skills?.map((s: any) => s.name) || [],
     certifications: p.certifications.map((c) => ({ id: c.id, name: c.name })),
     resumeUrl: p.resumeUrl,
     resumeFileName: p.resumeUrl ? "Resume.pdf" : null,
@@ -74,6 +94,7 @@ const EMPTY: ProfileFormData = {
   linkedInUrl: "",
   summary: "",
   workExperience: [],
+  education: [],
   coreCompetencies: [],
   certifications: [],
   resumeUrl: null,

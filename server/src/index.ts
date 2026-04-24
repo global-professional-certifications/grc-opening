@@ -11,6 +11,7 @@ import authRouter from './routes/auth.routes';
 import profileRouter from './routes/profile.routes';
 import jobRouter from './routes/job.routes';
 import applicationRouter from './routes/application.routes';
+import resumeRouter from './routes/resume.routes';
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -35,12 +36,30 @@ app.use('/auth', authRouter);
 app.use('/profile', profileRouter);
 app.use('/jobs', jobRouter);
 app.use('/applications', applicationRouter);
+app.use('/resume', resumeRouter);
 
 // Start server
 app.listen(PORT, () => {
   console.log(`🚀 API server running on http://localhost:${PORT}`);
   console.log(`   Health check: http://localhost:${PORT}/health`);
+
+  // Start the resume worker inline for development convenience.
+  // In production, run the worker as a separate process:
+  //   npx tsx src/worker/resume.worker.ts
+  if (process.env.INLINE_WORKER !== 'false') {
+    const { isRedisAvailable } = require('./config/redis');
+    isRedisAvailable().then((available: boolean) => {
+      if (available) {
+        const { startResumeWorker } = require('./worker/resume.worker');
+        startResumeWorker();
+        console.log(`   Resume worker: running inline`);
+      } else {
+        console.log(`   Resume worker: ⏸ skipped (Redis not available)`);
+        console.log(`     → Resume upload works, but parsing is deferred until Redis is running.`);
+        console.log(`     → To install Redis: https://redis.io/download`);
+      }
+    });
+  }
 });
 
 export default app;
-// Force restart

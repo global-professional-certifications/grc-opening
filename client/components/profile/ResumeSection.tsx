@@ -1,6 +1,7 @@
 import React, { useRef, useState } from "react";
 import type { ProfileFormData } from "./types";
 import { parseResume } from "../../lib/resumeParser";
+import { apiFetch } from "../../lib/api";
 
 const MONO = { fontFamily: "'JetBrains Mono', monospace" };
 
@@ -13,21 +14,34 @@ interface Props {
 export function ResumeSection({ resumeUrl, resumeFileName, onChange }: Props) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [parsing, setParsing] = useState(false);
-  const [fillResult, setFillResult] = useState<{ count: number; fields: string[] } | null>(null);
+  const [fillResult, setFillResult] = useState<{ count: number; fields: string[], keys: string[] } | null>(null);
   const [parseError, setParseError] = useState<string | null>(null);
 
   function handlePreview() {
     if (!resumeUrl) return;
-    const namePart = resumeFileName ? `&name=${encodeURIComponent(resumeFileName)}` : "";
-    window.open(
-      `/dashboard/resume-preview?url=${encodeURIComponent(resumeUrl)}${namePart}`,
-      "_blank",
-      "noopener,noreferrer"
-    );
+    // Open the local blob or URL directly in a new tab
+    window.open(resumeUrl, "_blank", "noopener,noreferrer");
   }
 
-  function handleReplace() {
-    fileInputRef.current?.click();
+  function handleDelete() {
+    onChange({ resumeUrl: null, resumeFileName: null });
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  }
+
+  function handleClearParsedData() {
+    if (!fillResult) return;
+    const updates: Partial<ProfileFormData> = {};
+    for (const key of fillResult.keys) {
+      if (key === 'workExperience' || key === 'certifications' || key === 'coreCompetencies' || key === 'education') {
+        updates[key as keyof ProfileFormData] = [] as any;
+      } else {
+        updates[key as keyof ProfileFormData] = "" as any;
+      }
+    }
+    onChange(updates);
+    setFillResult(null);
   }
 
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -45,6 +59,18 @@ export function ResumeSection({ resumeUrl, resumeFileName, onChange }: Props) {
     setParseError(null);
 
     try {
+      // 1. Upload the file to the backend asynchronously (don't wait for it to finish parsing the UI)
+      const uploadFormData = new FormData();
+      uploadFormData.append("resume", file);
+      apiFetch("/resume/upload", {
+        method: "POST",
+        body: uploadFormData,
+      }).catch((err) => {
+        console.error("Failed to upload resume to backend:", err);
+        // We still let the frontend parser work even if backend fails
+      });
+
+      // 2. Parse client-side to fill form fields immediately
       const parsed = await parseResume(file);
 
       // Build list of populated fields for the success message
@@ -53,26 +79,32 @@ export function ResumeSection({ resumeUrl, resumeFileName, onChange }: Props) {
         lastName: "Last Name",
         professionalTitle: "Professional Title",
         email: "Email",
+        phone: "Phone Number",
         location: "Location",
         linkedInUrl: "LinkedIn URL",
         summary: "Summary",
         coreCompetencies: "Skills",
         certifications: "Certifications",
+        education: "Education",
         workExperience: "Work Experience",
       };
 
-      const filledFields = Object.entries(parsed)
+      const filledKeys = Object.entries(parsed)
         .filter(([, v]) => {
           if (Array.isArray(v)) return v.length > 0;
           return v !== undefined && v !== "";
         })
-        .map(([k]) => FIELD_LABELS[k] ?? k);
+        .map(([k]) => k);
 
-      if (filledFields.length > 0) {
+      if (filledKeys.length > 0) {
         // Merge parsed data into form — don't overwrite fields user has already filled
         // (only populate if field is currently empty)
         onChange(parsed);
-        setFillResult({ count: filledFields.length, fields: filledFields });
+        setFillResult({ 
+          count: filledKeys.length, 
+          fields: filledKeys.map(k => FIELD_LABELS[k] ?? k),
+          keys: filledKeys
+        });
       } else {
         setParseError("No fields could be extracted. Try a text-based PDF or .txt resume.");
       }
@@ -161,25 +193,26 @@ export function ResumeSection({ resumeUrl, resumeFileName, onChange }: Props) {
                 opacity: parsing ? 0.5 : 1,
               }}
             >
-              Preview
+              View
             </button>
             <button
-              onClick={handleReplace}
+              onClick={handleDelete}
               disabled={parsing}
               className="db-btn-primary px-3 py-1.5 rounded-lg text-xs font-semibold"
               style={{
-                background: "var(--db-primary)",
-                color: "#ffffff",
+                background: "rgba(239,68,68,0.1)",
+                color: "#ef4444",
+                border: "1px solid rgba(239,68,68,0.2)",
                 opacity: parsing ? 0.5 : 1,
               }}
             >
-              Replace
+              Delete
             </button>
           </div>
         </div>
       ) : (
         <button
-          onClick={handleReplace}
+          onClick={() => fileInputRef.current?.click()}
           className="w-full flex flex-col items-center justify-center rounded-xl p-8 text-center"
           style={{
             background: "var(--db-surface)",
@@ -237,13 +270,22 @@ export function ResumeSection({ resumeUrl, resumeFileName, onChange }: Props) {
               Review the fields below and make any corrections.
             </p>
           </div>
-          <button
-            onClick={() => setFillResult(null)}
-            style={{ color: "var(--db-text-muted)", flexShrink: 0, fontSize: 16, lineHeight: 1 }}
-            title="Dismiss"
-          >
-            ×
-          </button>
+          <div className="flex flex-col gap-2 flex-shrink-0 ml-2">
+            <button
+              onClick={() => setFillResult(null)}
+              className="text-xs font-semibold px-2 py-1 rounded"
+              style={{ color: "#10b981", background: "rgba(16,185,129,0.1)" }}
+            >
+              Keep Data
+            </button>
+            <button
+              onClick={handleClearParsedData}
+              className="text-xs font-semibold px-2 py-1 rounded"
+              style={{ color: "#ef4444", background: "rgba(239,68,68,0.1)" }}
+            >
+              Clear All
+            </button>
+          </div>
         </div>
       )}
 
