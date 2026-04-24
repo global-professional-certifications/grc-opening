@@ -156,9 +156,9 @@ model EmployerProfile {
   id          String   @id @default(uuid())
   userId      String   @unique @map("user_id")
   companyName              String   @map("company_name")
-  representativeFirstName  String   @map("representative_first_name")
+  representativeFirstName  String?   @map("representative_first_name")
   representativeMiddleName String?  @map("representative_middle_name")
-  representativeLastName   String   @map("representative_last_name")
+  representativeLastName   String?   @map("representative_last_name")
   industry           String?
   companySize        String?  @map("company_size")
   description        String?
