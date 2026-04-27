@@ -25,14 +25,22 @@ export async function apiFetch<T>(path: string, options?: RequestInit & { token?
     }
   }
 
+  const isFormData = fetchOptions.body instanceof FormData;
+  const headers: Record<string, string> = {
+    ...(actualToken ? { Authorization: `Bearer ${actualToken}` } : {}),
+  };
+
+  if (!isFormData) {
+    headers['Content-Type'] = 'application/json';
+  }
+
   const res = await fetch(`${BASE_URL}${path}`, {
     credentials: 'include',
+    ...fetchOptions,
     headers: {
-      'Content-Type': 'application/json',
-      ...(actualToken ? { Authorization: `Bearer ${actualToken}` } : {}),
+      ...headers,
       ...fetchOptions?.headers,
     },
-    ...fetchOptions,
   });
 
   if (!res.ok) {

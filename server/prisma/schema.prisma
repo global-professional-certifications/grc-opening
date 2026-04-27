@@ -50,6 +50,11 @@ enum UserStatus {
   ACTIVE
   SUSPENDED
   BANNED
+enum ResumeStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
 }
 
 // =====================================
@@ -127,6 +132,8 @@ model SeekerProfile {
   workExperiences  WorkExperience[]
   certifications   SeekerCertification[]
   jobReports       JobReport[]
+  resumes          Resume[]
+  educations       Education[]
 
   @@map("seeker_profiles")
 }
@@ -297,4 +304,48 @@ model SavedJob {
   // Ensure a user can only save a specific job once
   @@unique([seekerId, jobId])
   @@map("saved_jobs")
+}
+
+// =====================================
+// RESUME PARSING
+// =====================================
+
+model Resume {
+  id             String       @id @default(uuid())
+  seekerId       String       @map("seeker_id")
+  originalName   String       @map("original_name")
+  filePath       String       @map("file_path")
+  fileSize       Int          @map("file_size")
+  mimeType       String       @default("application/pdf") @map("mime_type")
+  status         ResumeStatus @default(PENDING)
+  parsedData     Json?        @map("parsed_data")
+  errorMessage   String?      @map("error_message")
+  retryCount     Int          @default(0) @map("retry_count")
+  processedAt    DateTime?    @map("processed_at")
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+
+  seeker SeekerProfile @relation(fields: [seekerId], references: [id], onDelete: Cascade)
+
+  @@index([seekerId])
+  @@index([status])
+  @@map("resumes")
+}
+
+model Education {
+  id          String   @id @default(uuid())
+  seekerId    String   @map("seeker_id")
+  institution String
+  degree      String?
+  field       String?
+  gpa         String?
+  startDate   String?  @map("start_date")
+  endDate     String?  @map("end_date")
+  description String?
+  sortOrder   Int      @default(0) @map("sort_order")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  seeker SeekerProfile @relation(fields: [seekerId], references: [id], onDelete: Cascade)
+
+  @@map("educations")
 }
