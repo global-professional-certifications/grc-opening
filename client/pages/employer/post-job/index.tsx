@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { EmployerDashboardLayout } from '../../../components/layout/EmployerDashboardLayout';
@@ -19,6 +19,13 @@ function PostJobFlow() {
   const router = useRouter();
   const prevStepRef = useRef(currentStep);
   const prefillAttemptedRef = useRef<string | null>(null);
+  const [isVerified, setIsVerified] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    apiFetch<{ profile: { isVerified?: boolean } }>('/profile/employer')
+      .then(r => setIsVerified(r.profile?.isVerified ?? false))
+      .catch(() => setIsVerified(false));
+  }, []);
 
   useEffect(() => {
     if (!router.isReady) return;
@@ -80,6 +87,30 @@ function PostJobFlow() {
   }, [currentStep]);
 
   const showProgress = currentStep < 3;
+
+  if (isVerified === false) {
+    return (
+      <div className="w-full">
+        <div className="mb-6">
+          <h1 className="text-base font-bold uppercase tracking-widest" style={{ fontFamily: "'Syne', sans-serif", color: 'var(--db-text)' }}>
+            Post a Job
+          </h1>
+        </div>
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-8 flex flex-col items-center gap-4 text-center">
+          <span className="material-symbols-outlined text-amber-500" style={{ fontSize: 48 }}>verified_user</span>
+          <h2 className="text-[18px] font-bold text-amber-900">Company Verification Required</h2>
+          <p className="text-[14px] text-amber-800 max-w-md leading-relaxed">
+            Your company has not been verified yet. An admin must verify your company before you can post jobs.
+            Please contact support or check back later.
+          </p>
+          <a href="mailto:admin@grcopenings.com" className="mt-2 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-amber-600 text-white font-semibold text-[14px] hover:bg-amber-700 transition-all">
+            <span className="material-symbols-outlined" style={{ fontSize: 18 }}>mail</span>
+            Contact Support
+          </a>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full relative">

@@ -12,7 +12,7 @@ import { JobPostingData } from './JobPostingContext';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-export type EmployerJobStatus = 'ACTIVE' | 'CLOSED' | 'DRAFT';
+export type EmployerJobStatus = 'ACTIVE' | 'CLOSED' | 'DRAFT' | 'PENDING_REVIEW' | 'REJECTED';
 
 export interface EmployerJob {
   id: string;
@@ -32,6 +32,7 @@ export interface EmployerJob {
   certifications: string[];
   niceToHave: string;
   status: EmployerJobStatus;
+  adminNote?: string | null;
   applicantCount: number;
   createdAt: string;
 }
@@ -73,7 +74,8 @@ function mapApiJob(j: any): EmployerJob {
     seniority:        j.seniority ?? '',
     certifications:   j.certifications?.map((c: any) => c.name) ?? [],
     niceToHave:       j.niceToHave ?? '',
-    status:           j.status === 'PUBLISHED' ? 'ACTIVE' : j.status === 'CLOSED' ? 'CLOSED' : 'DRAFT',
+    status:           j.status === 'PUBLISHED' ? 'ACTIVE' : j.status === 'CLOSED' ? 'CLOSED' : j.status === 'PENDING_REVIEW' ? 'PENDING_REVIEW' : j.status === 'REJECTED' ? 'REJECTED' : 'DRAFT',
+    adminNote:        j.adminNote ?? null,
     applicantCount:   j._count?.applications ?? 0,
     createdAt:        j.createdAt,
   };

@@ -36,7 +36,7 @@ export default function App({ Component, pageProps }: AppProps) {
       <UserProvider>
         <DashboardThemeProvider>
             {/* Global Theme Toggle - Hidden on Landing Page */}
-            {router.pathname !== '/' && router.pathname !== '/home' && (
+            {router.pathname !== '/' && router.pathname !== '/home' && !router.pathname.startsWith('/admin') && (
               <button className="theme-toggle" onClick={toggleTheme} aria-label="Toggle theme">
                 {theme === 'light' ? (
                   <>

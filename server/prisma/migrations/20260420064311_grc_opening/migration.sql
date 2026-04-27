@@ -5,13 +5,13 @@
 
 */
 -- DropIndex
-DROP INDEX "employer_profiles_company_name_trgm_idx";
+DROP INDEX IF EXISTS "employer_profiles_company_name_trgm_idx";
 
 -- DropIndex
-DROP INDEX "jobs_location_trgm_idx";
+DROP INDEX IF EXISTS "jobs_location_trgm_idx";
 
 -- DropIndex
-DROP INDEX "jobs_title_trgm_idx";
+DROP INDEX IF EXISTS "jobs_title_trgm_idx";
 
 -- AlterTable
 ALTER TABLE "jobs" ADD COLUMN     "category" TEXT,
