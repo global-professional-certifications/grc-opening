@@ -6,6 +6,7 @@ import Head from "next/head";
 const NAV = [
   { href: "/admin",            icon: "dashboard",      label: "Dashboard" },
   { href: "/admin/moderation", icon: "fact_check",     label: "Moderation Queue" },
+  { href: "/admin/applications", icon: "description",  label: "Applications" },
   { href: "/admin/users",      icon: "group",          label: "User Management" },
   { href: "/admin/companies",  icon: "business",       label: "Companies" },
 ];
@@ -30,6 +31,7 @@ function NavItem({ href, icon, label }: { href: string; icon: string; label: str
       </span>
       {label}
       {href === "/admin/moderation" && <ModerationBadge />}
+      {href === "/admin/applications" && <ApplicationsBadge />}
     </Link>
   );
 }
@@ -39,7 +41,7 @@ function ModerationBadge() {
   useEffect(() => {
     const token = localStorage.getItem("grc_local_token");
     if (!token) return;
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/jobs?status=PENDING_REVIEW&limit=1`, {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/jobs?reported=true&limit=1`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then(r => r.json())
@@ -48,7 +50,27 @@ function ModerationBadge() {
   }, []);
   if (!count) return null;
   return (
-    <span className="ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-amber-500 text-white min-w-[18px] text-center">
+    <span className="ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-red-500 text-white min-w-[18px] text-center">
+      {count > 99 ? "99+" : count}
+    </span>
+  );
+}
+
+function ApplicationsBadge() {
+  const [count, setCount] = useState<number | null>(null);
+  useEffect(() => {
+    const token = localStorage.getItem("grc_local_token");
+    if (!token) return;
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/applications?limit=1`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then(r => r.json())
+      .then(d => { if (d.total > 0) setCount(d.total); })
+      .catch(() => {});
+  }, []);
+  if (!count) return null;
+  return (
+    <span className="ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-[#3a1292] text-white min-w-[18px] text-center">
       {count > 99 ? "99+" : count}
     </span>
   );
@@ -65,6 +87,13 @@ export function AdminLayout({ children, title = "Admin" }: { children: React.Rea
     try {
       const payload = JSON.parse(atob(token.split(".")[1]));
       if (payload.role !== "ADMIN") { router.replace("/admin/login"); return; }
+      // Redirect to login if token is expired
+      const now = Math.floor(Date.now() / 1000);
+      if (payload.exp && payload.exp < now) {
+        localStorage.removeItem("grc_local_token");
+        router.replace("/admin/login");
+        return;
+      }
       setAdminEmail(payload.email || "Administrator");
     } catch {
       router.replace("/admin/login");

@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { PrismaClient, Role, JobStatus } from '@prisma/client';
+import { PrismaClient, Role, JobStatus, ApplicationStatus } from '@prisma/client';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 
@@ -63,10 +63,10 @@ export const getAdminStats = async (req: Request, res: Response): Promise<void> 
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-    const [totalUsers, activeJobs, pendingJobs, totalApplications, recentUsers, recentCompanies, rawRegistrations, jobsByCategory] = await Promise.all([
+    const [totalUsers, activeJobs, reportedJobs, totalApplications, recentUsers, recentCompanies, rawRegistrations, jobsByCategory] = await Promise.all([
       prisma.user.count(),
       prisma.job.count({ where: { status: JobStatus.PUBLISHED } }),
-      prisma.job.count({ where: { status: 'PENDING_REVIEW' as JobStatus } }),
+      prisma.job.count({ where: { reports: { some: {} } } }),
       prisma.application.count(),
       prisma.user.findMany({
         orderBy: { createdAt: 'desc' },
@@ -118,7 +118,7 @@ export const getAdminStats = async (req: Request, res: Response): Promise<void> 
     }));
 
     res.json({
-      totalUsers, activeJobs, pendingJobs, totalApplications,
+      totalUsers, activeJobs, reportedJobs, totalApplications,
       recentUsers, recentCompanies,
       registrationTrend, categoryStats,
     });
@@ -129,15 +129,24 @@ export const getAdminStats = async (req: Request, res: Response): Promise<void> 
 };
 
 // ==========================================
-// GET /admin/users?role=&status=&page=&limit=
+// GET /admin/users?role=&status=&search=&page=&limit=
 // ==========================================
 export const getAdminUsers = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { role, status, page = '1', limit = '20' } = req.query;
+    const { role, status, search, page = '1', limit = '20' } = req.query;
     const skip = (Number(page) - 1) * Number(limit);
     const where: any = {};
     if (role && typeof role === 'string') where.role = role;
     if (status && typeof status === 'string') where.status = status;
+    if (search && typeof search === 'string' && search.trim()) {
+      const q = search.trim();
+      where.OR = [
+        { email: { contains: q, mode: 'insensitive' } },
+        { seekerProfile: { firstName: { contains: q, mode: 'insensitive' } } },
+        { seekerProfile: { lastName: { contains: q, mode: 'insensitive' } } },
+        { employerProfile: { companyName: { contains: q, mode: 'insensitive' } } },
+      ];
+    }
 
     const [users, total] = await Promise.all([
       prisma.user.findMany({
@@ -212,15 +221,28 @@ export const enableUser = async (req: Request, res: Response): Promise<void> => 
 };
 
 // ==========================================
-// GET /admin/companies?page=&limit=
+// GET /admin/companies?search=&verified=&page=&limit=
 // ==========================================
 export const getAdminCompanies = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { page = '1', limit = '20' } = req.query;
+    const { page = '1', limit = '20', search, verified } = req.query;
     const skip = (Number(page) - 1) * Number(limit);
+    const where: any = {};
+    if (search && typeof search === 'string' && search.trim()) {
+      const q = search.trim();
+      where.OR = [
+        { companyName: { contains: q, mode: 'insensitive' } },
+        { industry: { contains: q, mode: 'insensitive' } },
+        { country: { contains: q, mode: 'insensitive' } },
+        { user: { email: { contains: q, mode: 'insensitive' } } },
+      ];
+    }
+    if (verified !== undefined && verified !== '') {
+      where.isVerified = verified === 'true';
+    }
     const [companies, total] = await Promise.all([
       prisma.employerProfile.findMany({
-        skip, take: Number(limit), orderBy: { createdAt: 'desc' },
+        where, skip, take: Number(limit), orderBy: { createdAt: 'desc' },
         select: {
           id: true, companyName: true, isVerified: true, industry: true,
           city: true, country: true, createdAt: true,
@@ -228,7 +250,7 @@ export const getAdminCompanies = async (req: Request, res: Response): Promise<vo
           _count: { select: { jobs: true } },
         },
       }),
-      prisma.employerProfile.count(),
+      prisma.employerProfile.count({ where }),
     ]);
     res.json({ companies, total, page: Number(page), limit: Number(limit) });
   } catch (error) {
@@ -258,14 +280,33 @@ export const setCompanyVerification = async (req: Request, res: Response): Promi
 };
 
 // ==========================================
-// GET /admin/jobs?status=&page=&limit=
+// GET /admin/jobs?reported=true&status=&search=&category=&page=&limit=
+// When reported=true → returns jobs with ≥1 report (moderation queue)
 // ==========================================
 export const getAdminJobs = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { status = 'PENDING_REVIEW', page = '1', limit = '20' } = req.query;
+    const { reported, status, search, category, page = '1', limit = '20' } = req.query;
     const skip = (Number(page) - 1) * Number(limit);
     const where: any = {};
-    if (status && typeof status === 'string') where.status = status;
+
+    if (reported === 'true') {
+      where.reports = { some: {} };
+    }
+    if (status && typeof status === 'string' && status.trim()) {
+      where.status = status;
+    }
+
+    if (category && typeof category === 'string') where.category = category;
+    if (search && typeof search === 'string' && search.trim()) {
+      const q = search.trim();
+      where.OR = [
+        { title: { contains: q, mode: 'insensitive' } },
+        { employer: { companyName: { contains: q, mode: 'insensitive' } } },
+      ];
+    }
+
+    console.log('[getAdminJobs] req.query:', req.query);
+    console.log('[getAdminJobs] where:', JSON.stringify(where, null, 2));
 
     const [jobs, total] = await Promise.all([
       prisma.job.findMany({
@@ -278,7 +319,13 @@ export const getAdminJobs = async (req: Request, res: Response): Promise<void> =
             },
           },
           certifications: { select: { name: true } },
-          _count: { select: { applications: true } },
+          reports: {
+            orderBy: { createdAt: 'desc' },
+            include: {
+              seeker: { select: { firstName: true, lastName: true } },
+            },
+          },
+          _count: { select: { applications: true, reports: true } },
         },
       }),
       prisma.job.count({ where }),
@@ -287,6 +334,77 @@ export const getAdminJobs = async (req: Request, res: Response): Promise<void> =
     res.json({ jobs, total, page: Number(page), limit: Number(limit) });
   } catch (error) {
     console.error('Error fetching admin jobs:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+// ==========================================
+// PATCH /admin/jobs/:id/close  (admin force-close any job)
+// ==========================================
+export const closeJobAdmin = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const job = await prisma.job.findUnique({ where: { id: req.params.id } });
+    if (!job) { res.status(404).json({ error: 'Job not found' }); return; }
+    const updated = await prisma.job.update({
+      where: { id: req.params.id },
+      data: { status: JobStatus.CLOSED },
+    });
+    res.json({ message: 'Job closed by admin', job: updated });
+  } catch (error) {
+    console.error('Error closing job (admin):', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+// ==========================================
+// GET /admin/applications?search=&status=&page=&limit=
+// ==========================================
+export const getAdminApplications = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { search, status, page = '1', limit = '20' } = req.query;
+    const skip = (Number(page) - 1) * Number(limit);
+    const where: any = {};
+
+    if (status && typeof status === 'string' && status.trim()) {
+      where.status = status as ApplicationStatus;
+    }
+    if (search && typeof search === 'string' && search.trim()) {
+      const q = search.trim();
+      where.OR = [
+        { seeker: { firstName: { contains: q, mode: 'insensitive' } } },
+        { seeker: { lastName:  { contains: q, mode: 'insensitive' } } },
+        { job: { title: { contains: q, mode: 'insensitive' } } },
+        { job: { employer: { companyName: { contains: q, mode: 'insensitive' } } } },
+      ];
+    }
+
+    const [applications, total] = await Promise.all([
+      prisma.application.findMany({
+        where,
+        skip,
+        take: Number(limit),
+        orderBy: { appliedAt: 'desc' },
+        include: {
+          seeker: {
+            select: {
+              firstName: true, lastName: true, headline: true, avatarUrl: true,
+              user: { select: { email: true } },
+            },
+          },
+          job: {
+            select: {
+              title: true, category: true, status: true,
+              employer: { select: { companyName: true, isVerified: true } },
+            },
+          },
+        },
+      }),
+      prisma.application.count({ where }),
+    ]);
+
+    res.json({ applications, total, page: Number(page), limit: Number(limit) });
+  } catch (error) {
+    console.error('Error fetching admin applications:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 };

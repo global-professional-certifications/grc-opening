@@ -134,7 +134,7 @@ export const createJob = async (req: Request, res: Response): Promise<void> => {
         description,
         location:         location        ?? null,
         workMode:         parsedWorkMode,
-        status:           'PENDING_REVIEW' as JobStatus,
+        status:           JobStatus.PUBLISHED,
         deadline:         parsedDeadline,
         category:         category        ?? null,
         jobType:          jobType         ?? null,

@@ -11,6 +11,8 @@ import {
   getAdminJobs,
   approveJob,
   rejectJob,
+  closeJobAdmin,
+  getAdminApplications,
 } from '../controllers/admin.controller';
 
 const router = Router();
@@ -31,5 +33,8 @@ router.patch('/companies/:id/verify', setCompanyVerification);
 router.get('/jobs',                   getAdminJobs);
 router.patch('/jobs/:id/approve',     approveJob);
 router.patch('/jobs/:id/reject',      rejectJob);
+router.patch('/jobs/:id/close',       closeJobAdmin);
+
+router.get('/applications',           getAdminApplications);
 
 export default router;
