@@ -35,9 +35,11 @@ const CATEGORY_LABELS: Record<string, string> = {
 };
 
 const STATUS_STYLES: Record<string, { bg: string; color: string; label: string }> = {
-  ACTIVE: { bg: "rgba(16,185,129,0.12)", color: "#10b981", label: "Active" },
-  CLOSED: { bg: "rgba(100,116,139,0.15)", color: "#64748b", label: "Closed" },
-  DRAFT:  { bg: "rgba(245,158,11,0.12)",  color: "#f59e0b", label: "Draft"  },
+  ACTIVE:         { bg: "rgba(16,185,129,0.12)",  color: "#10b981", label: "Active"       },
+  CLOSED:         { bg: "rgba(100,116,139,0.15)", color: "#64748b", label: "Closed"       },
+  DRAFT:          { bg: "rgba(245,158,11,0.12)",  color: "#f59e0b", label: "Draft"        },
+  PENDING_REVIEW: { bg: "rgba(99,102,241,0.12)",  color: "#6366f1", label: "Under Review" },
+  REJECTED:       { bg: "rgba(239,68,68,0.12)",   color: "#ef4444", label: "Rejected"     },
 };
 
 const TABLE_HEADERS = ["Job Title", "Category", "Work Mode", "Posted", "Status", "Applicants", "Actions"];
@@ -283,6 +285,11 @@ function JobRow({ job, onClose, index, expanded, onToggleExpand, onEdit, onViewD
         >
           {s.label}
         </span>
+        {job.status === "REJECTED" && job.adminNote && (
+          <p className="text-[9px] mt-1 max-w-[160px] truncate" style={{ color: "#ef4444" }} title={job.adminNote}>
+            {job.adminNote}
+          </p>
+        )}
       </td>
 
       {/* Applicants */}
@@ -330,7 +337,7 @@ function JobRow({ job, onClose, index, expanded, onToggleExpand, onEdit, onViewD
             <span className="material-symbols-outlined" style={{ fontSize: 18 }}>edit</span>
           </button>
 
-          {/* Close (only if ACTIVE) */}
+          {/* Close (only if ACTIVE — not pending/rejected) */}
           {job.status === "ACTIVE" && (
             <button
               className="w-8 h-8 flex items-center justify-center rounded-lg transition-colors"
@@ -444,7 +451,7 @@ export function ActiveJobListings() {
   const router = useRouter();
   const { jobs, loading, closeJob } = useEmployerJobs();
   const [search, setSearch] = useState("");
-  const [filterStatus, setFilterStatus] = useState<"all" | "ACTIVE" | "CLOSED">("all");
+  const [filterStatus, setFilterStatus] = useState<"all" | "ACTIVE" | "CLOSED" | "PENDING_REVIEW" | "REJECTED">("all");
   const [expandedJobId, setExpandedJobId] = useState<string | null>(null);
   const [applicantsByJob, setApplicantsByJob] = useState<Record<string, { loading: boolean; error: string | null; applicants: InlineApplicant[] }>>({});
   const [selectedJobDetail, setSelectedJobDetail] = useState<EmployerJob | null>(null);
@@ -507,7 +514,7 @@ export function ActiveJobListings() {
         <div className="flex items-center gap-2 flex-wrap">
           {/* Status filter */}
           <div className="flex items-center rounded-lg overflow-hidden" style={{ border: "1px solid var(--db-border)" }}>
-            {(["all", "ACTIVE", "CLOSED"] as const).map((s) => (
+            {(["all", "ACTIVE", "PENDING_REVIEW", "REJECTED", "CLOSED"] as const).map((s, i, arr) => (
               <button
                 key={s}
                 onClick={() => setFilterStatus(s)}
@@ -516,10 +523,10 @@ export function ActiveJobListings() {
                   ...MONO,
                   background: filterStatus === s ? "var(--db-primary)" : "var(--db-card)",
                   color: filterStatus === s ? "var(--db-primary-text)" : "var(--db-text-muted)",
-                  borderRight: s !== "CLOSED" ? "1px solid var(--db-border)" : undefined,
+                  borderRight: i < arr.length - 1 ? "1px solid var(--db-border)" : undefined,
                 }}
               >
-                {s === "all" ? "All" : s === "ACTIVE" ? "Active" : "Closed"}
+                {s === "all" ? "All" : s === "ACTIVE" ? "Active" : s === "PENDING_REVIEW" ? "Review" : s === "REJECTED" ? "Rejected" : "Closed"}
               </button>
             ))}
           </div>

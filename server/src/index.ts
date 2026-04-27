@@ -11,6 +11,8 @@ import authRouter from './routes/auth.routes';
 import profileRouter from './routes/profile.routes';
 import jobRouter from './routes/job.routes';
 import applicationRouter from './routes/application.routes';
+import adminRouter from './routes/admin.routes';
+import { adminLogin } from './controllers/admin.controller';
 import resumeRouter from './routes/resume.routes';
 
 const app = express();
@@ -22,7 +24,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Routes
-app.get('/', (req, res) => {
+app.get('/', (_req, res) => {
   res.json({
     message: 'Welcome to the GRC Openings API',
     status: 'online',
@@ -36,6 +38,8 @@ app.use('/auth', authRouter);
 app.use('/profile', profileRouter);
 app.use('/jobs', jobRouter);
 app.use('/applications', applicationRouter);
+app.post('/admin/login', adminLogin);   // public — registered before auth middleware
+app.use('/admin', adminRouter);
 app.use('/resume', resumeRouter);
 
 // Start server

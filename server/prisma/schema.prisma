@@ -24,7 +24,9 @@ enum WorkMode {
 
 enum JobStatus {
   DRAFT
+  PENDING_REVIEW
   PUBLISHED
+  REJECTED
   CLOSED
 }
 
@@ -44,6 +46,10 @@ enum ReportReason {
   OTHER
 }
 
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  BANNED
 enum ResumeStatus {
   PENDING
   PROCESSING
@@ -61,7 +67,8 @@ model User {
   clerkId       String?  @unique @map("clerk_id")
   passwordHash  String?
   emailVerified Boolean  @default(false) @map("email_verified")
-  role          Role     @default(JOB_SEEKER)
+  role          Role       @default(JOB_SEEKER)
+  status        UserStatus @default(ACTIVE)
   lastVerificationSentAt DateTime? @map("last_verification_sent_at")
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
@@ -186,6 +193,7 @@ model EmployerProfile {
   countryCode        String?  @map("country_code")
   linkedInUrl        String?  @map("linked_in_url")
   twitterUrl         String?  @map("twitter_url")
+  isVerified  Boolean  @default(false) @map("is_verified")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
@@ -224,6 +232,7 @@ model Job {
   niceToHave       String?  @map("nice_to_have")
   currency         String?  @default("USD")
   undisclosedSalary Boolean @default(false) @map("undisclosed_salary")
+  adminNote        String?  @map("admin_note")
   salaryMin   Int?      @map("salary_min")
   salaryMax   Int?      @map("salary_max")
   createdAt   DateTime  @default(now()) @map("created_at")
