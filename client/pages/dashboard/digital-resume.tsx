@@ -331,6 +331,60 @@ export default function DigitalResumePage() {
               </section>
             )}
 
+            {/* Education */}
+            {profile.education.length > 0 && (
+              <section>
+                <SectionHeading icon="school" label="Education" />
+                <div className="mt-3 space-y-5">
+                  {profile.education.map((edu) => (
+                    <div key={edu.id} className="flex gap-4">
+                      {/* Timeline dot */}
+                      <div className="flex flex-col items-center pt-1">
+                        <div
+                          className="w-2.5 h-2.5 rounded-full shrink-0"
+                          style={{ background: "var(--db-primary)" }}
+                        />
+                        <div
+                          className="w-px flex-1 mt-1"
+                          style={{ background: "var(--db-border)" }}
+                        />
+                      </div>
+
+                      <div className="pb-2">
+                        <p
+                          className="text-sm font-semibold"
+                          style={{ color: "var(--db-text)" }}
+                        >
+                          {edu.institution}
+                        </p>
+                        <p
+                          className="text-xs mt-0.5"
+                          style={{ color: "var(--db-primary)" }}
+                        >
+                          {edu.degree}{edu.field ? ` in ${edu.field}` : ""}
+                          {edu.gpa ? ` · GPA: ${edu.gpa}` : ""}
+                        </p>
+                        <p
+                          className="text-xs mt-0.5"
+                          style={{ ...MONO, color: "var(--db-text-muted)" }}
+                        >
+                          {edu.startDate} — {edu.endDate}
+                        </p>
+                        {edu.description && (
+                          <p
+                            className="text-sm mt-2 leading-relaxed"
+                            style={{ color: "var(--db-text-muted)" }}
+                          >
+                            {edu.description}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
             {/* Skills */}
             {profile.coreCompetencies.length > 0 && (
               <section>

@@ -118,7 +118,7 @@ function testExtractorsDirectly() {
   const text = SAMPLE_RESUME_TEXT;
 
   // Test email extraction
-  const emailMatch = text.match(/[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/g);
+  const emailMatch = text.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g);
   console.log('📧 Email:', emailMatch?.[0] || 'NOT FOUND');
 
   // Test phone extraction

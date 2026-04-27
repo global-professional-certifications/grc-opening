@@ -51,9 +51,11 @@ app.listen(PORT, () => {
   // In production, run the worker as a separate process:
   //   npx tsx src/worker/resume.worker.ts
   if (process.env.INLINE_WORKER !== 'false') {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { isRedisAvailable } = require('./config/redis');
     isRedisAvailable().then((available: boolean) => {
       if (available) {
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
         const { startResumeWorker } = require('./worker/resume.worker');
         startResumeWorker();
         console.log(`   Resume worker: running inline`);

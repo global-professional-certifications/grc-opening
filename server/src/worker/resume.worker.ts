@@ -265,8 +265,10 @@ export function startResumeWorker(): Worker {
  * If this file is run directly (not imported), start the worker process.
  * Usage: npx tsx src/worker/resume.worker.ts
  */
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 if (require.main === module) {
   // Load environment
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   require('dotenv').config();
   
   console.log('🚀 Starting Resume Parsing Worker...');

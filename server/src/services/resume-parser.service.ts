@@ -129,7 +129,7 @@ const SECTION_HEADERS = {
  * Extract email address from text using regex.
  */
 function extractEmail(text: string): string {
-  const emailRegex = /[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/g;
+  const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
   const matches = text.match(emailRegex);
   if (!matches || matches.length === 0) return '';
   
@@ -162,7 +162,7 @@ function extractLocation(text: string): string {
   
   for (const line of lines) {
     if (line.length < 4 || line.length > 60) continue;
-    if (/[@\/\d]/.test(line)) continue; // skip emails/phones
+    if (/[@/\d]/.test(line)) continue; // skip emails/phones
     
     const match = line.match(locRegex);
     if (match) {
