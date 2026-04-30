@@ -369,35 +369,91 @@ export default function ProfilePage() {
         <>
           {/* Identity card - Re-themed to Brand Blue like Stat Cards */}
           <div
-            className="db-card rounded-2xl p-8 border-none shadow-xl relative overflow-hidden"
+            className="db-card rounded-2xl p-8 md:p-12 border-none shadow-xl relative overflow-hidden"
             style={{ background: "var(--db-primary)", color: "#ffffff" }}
           >
-            <div className="flex items-center gap-5">
-              {/* Avatar — click to upload photo */}
+            {/* Background decorative elements */}
+            <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-20 -mt-20 blur-3xl pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full -ml-16 -mb-16 blur-2xl pointer-events-none" />
+
+            <div className="flex flex-col md:flex-row items-center justify-between gap-10 relative z-10">
+              {/* Left Column: Basic Info */}
+              <div className="flex-1 min-w-0 space-y-6 text-center md:text-left">
+                <div>
+                  <h3 className="text-3xl md:text-5xl font-black tracking-tight leading-tight">
+                    {fullName || "Your Name"}
+                  </h3>
+                  {formData.professionalTitle && (
+                    <p className="text-lg md:text-xl font-bold mt-2 opacity-90 uppercase tracking-widest">
+                      {formData.professionalTitle}
+                    </p>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-8">
+                  {formData.email && (
+                    <div className="flex items-center justify-center md:justify-start gap-3">
+                      <div className="p-1.5 rounded-lg bg-white/10">
+                        <span className="material-symbols-outlined shrink-0" style={{ fontSize: 18 }}>mail</span>
+                      </div>
+                      <span className="text-sm md:text-base font-semibold truncate">{formData.email}</span>
+                    </div>
+                  )}
+                  {formData.phone && (
+                    <div className="flex items-center justify-center md:justify-start gap-3">
+                      <div className="p-1.5 rounded-lg bg-white/10">
+                        <span className="material-symbols-outlined shrink-0" style={{ fontSize: 18 }}>call</span>
+                      </div>
+                      <span className="text-sm md:text-base font-semibold truncate">{formData.phone}</span>
+                    </div>
+                  )}
+                  {formData.location && (
+                    <div className="flex items-center justify-center md:justify-start gap-3">
+                      <div className="p-1.5 rounded-lg bg-white/10">
+                        <span className="material-symbols-outlined shrink-0" style={{ fontSize: 18 }}>location_on</span>
+                      </div>
+                      <span className="text-sm md:text-base font-semibold truncate">{formData.location}</span>
+                    </div>
+                  )}
+                  {formData.linkedInUrl && (
+                    <div className="flex items-center justify-center md:justify-start gap-3">
+                      <div className="p-1.5 rounded-lg bg-white/10">
+                        <span className="material-symbols-outlined shrink-0" style={{ fontSize: 18 }}>link</span>
+                      </div>
+                      <span className="text-sm md:text-base font-semibold truncate">
+                        {formData.linkedInUrl.replace(/^https?:\/\/(www\.)?/, "")}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Right Column: Large Circular Avatar */}
               <div
-                className="relative w-20 h-20 rounded-full shrink-0 cursor-pointer group"
+                className="relative w-40 h-40 md:w-56 md:h-56 rounded-full shrink-0 cursor-pointer group shadow-2xl"
                 onClick={() => avatarInputRef.current?.click()}
                 title="Upload profile photo"
               >
                 <div
-                  className="w-20 h-20 rounded-full flex items-center justify-center overflow-hidden text-2xl font-black select-none shadow-inner"
+                  className="w-full h-full rounded-full flex items-center justify-center overflow-hidden text-5xl md:text-6xl font-black select-none ring-8 ring-white/10 group-hover:ring-white/20 transition-all duration-300"
                   style={{
                     background: "#ffffff",
                     color: "var(--db-primary)",
+                    boxShadow: "inset 0 4px 12px rgba(0,0,0,0.1)"
                   }}
                 >
                   {profileImage ? (
                     <img
                       src={profileImage}
                       alt="Profile"
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                     />
                   ) : initials ? (
                     initials
                   ) : (
                     <span
                       className="material-symbols-outlined"
-                      style={{ fontSize: 32, color: "var(--db-primary)" }}
+                      style={{ fontSize: 80, color: "var(--db-primary)" }}
                     >
                       person
                     </span>
@@ -406,15 +462,18 @@ export default function ProfilePage() {
 
                 {/* Hover overlay */}
                 <div
-                  className="absolute inset-0 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-150"
-                  style={{ background: "rgba(0,0,0,0.45)" }}
+                  className="absolute inset-0 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 transform scale-90 group-hover:scale-100"
+                  style={{ background: "rgba(0,0,0,0.4)" }}
                 >
-                  <span
-                    className="material-symbols-outlined"
-                    style={{ fontSize: 22, color: "#fff" }}
-                  >
-                    photo_camera
-                  </span>
+                  <div className="flex flex-col items-center gap-1">
+                    <span
+                      className="material-symbols-outlined text-white"
+                      style={{ fontSize: 40 }}
+                    >
+                      photo_camera
+                    </span>
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-white">Change Photo</span>
+                  </div>
                 </div>
 
                 <input
@@ -424,52 +483,6 @@ export default function ProfilePage() {
                   className="hidden"
                   onChange={handleAvatarChange}
                 />
-              </div>
-
-              <div className="flex-1 min-w-0 relative z-10">
-                <h3
-                  className="text-3xl font-bold truncate tracking-tight"
-                >
-                  {fullName || "Your Name"}
-                </h3>
-                {formData.professionalTitle && (
-                  <p className="text-sm font-bold mt-1 opacity-90 uppercase tracking-wider">
-                    {formData.professionalTitle}
-                  </p>
-                )}
-                <div className="flex items-center gap-4 mt-1.5 flex-wrap">
-                  {formData.location && (
-                    <span
-                      className="flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-white/10"
-                      style={{ color: "#ffffff" }}
-                    >
-                      <span className="material-symbols-outlined shrink-0" style={{ fontSize: 13 }}>
-                        location_on
-                      </span>
-                      <span className="truncate">{formData.location}</span>
-                    </span>
-                  )}
-                  {formData.linkedInUrl && (
-                    <a
-                      href={
-                        formData.linkedInUrl.startsWith("http")
-                          ? formData.linkedInUrl
-                          : `https://${formData.linkedInUrl}`
-                      }
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
-                      style={{ color: "#ffffff" }}
-                    >
-                      <span className="material-symbols-outlined shrink-0" style={{ fontSize: 13 }}>
-                        link
-                      </span>
-                      <span className="truncate">
-                        {formData.linkedInUrl.replace(/^https?:\/\/(www\.)?/, "")}
-                      </span>
-                    </a>
-                  )}
-                </div>
               </div>
             </div>
           </div>

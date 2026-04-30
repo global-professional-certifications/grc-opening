@@ -23,6 +23,17 @@ type WorkExperience = {
   description: string;
 };
 
+type Education = {
+  id: string;
+  institution: string;
+  degree: string;
+  field: string;
+  gpa: string;
+  startDate: string;
+  endDate: string;
+  description: string;
+};
+
 type ApplicantDetail = {
   id: string;
   status: string;
@@ -49,6 +60,7 @@ type ApplicantDetail = {
     skills: string[];
     certifications: string[];
     workExperiences: WorkExperience[];
+    educations: Education[];
   };
 };
 
@@ -278,6 +290,73 @@ export function ApplicantDetailDialog({
                 )}
               </section>
 
+              {/* Work Experience */}
+              <section>
+                <SectionLabel text="Work Experience" />
+                {seeker.workExperiences.length > 0 ? (
+                  <div className="space-y-3">
+                    {seeker.workExperiences.map((w) => (
+                      <div key={w.id}
+                        className="rounded-[16px] border px-5 py-4"
+                        style={{ background: CARD, borderColor: BORDER }}>
+                        <div className="flex flex-wrap items-baseline justify-between gap-2">
+                          <div className="min-w-0">
+                            <div className="text-[1rem] font-bold" style={{ color: TEXT_PRIMARY }}>{w.title}</div>
+                            <div className="text-[0.85rem]" style={{ color: PRIMARY, fontWeight: 600 }}>
+                              {w.company}{w.location ? ` · ${w.location}` : ""}
+                            </div>
+                          </div>
+                          <div className="text-[0.72rem] uppercase tracking-[0.18em] font-bold" style={{ color: TEXT_MUTED, ...MONO }}>
+                            {w.startDate} — {w.current ? "Present" : (w.endDate || "—")}
+                          </div>
+                        </div>
+                        {w.description && (
+                          <p className="mt-2 text-[0.88rem] leading-[1.7] whitespace-pre-line" style={{ color: TEXT_SECONDARY }}>
+                            {w.description}
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-[0.9rem] italic" style={{ color: TEXT_MUTED }}>No work experience provided.</div>
+                )}
+              </section>
+
+              {/* Education */}
+              <section>
+                <SectionLabel text="Education" />
+                {seeker.educations.length > 0 ? (
+                  <div className="space-y-3">
+                    {seeker.educations.map((e) => (
+                      <div key={e.id}
+                        className="rounded-[16px] border px-5 py-4"
+                        style={{ background: CARD, borderColor: BORDER }}>
+                        <div className="flex flex-wrap items-baseline justify-between gap-2">
+                          <div className="min-w-0">
+                            <div className="text-[1rem] font-bold" style={{ color: TEXT_PRIMARY }}>{e.institution}</div>
+                            <div className="text-[0.85rem]" style={{ color: PRIMARY, fontWeight: 600 }}>
+                              {e.degree}{e.field ? ` in ${e.field}` : ""}
+                              {e.gpa ? ` · GPA: ${e.gpa}` : ""}
+                            </div>
+                          </div>
+                          <div className="text-[0.72rem] uppercase tracking-[0.18em] font-bold" style={{ color: TEXT_MUTED, ...MONO }}>
+                            {e.startDate} — {e.endDate || "—"}
+                          </div>
+                        </div>
+                        {e.description && (
+                          <p className="mt-2 text-[0.88rem] leading-[1.7] whitespace-pre-line" style={{ color: TEXT_SECONDARY }}>
+                            {e.description}
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-[0.9rem] italic" style={{ color: TEXT_MUTED }}>No education provided.</div>
+                )}
+              </section>
+
               {/* Skills */}
               <section>
                 <SectionLabel text="Skills" />
@@ -314,39 +393,6 @@ export function ApplicantDetailDialog({
                 )}
               </section>
 
-              {/* Work Experience */}
-              <section>
-                <SectionLabel text="Work Experience" />
-                {seeker.workExperiences.length > 0 ? (
-                  <div className="space-y-3">
-                    {seeker.workExperiences.map((w) => (
-                      <div key={w.id}
-                        className="rounded-[16px] border px-5 py-4"
-                        style={{ background: CARD, borderColor: BORDER }}>
-                        <div className="flex flex-wrap items-baseline justify-between gap-2">
-                          <div className="min-w-0">
-                            <div className="text-[1rem] font-bold" style={{ color: TEXT_PRIMARY }}>{w.title}</div>
-                            <div className="text-[0.85rem]" style={{ color: PRIMARY, fontWeight: 600 }}>
-                              {w.company}{w.location ? ` · ${w.location}` : ""}
-                            </div>
-                          </div>
-                          <div className="text-[0.72rem] uppercase tracking-[0.18em] font-bold" style={{ color: TEXT_MUTED, ...MONO }}>
-                            {w.startDate} — {w.current ? "Present" : (w.endDate || "—")}
-                          </div>
-                        </div>
-                        {w.description && (
-                          <p className="mt-2 text-[0.88rem] leading-[1.7] whitespace-pre-line" style={{ color: TEXT_SECONDARY }}>
-                            {w.description}
-                          </p>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-[0.9rem] italic" style={{ color: TEXT_MUTED }}>No work experience provided.</div>
-                )}
-              </section>
-
               {/* Cover letter / notes */}
               <section>
                 <SectionLabel text="Cover Letter" />
@@ -365,3 +411,5 @@ export function ApplicantDetailDialog({
     </div>
   );
 }
+
+export default ApplicantDetailDialog;

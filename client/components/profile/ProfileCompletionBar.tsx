@@ -3,12 +3,13 @@ import type { ProfileFormData } from "./types";
 // Fonts are handled globally via Poppins
 
 const STEP_ICONS: Record<string, string> = {
+  "Resume":          "description",
   "Personal Info":   "person",
   "Summary":         "notes",
   "Work Experience": "work",
+  "Education":       "school",
   "Skills":          "psychology",
   "Certifications":  "verified",
-  "Resume":          "description",
 };
 
 function getMotivation(pct: number): { text: string; accent: boolean } {
@@ -23,12 +24,13 @@ interface CompletionItem { label: string; done: boolean; }
 
 export function calcCompletion(profile: ProfileFormData): { pct: number; items: CompletionItem[] } {
   const items: CompletionItem[] = [
+    { label: "Resume",          done: !!profile.resumeUrl },
     { label: "Personal Info",   done: !!(profile.firstName && profile.lastName && profile.professionalTitle && profile.email) },
     { label: "Summary",         done: profile.summary.trim().length > 0 },
     { label: "Work Experience", done: profile.workExperience.length > 0 },
+    { label: "Education",       done: profile.education.length > 0 },
     { label: "Skills",          done: profile.coreCompetencies.length > 0 },
     { label: "Certifications",  done: profile.certifications.length > 0 },
-    { label: "Resume",          done: !!profile.resumeUrl },
   ];
   const done = items.filter((i) => i.done).length;
   return { pct: Math.round((done / items.length) * 100), items };
