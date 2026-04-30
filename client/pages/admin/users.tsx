@@ -8,7 +8,7 @@ interface AdminUser {
   employerProfile?: { companyName: string; isVerified: boolean } | null;
 }
 
-interface ConfirmModal { title: string; message: string; onConfirm: () => void; }
+interface ConfirmModal { title: string; message: string; confirmColor?: string; onConfirm: () => void; }
 
 function RoleBadge({ role }: { role: string }) {
   const map: Record<string, string> = {
@@ -76,10 +76,22 @@ function UserRow({
           onChange={e => {
             const nextStatus = e.target.value;
             if (nextStatus === u.status) return;
-            const statusLabel = nextStatus === "ACTIVE" ? "activate" : nextStatus.toLowerCase();
+            let message = "";
+            let confirmColor = "bg-red-600 hover:bg-red-700";
+            if (nextStatus === 'SUSPENDED') {
+              message = "This will temporarily restrict platform access. The user cannot log in but their data is preserved. You can reinstate them at any time.";
+              confirmColor = "bg-amber-500 hover:bg-amber-600";
+            } else if (nextStatus === 'BANNED') {
+              message = "This will permanently block all platform access. This action should only be taken for serious policy violations.";
+              confirmColor = "bg-red-600 hover:bg-red-700";
+            } else if (nextStatus === 'ACTIVE') {
+              message = "This will reactivate the account and restore full platform access.";
+              confirmColor = "bg-emerald-600 hover:bg-emerald-700";
+            }
             onConfirm({
               title: "Confirm Status Change",
-              message: `Are you sure you want to ${statusLabel} the user?`,
+              message,
+              confirmColor,
               onConfirm: () => onStatusChange(u.id, nextStatus),
             });
           }}
@@ -162,12 +174,12 @@ export default function AdminUsersPage() {
       <div className="mb-5 flex items-center gap-4 text-[11px] text-gray-500">
         <span className="flex items-center gap-1.5">
           <span className="w-2 h-2 rounded-full bg-amber-400" />
-          <strong>Suspend</strong> — temporarily restricts account actions
+          <strong>Suspend</strong> — temporarily restricts login; data preserved
         </span>
         <span className="text-gray-300">|</span>
         <span className="flex items-center gap-1.5">
           <span className="w-2 h-2 rounded-full bg-red-500" />
-          <strong>Ban</strong> — permanently blocks all platform access
+          <strong>Ban</strong> — permanently blocks all access
         </span>
       </div>
 
@@ -291,7 +303,7 @@ export default function AdminUsersPage() {
                 className="flex-1 py-2.5 rounded-xl border border-gray-200 text-[14px] font-semibold text-gray-600 hover:bg-gray-50 transition-all"
               >Cancel</button>
               <button onClick={confirm.onConfirm}
-                className="flex-1 py-2.5 rounded-xl bg-red-600 text-white text-[14px] font-bold hover:bg-red-700 transition-all"
+                className={`flex-1 py-2.5 rounded-xl text-white text-[14px] font-bold transition-all ${confirm.confirmColor || "bg-red-600 hover:bg-red-700"}`}
               >Confirm</button>
             </div>
           </div>

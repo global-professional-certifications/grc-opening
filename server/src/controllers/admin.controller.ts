@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { PrismaClient, Role, JobStatus, ApplicationStatus } from '@prisma/client';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import { notifyAccountStatusChange, notifyCompanyVerificationChange, notifyJobForceClosed, notifyJobClosedToApplicants } from '../services/notification.service';
 
 const prisma = new PrismaClient();
 
@@ -172,7 +173,7 @@ export const getAdminUsers = async (req: Request, res: Response): Promise<void> 
 // ==========================================
 export const updateUserStatus = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const { status } = req.body;
     if (!VALID_STATUSES.includes(status)) {
       res.status(400).json({ error: `Invalid status. Must be one of: ${VALID_STATUSES.join(', ')}` });
@@ -182,6 +183,7 @@ export const updateUserStatus = async (req: Request, res: Response): Promise<voi
     if (!target) { res.status(404).json({ error: 'User not found' }); return; }
     if (target.role === Role.ADMIN) { res.status(400).json({ error: 'Cannot change status of admin accounts' }); return; }
     const user = await prisma.user.update({ where: { id }, data: { status } as any });
+    notifyAccountStatusChange(id, status as any).catch(console.error);
     res.json({ message: 'Status updated', user });
   } catch (error) {
     console.error('Error updating user status:', error);
@@ -194,10 +196,11 @@ export const updateUserStatus = async (req: Request, res: Response): Promise<voi
 // ==========================================
 export const disableUser = async (req: Request, res: Response): Promise<void> => {
   try {
-    const target = await prisma.user.findUnique({ where: { id: req.params.id } });
+    const id = req.params.id as string;
+    const target = await prisma.user.findUnique({ where: { id } });
     if (!target) { res.status(404).json({ error: 'User not found' }); return; }
     if (target.role === Role.ADMIN) { res.status(400).json({ error: 'Cannot disable admin accounts' }); return; }
-    const user = await prisma.user.update({ where: { id: req.params.id }, data: { status: 'BANNED' } as any });
+    const user = await prisma.user.update({ where: { id }, data: { status: 'BANNED' } as any });
     res.json({ message: 'User disabled', user });
   } catch (error) {
     console.error('Error disabling user:', error);
@@ -210,9 +213,11 @@ export const disableUser = async (req: Request, res: Response): Promise<void> =>
 // ==========================================
 export const enableUser = async (req: Request, res: Response): Promise<void> => {
   try {
-    const target = await prisma.user.findUnique({ where: { id: req.params.id } });
+    const id = req.params.id as string;
+    const target = await prisma.user.findUnique({ where: { id } });
     if (!target) { res.status(404).json({ error: 'User not found' }); return; }
-    const user = await prisma.user.update({ where: { id: req.params.id }, data: { status: 'ACTIVE' } as any });
+    const user = await prisma.user.update({ where: { id }, data: { status: 'ACTIVE' } as any });
+    notifyAccountStatusChange(id, 'ACTIVE').catch(console.error);
     res.json({ message: 'User enabled', user });
   } catch (error) {
     console.error('Error enabling user:', error);
@@ -266,12 +271,14 @@ export const setCompanyVerification = async (req: Request, res: Response): Promi
   try {
     const { verified } = req.body;
     if (typeof verified !== 'boolean') { res.status(400).json({ error: '`verified` must be a boolean' }); return; }
-    const company = await prisma.employerProfile.findUnique({ where: { id: req.params.id } });
+    const id = req.params.id as string;
+    const company = await prisma.employerProfile.findUnique({ where: { id } });
     if (!company) { res.status(404).json({ error: 'Company not found' }); return; }
     const updated = await prisma.employerProfile.update({
-      where: { id: req.params.id },
+      where: { id },
       data: { isVerified: verified } as any,
     });
+    notifyCompanyVerificationChange(company.userId, verified).catch(console.error);
     res.json({ message: verified ? 'Company verified' : 'Verification revoked', company: updated });
   } catch (error) {
     console.error('Error updating company verification:', error);
@@ -343,12 +350,20 @@ export const getAdminJobs = async (req: Request, res: Response): Promise<void> =
 // ==========================================
 export const closeJobAdmin = async (req: Request, res: Response): Promise<void> => {
   try {
-    const job = await prisma.job.findUnique({ where: { id: req.params.id } });
-    if (!job) { res.status(404).json({ error: 'Job not found' }); return; }
+    const id = req.params.id as string;
+    const job = await prisma.job.findUnique({ where: { id } });
+    if (!job) {
+      res.status(404).json({ error: 'Job not found' });
+      return;
+    }
+
     const updated = await prisma.job.update({
-      where: { id: req.params.id },
+      where: { id },
       data: { status: JobStatus.CLOSED },
+      include: { employer: true }
     });
+    notifyJobForceClosed(updated.employer.userId, updated.id, updated.title).catch(console.error);
+    notifyJobClosedToApplicants(updated.id, updated.title).catch(console.error);
     res.json({ message: 'Job closed by admin', job: updated });
   } catch (error) {
     console.error('Error closing job (admin):', error);
@@ -414,11 +429,12 @@ export const getAdminApplications = async (req: Request, res: Response): Promise
 // ==========================================
 export const approveJob = async (req: Request, res: Response): Promise<void> => {
   try {
-    const job = await prisma.job.findUnique({ where: { id: req.params.id } });
+    const id = req.params.id as string;
+    const job = await prisma.job.findUnique({ where: { id } });
     if (!job) { res.status(404).json({ error: 'Job not found' }); return; }
 
     const updated = await prisma.job.update({
-      where: { id: req.params.id },
+      where: { id },
       data: { status: JobStatus.PUBLISHED, adminNote: null },
     });
     res.json({ message: 'Job approved and published', job: updated });
@@ -438,11 +454,12 @@ export const rejectJob = async (req: Request, res: Response): Promise<void> => {
       res.status(400).json({ error: 'Rejection reason is required' });
       return;
     }
-    const job = await prisma.job.findUnique({ where: { id: req.params.id } });
+    const id = req.params.id as string;
+    const job = await prisma.job.findUnique({ where: { id } });
     if (!job) { res.status(404).json({ error: 'Job not found' }); return; }
 
     const updated = await prisma.job.update({
-      where: { id: req.params.id },
+      where: { id },
       data: { status: 'REJECTED' as JobStatus, adminNote: String(reason).trim() },
     });
     res.json({ message: 'Job rejected', job: updated });

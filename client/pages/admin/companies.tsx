@@ -14,6 +14,8 @@ interface Company {
   user: { id: string; email: string; status: string };
 }
 
+interface ConfirmModal { title: string; message: string; onConfirm: () => void; }
+
 function VerifiedBadge({ verified }: { verified: boolean }) {
   return verified ? (
     <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
@@ -53,6 +55,7 @@ export default function AdminCompaniesPage() {
   const [verifiedFilter, setVerifiedFilter] = useState("");
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [confirm, setConfirm] = useState<ConfirmModal | null>(null);
   const [error, setError] = useState("");
   const LIMIT = 20;
 
@@ -74,7 +77,7 @@ export default function AdminCompaniesPage() {
 
   useEffect(() => { fetchCompanies(); }, [fetchCompanies]);
 
-  async function toggleVerify(company: Company) {
+  async function executeToggleVerify(company: Company) {
     setActionLoading(company.id);
     try {
       const next = !company.isVerified;
@@ -87,6 +90,19 @@ export default function AdminCompaniesPage() {
       setError(e.message);
     } finally {
       setActionLoading(null);
+      setConfirm(null);
+    }
+  }
+
+  function toggleVerify(company: Company) {
+    if (company.isVerified) {
+      setConfirm({
+        title: "Revoke Verification",
+        message: "This will remove the verified status from this company. They will be notified.",
+        onConfirm: () => executeToggleVerify(company),
+      });
+    } else {
+      executeToggleVerify(company);
     }
   }
 
@@ -207,6 +223,23 @@ export default function AdminCompaniesPage() {
             <button disabled={page === totalPages} onClick={() => setPage(p => p + 1)}
               className="px-4 py-2 rounded-xl border border-gray-200 text-[13px] font-medium disabled:opacity-40 hover:bg-white transition-all"
             >Next →</button>
+          </div>
+        </div>
+      )}
+      {/* Confirm modal */}
+      {confirm && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
+            <h3 className="text-[17px] font-bold text-gray-900 mb-2">{confirm.title}</h3>
+            <p className="text-[13px] text-gray-500 mb-6 leading-relaxed">{confirm.message}</p>
+            <div className="flex gap-3">
+              <button onClick={() => setConfirm(null)}
+                className="flex-1 py-2.5 rounded-xl border border-gray-200 text-[14px] font-semibold text-gray-600 hover:bg-gray-50 transition-all"
+              >Cancel</button>
+              <button onClick={confirm.onConfirm}
+                className="flex-1 py-2.5 rounded-xl bg-[#3a1292] text-white text-[14px] font-bold hover:bg-[#2e0e74] transition-all"
+              >Confirm</button>
+            </div>
           </div>
         </div>
       )}
