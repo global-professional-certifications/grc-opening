@@ -22,25 +22,32 @@ export const purgeExpiredNotifications = async (): Promise<void> => {
   }
 };
 
-export const notifyAccountStatusChange = async (userId: string, newStatus: 'ACTIVE' | 'SUSPENDED' | 'BANNED'): Promise<void> => {
+export const notifyAccountStatusChange = async (
+  userId: string,
+  newStatus: 'ACTIVE' | 'SUSPENDED' | 'BANNED',
+  adminReason?: string,
+): Promise<void> => {
   try {
     let type: NotificationType;
     let title: string;
-    let message: string;
+    let messageBase: string;
 
     if (newStatus === 'ACTIVE') {
       type = NotificationType.ACCOUNT_REINSTATED;
       title = 'Account Reactivated';
-      message = 'Your account has been reactivated. You can now log in and use the platform normally.';
+      messageBase = 'Your account has been reactivated. You can now log in and use the platform normally.';
     } else if (newStatus === 'SUSPENDED') {
       type = NotificationType.ACCOUNT_SUSPENDED;
       title = 'Account Temporarily Suspended';
-      message = 'Your account has been temporarily suspended by an administrator. You will not be able to log in until it is reinstated.';
+      messageBase = 'Your account has been temporarily suspended by an administrator. You will not be able to log in until it is reinstated.';
     } else {
       type = NotificationType.ACCOUNT_BANNED;
       title = 'Account Permanently Banned';
-      message = 'Your account has been permanently banned for policy violations. Contact support if you believe this is an error.';
+      messageBase = 'Your account has been permanently banned for policy violations. Contact support if you believe this is an error.';
     }
+
+    const trimmedReason = typeof adminReason === 'string' ? adminReason.trim() : '';
+    const message = trimmedReason ? `${messageBase} Reason: ${trimmedReason}` : messageBase;
 
     await prisma.notification.create({
       data: {
@@ -48,6 +55,7 @@ export const notifyAccountStatusChange = async (userId: string, newStatus: 'ACTI
         type,
         title,
         message,
+        metadata: trimmedReason ? { newStatus, adminReason: trimmedReason } : { newStatus },
         expiresAt: getTTL()
       }
     });
@@ -56,13 +64,19 @@ export const notifyAccountStatusChange = async (userId: string, newStatus: 'ACTI
   }
 };
 
-export const notifyCompanyVerificationChange = async (userId: string, isVerified: boolean): Promise<void> => {
+export const notifyCompanyVerificationChange = async (
+  userId: string,
+  isVerified: boolean,
+  adminReason?: string,
+): Promise<void> => {
   try {
     const type = isVerified ? NotificationType.COMPANY_VERIFIED : NotificationType.COMPANY_VERIFICATION_REVOKED;
     const title = isVerified ? 'Company Profile Verified \u2713' : 'Verification Revoked';
-    const message = isVerified 
+    const messageBase = isVerified 
       ? 'Congratulations! Your company profile has been officially verified by GRC Openings.'
       : 'Your company\'s verified status has been revoked. Please contact support for more information.';
+    const trimmedReason = typeof adminReason === 'string' ? adminReason.trim() : '';
+    const message = trimmedReason ? `${messageBase} Reason: ${trimmedReason}` : messageBase;
 
     await prisma.notification.create({
       data: {
@@ -70,6 +84,9 @@ export const notifyCompanyVerificationChange = async (userId: string, isVerified
         type,
         title,
         message,
+        metadata: trimmedReason
+          ? { isVerified, adminReason: trimmedReason }
+          : { isVerified },
         expiresAt: getTTL()
       }
     });
@@ -78,15 +95,20 @@ export const notifyCompanyVerificationChange = async (userId: string, isVerified
   }
 };
 
-export const notifyJobForceClosed = async (employerUserId: string, jobId: string, jobTitle: string): Promise<void> => {
+export const notifyJobForceClosed = async (
+  employerUserId: string,
+  jobId: string,
+  jobTitle: string,
+  adminReason: string,
+): Promise<void> => {
   try {
     await prisma.notification.create({
       data: {
         userId: employerUserId,
         type: NotificationType.JOB_FORCE_CLOSED,
         title: 'Job Posting Closed by Admin',
-        message: `Your job posting "${jobTitle}" has been closed by an administrator.`,
-        metadata: { jobId, jobTitle },
+        message: `Your job posting "${jobTitle}" has been closed by an administrator. Reason: ${adminReason}`,
+        metadata: { jobId, jobTitle, adminReason },
         expiresAt: getTTL()
       }
     });

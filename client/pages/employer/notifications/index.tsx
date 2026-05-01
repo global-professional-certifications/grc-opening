@@ -13,13 +13,19 @@ interface Notification {
   createdAt: string;
 }
 
+interface FeedbackModalState {
+  title: string;
+  feedback: string;
+}
+
 export default function EmployerNotificationsPage() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [feedbackModal, setFeedbackModal] = useState<FeedbackModalState | null>(null);
   
   // Filtering & Pagination
-  const [activeTab, setActiveTab] = useState('ALL'); // ALL, UNREAD, ADMIN, APPLICATIONS
+  const [activeTab, setActiveTab] = useState('ALL'); // ALL, ADMIN, APPLICATIONS
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -34,10 +40,9 @@ export default function EmployerNotificationsPage() {
     setLoading(true);
     try {
       let url = `/notifications?page=${page}&limit=${LIMIT}`;
-      if (activeTab === 'UNREAD') url += '&unread=true';
       
       if (['ADMIN', 'APPLICATIONS'].includes(activeTab)) {
-        url = `/notifications?limit=100`; // Client-side filtering
+        url = `/notifications?limit=100`;
       }
 
       const data = await apiFetch<{ notifications: Notification[], total: number, unreadCount: number }>(url);
@@ -129,9 +134,17 @@ export default function EmployerNotificationsPage() {
     return 'border-gray-500 text-gray-500';
   };
 
+  const extractAdminFeedback = (notification: Notification): string => {
+    const reasonFromMetadata = typeof notification.metadata?.adminReason === 'string'
+      ? notification.metadata.adminReason.trim()
+      : '';
+    if (reasonFromMetadata) return reasonFromMetadata;
+    const reasonMatch = /Reason:\s*(.+)$/i.exec(notification.message);
+    return reasonMatch?.[1]?.trim() || '';
+  };
+
   const tabs = [
     { id: 'ALL', label: 'All Notifications' },
-    { id: 'UNREAD', label: `Unread (${unreadCount})` },
     { id: 'APPLICATIONS', label: 'New Applications' },
     { id: 'ADMIN', label: 'Admin Alerts' },
   ];
@@ -211,7 +224,7 @@ export default function EmployerNotificationsPage() {
               <span className="material-symbols-outlined text-6xl mb-4" style={{ color: "var(--db-text-muted)", opacity: 0.3 }}>notifications_off</span>
               <h3 className="text-lg font-bold" style={{ color: "var(--db-text)" }}>No notifications</h3>
               <p className="mt-2 text-sm" style={{ color: "var(--db-text-muted)" }}>
-                {activeTab === 'UNREAD' ? "You're all caught up!" : "You don't have any notifications here yet."}
+                You don't have any notifications here yet.
               </p>
             </div>
           ) : (
@@ -219,6 +232,8 @@ export default function EmployerNotificationsPage() {
               {notifications.map(n => {
                 const colorClass = getColorClassForType(n.type);
                 const isClickable = n.type === 'NEW_APPLICATION' || n.type === 'JOB_FORCE_CLOSED';
+                const adminFeedback = extractAdminFeedback(n);
+                const canShowAdminFeedback = !!adminFeedback && n.type !== 'NEW_APPLICATION';
 
                 return (
                   <div
@@ -240,22 +255,37 @@ export default function EmployerNotificationsPage() {
 
                     {/* Content */}
                     <div className="flex-1 min-w-0 pt-0.5">
-                      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-1 sm:gap-4 mb-1">
+                      <div className="flex items-start justify-between gap-3 mb-1">
                         <h4 className={`text-[14px] sm:text-[15px] truncate ${!n.isRead ? 'font-bold' : 'font-semibold'}`} style={{ color: "var(--db-text)" }}>
                           {n.title}
                         </h4>
-                        <span className="text-[11px] font-medium shrink-0" style={{ color: "var(--db-text-muted)" }}>
-                          {timeAgo(n.createdAt)}
-                        </span>
+                        {/* Right-side controls: feedback button + timestamp stacked */}
+                        <div className="flex flex-col items-end gap-1.5 shrink-0">
+                          <span className="text-[11px] font-medium" style={{ color: "var(--db-text-muted)" }}>
+                            {timeAgo(n.createdAt)}
+                          </span>
+                          {canShowAdminFeedback && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setFeedbackModal({ title: n.title, feedback: adminFeedback });
+                              }}
+                              className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border border-amber-300 text-amber-600 bg-amber-50 transition-all hover:bg-amber-100 hover:shadow-sm whitespace-nowrap"
+                            >
+                              <span className="material-symbols-outlined" style={{ fontSize: 12 }}>speaker_notes</span>
+                              Admin Feedback
+                            </button>
+                          )}
+                        </div>
                       </div>
                       <p className={`text-[13px] leading-relaxed ${!n.isRead ? 'font-medium' : ''}`} style={{ color: "var(--db-text-secondary)" }}>
-                        {n.message}
+                        {n.message.replace(/Reason:\s*.+$/i, '').trim()}
                       </p>
 
                       {!n.isRead && !isClickable && (
                         <button
                           onClick={(e) => { e.stopPropagation(); handleNotificationClick(n); }}
-                          className="mt-3 text-[11px] font-bold uppercase tracking-wider hover:underline"
+                          className="mt-2 text-[11px] font-bold uppercase tracking-wider hover:underline"
                           style={{ color: "var(--db-primary)" }}
                         >
                           Mark as read
@@ -292,6 +322,65 @@ export default function EmployerNotificationsPage() {
               >
                 Next
               </button>
+            </div>
+          </div>
+        )}
+
+        {feedbackModal && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            style={{ background: "rgba(0,0,0,0.55)", backdropFilter: "blur(4px)" }}
+            onClick={() => setFeedbackModal(null)}
+          >
+            <div
+              className="relative w-full max-w-md rounded-2xl shadow-2xl overflow-hidden"
+              style={{ background: "var(--db-card)", border: "1px solid var(--db-border)" }}
+              onClick={e => e.stopPropagation()}
+            >
+              {/* Coloured top stripe */}
+              <div className="h-1 w-full bg-amber-400" />
+
+              {/* Header */}
+              <div className="px-6 pt-5 pb-4 flex items-start gap-4">
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: "rgba(245,158,11,0.12)", border: "1px solid rgba(245,158,11,0.25)" }}>
+                  <span className="material-symbols-outlined text-[20px] text-amber-500">gavel</span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-amber-500 mb-0.5">Admin Feedback</p>
+                  <h3 className="text-[15px] font-bold leading-snug" style={{ color: "var(--db-text)" }}>
+                    {feedbackModal.title}
+                  </h3>
+                </div>
+                <button
+                  onClick={() => setFeedbackModal(null)}
+                  className="w-7 h-7 rounded-lg flex items-center justify-center transition-colors shrink-0 hover:bg-black/8 dark:hover:bg-white/8"
+                  style={{ color: "var(--db-text-muted)" }}
+                  aria-label="Close"
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: 18 }}>close</span>
+                </button>
+              </div>
+
+              {/* Divider */}
+              <div className="mx-6" style={{ height: 1, background: "var(--db-border)" }} />
+
+              {/* Body */}
+              <div className="px-6 py-5">
+                <p className="text-[13px] leading-relaxed" style={{ color: "var(--db-text-secondary)" }}>
+                  {feedbackModal.feedback}
+                </p>
+              </div>
+
+              {/* Footer */}
+              <div className="px-6 pb-6 flex justify-end gap-3">
+                <button
+                  onClick={() => setFeedbackModal(null)}
+                  className="px-5 py-2 rounded-xl text-[13px] font-bold border transition-all hover:bg-black/5 dark:hover:bg-white/5"
+                  style={{ borderColor: "var(--db-border)", color: "var(--db-text)" }}
+                >
+                  Dismiss
+                </button>
+              </div>
             </div>
           </div>
         )}

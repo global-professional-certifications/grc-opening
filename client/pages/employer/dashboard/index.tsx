@@ -56,9 +56,11 @@ function EmployerDashboardHeader() {
       <div className="flex items-center gap-2 flex-wrap">
         {/* Notification bell */}
         <button
-          className="w-9 h-9 flex items-center justify-center rounded-full border relative transition-colors"
+          onClick={() => router.push("/employer/notifications")}
+          className="w-9 h-9 flex items-center justify-center rounded-full border relative transition-all duration-200 hover:shadow-md hover:scale-105 hover:-translate-y-0.5"
           style={{ background: "var(--db-card)", borderColor: "var(--db-border)" }}
           aria-label="Notifications"
+          title="Open notifications"
         >
           <span
             className="material-symbols-outlined"

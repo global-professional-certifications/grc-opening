@@ -165,6 +165,17 @@ function EmployerJobDetailDialog({ job, onClose }: { job: EmployerJob; onClose: 
               <p className="text-[0.9rem] leading-[1.78] whitespace-pre-line" style={{ color: "var(--db-text-secondary)" }}>{job.niceToHave}</p>
             </section>
           )}
+
+          {job.adminNote && (
+            <section>
+              <h4 className="text-[0.7rem] uppercase tracking-[0.26em] font-bold mb-3" style={{ color: "#b45309", ...MONO }}>
+                Admin Feedback
+              </h4>
+              <div className="rounded-xl border px-4 py-3 text-[0.88rem] leading-[1.6]" style={{ borderColor: "#fcd34d", background: "#fffbeb", color: "#92400e" }}>
+                {job.adminNote}
+              </div>
+            </section>
+          )}
         </div>
       </div>
     </div>
@@ -233,6 +244,7 @@ function JobRow({ job, onClose, index, expanded, onToggleExpand, onEdit, onViewD
   onViewDetails: () => void;
 }) {
   const s  = STATUS_STYLES[job.status] ?? STATUS_STYLES.CLOSED;
+  const canEdit = job.status !== "CLOSED";
   const cat = CATEGORY_LABELS[job.category] ?? job.category ?? "—";
 
   return (
@@ -285,8 +297,12 @@ function JobRow({ job, onClose, index, expanded, onToggleExpand, onEdit, onViewD
         >
           {s.label}
         </span>
-        {job.status === "REJECTED" && job.adminNote && (
-          <p className="text-[9px] mt-1 max-w-[160px] truncate" style={{ color: "#ef4444" }} title={job.adminNote}>
+        {(job.status === "REJECTED" || job.status === "CLOSED") && job.adminNote && (
+          <p
+            className="text-[9px] mt-1 max-w-[180px] truncate"
+            style={{ color: job.status === "REJECTED" ? "#ef4444" : "#b45309" }}
+            title={job.adminNote}
+          >
             {job.adminNote}
           </p>
         )}
@@ -321,15 +337,18 @@ function JobRow({ job, onClose, index, expanded, onToggleExpand, onEdit, onViewD
         <div className="flex items-center gap-1">
           {/* Edit */}
           <button
-            onClick={onEdit}
-            className="w-8 h-8 flex items-center justify-center rounded-lg transition-colors cursor-pointer"
+            onClick={() => { if (canEdit) onEdit(); }}
+            disabled={!canEdit}
+            className="w-8 h-8 flex items-center justify-center rounded-lg transition-colors disabled:opacity-45 disabled:cursor-not-allowed"
             style={{ color: "var(--db-text-muted)" }}
-            title="Edit listing"
+            title={canEdit ? "Edit listing" : "Closed listings cannot be edited or republished"}
             onMouseEnter={(e) => {
+              if (!canEdit) return;
               (e.currentTarget as HTMLButtonElement).style.background = "var(--db-primary-10)";
               (e.currentTarget as HTMLButtonElement).style.color = "var(--db-primary)";
             }}
             onMouseLeave={(e) => {
+              if (!canEdit) return;
               (e.currentTarget as HTMLButtonElement).style.background = "";
               (e.currentTarget as HTMLButtonElement).style.color = "var(--db-text-muted)";
             }}

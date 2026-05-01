@@ -19,7 +19,7 @@ export default function NotificationsPage() {
   const [error, setError] = useState('');
   
   // Filtering & Pagination
-  const [activeTab, setActiveTab] = useState('ALL'); // ALL, UNREAD, APPLICATIONS, JOBS, ACCOUNT
+  const [activeTab, setActiveTab] = useState('ALL'); // ALL, APPLICATIONS, ACCOUNT
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -34,29 +34,22 @@ export default function NotificationsPage() {
     setLoading(true);
     try {
       let url = `/notifications?page=${page}&limit=${LIMIT}`;
-      if (activeTab === 'UNREAD') url += '&unread=true';
-      
-      // For specific categories, we fetch all (or a large limit) and client-side filter
-      // because the backend endpoint doesn't support category filtering yet.
-      // Alternatively, we could add category filtering to the backend.
-      // Given the 10-day TTL, fetching everything is usually fine, but for pagination 
-      // we'll just let the backend handle page/limit for ALL and UNREAD, and client filter the rest for now.
-      if (['APPLICATIONS', 'JOBS', 'ACCOUNT'].includes(activeTab)) {
-        url = `/notifications?limit=100`; // Fetch a large chunk for client filtering
+
+      // For specific categories, we fetch a large page and filter client-side.
+      if (['APPLICATIONS', 'ACCOUNT'].includes(activeTab)) {
+        url = `/notifications?limit=100`;
       }
 
       const data = await apiFetch<{ notifications: Notification[], total: number, unreadCount: number }>(url);
       
       let filtered = data.notifications || [];
       if (activeTab === 'APPLICATIONS') {
-        filtered = filtered.filter(n => n.type.startsWith('APPLICATION_'));
-      } else if (activeTab === 'JOBS') {
-        filtered = filtered.filter(n => n.type === 'JOB_CLOSED');
+        filtered = filtered.filter(n => n.type.startsWith('APPLICATION_') || n.type === 'JOB_CLOSED');
       } else if (activeTab === 'ACCOUNT') {
         filtered = filtered.filter(n => n.type.startsWith('ACCOUNT_'));
       }
       
-      if (['APPLICATIONS', 'JOBS', 'ACCOUNT'].includes(activeTab)) {
+      if (['APPLICATIONS', 'ACCOUNT'].includes(activeTab)) {
         setTotal(filtered.length);
         setNotifications(filtered.slice((page - 1) * LIMIT, page * LIMIT));
       } else {
@@ -138,9 +131,7 @@ export default function NotificationsPage() {
 
   const tabs = [
     { id: 'ALL', label: 'All Notifications' },
-    { id: 'UNREAD', label: `Unread (${unreadCount})` },
-    { id: 'APPLICATIONS', label: 'Application Updates' },
-    { id: 'JOBS', label: 'Job Updates' },
+    { id: 'APPLICATIONS', label: 'Application & Job Updates' },
     { id: 'ACCOUNT', label: 'Account Alerts' },
   ];
 
@@ -219,14 +210,14 @@ export default function NotificationsPage() {
               <span className="material-symbols-outlined text-6xl mb-4" style={{ color: "var(--db-text-muted)", opacity: 0.3 }}>notifications_off</span>
               <h3 className="text-lg font-bold" style={{ color: "var(--db-text)" }}>No notifications</h3>
               <p className="mt-2 text-sm" style={{ color: "var(--db-text-muted)" }}>
-                {activeTab === 'UNREAD' ? "You're all caught up!" : "You don't have any notifications here yet."}
+                You don't have any notifications here yet.
               </p>
             </div>
           ) : (
             <div className="divide-y transition-all" style={{ borderColor: "var(--db-border)" }}>
               {notifications.map(n => {
                 const colorClass = getColorClassForType(n.type);
-                const isClickable = n.metadata?.jobId && n.type.startsWith('APPLICATION_') || n.type === 'JOB_CLOSED';
+                const isClickable = !!n.metadata?.jobId && (n.type.startsWith('APPLICATION_') || n.type === 'JOB_CLOSED');
 
                 return (
                   <div

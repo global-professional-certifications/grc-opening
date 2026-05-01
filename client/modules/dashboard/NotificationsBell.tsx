@@ -26,7 +26,7 @@ export function NotificationsBell() {
   return (
     <button
       onClick={() => router.push(notificationsPath)}
-      className="relative w-10 h-10 flex items-center justify-center rounded-full border transition-all duration-200 shadow-sm hover:shadow-md hover:scale-105"
+      className="relative w-10 h-10 flex items-center justify-center rounded-full border transition-all duration-200 shadow-sm hover:shadow-lg hover:scale-105 hover:-translate-y-0.5 hover:bg-black/5 dark:hover:bg-white/5"
       style={{
         background: 'rgba(255, 255, 255, 0.05)',
         borderColor: 'var(--db-border)',

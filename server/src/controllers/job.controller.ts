@@ -182,6 +182,10 @@ export const updateJob = async (req: Request, res: Response): Promise<void> => {
       res.status(403).json({ error: 'Unauthorized to edit this job' });
       return;
     }
+    if (existing.status === JobStatus.CLOSED) {
+      res.status(409).json({ error: 'Closed job postings cannot be edited or republished' });
+      return;
+    }
 
     if (!title || !description) {
       res.status(400).json({ error: 'Title and description are required' });

@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { PrismaClient, Role, JobStatus, ApplicationStatus } from '@prisma/client';
+import { PrismaClient, Role, JobStatus, ApplicationStatus, UserStatus } from '@prisma/client';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { notifyAccountStatusChange, notifyCompanyVerificationChange, notifyJobForceClosed, notifyJobClosedToApplicants } from '../services/notification.service';
@@ -64,7 +64,19 @@ export const getAdminStats = async (req: Request, res: Response): Promise<void> 
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-    const [totalUsers, activeJobs, reportedJobs, totalApplications, recentUsers, recentCompanies, rawRegistrations, jobsByCategory] = await Promise.all([
+    const [
+      totalUsers,
+      activeJobs,
+      reportedJobs,
+      totalApplications,
+      recentUsers,
+      recentCompanies,
+      rawRegistrations,
+      jobsByCategory,
+      activeUsersCount,
+      suspendedUsersCount,
+      bannedUsersCount,
+    ] = await Promise.all([
       prisma.user.count(),
       prisma.job.count({ where: { status: JobStatus.PUBLISHED } }),
       prisma.job.count({ where: { reports: { some: {} } } }),
@@ -98,6 +110,9 @@ export const getAdminStats = async (req: Request, res: Response): Promise<void> 
         orderBy: { _count: { id: 'desc' } },
         take: 6,
       }),
+      prisma.user.count({ where: { status: UserStatus.ACTIVE } }),
+      prisma.user.count({ where: { status: UserStatus.SUSPENDED } }),
+      prisma.user.count({ where: { status: UserStatus.BANNED } }),
     ]);
 
     // Build 30-day registration trend
@@ -118,8 +133,15 @@ export const getAdminStats = async (req: Request, res: Response): Promise<void> 
       count: j._count.id,
     }));
 
+    const userStatusBreakdown = {
+      ACTIVE: activeUsersCount,
+      SUSPENDED: suspendedUsersCount,
+      BANNED: bannedUsersCount,
+    };
+
     res.json({
       totalUsers, activeJobs, reportedJobs, totalApplications,
+      userStatusBreakdown,
       recentUsers, recentCompanies,
       registrationTrend, categoryStats,
     });
@@ -175,15 +197,20 @@ export const updateUserStatus = async (req: Request, res: Response): Promise<voi
   try {
     const id = req.params.id as string;
     const { status } = req.body;
+    const reason = typeof req.body?.reason === 'string' ? req.body.reason.trim() : '';
     if (!VALID_STATUSES.includes(status)) {
       res.status(400).json({ error: `Invalid status. Must be one of: ${VALID_STATUSES.join(', ')}` });
+      return;
+    }
+    if (!reason) {
+      res.status(400).json({ error: 'Reason is required for account status changes' });
       return;
     }
     const target = await prisma.user.findUnique({ where: { id } });
     if (!target) { res.status(404).json({ error: 'User not found' }); return; }
     if (target.role === Role.ADMIN) { res.status(400).json({ error: 'Cannot change status of admin accounts' }); return; }
     const user = await prisma.user.update({ where: { id }, data: { status } as any });
-    notifyAccountStatusChange(id, status as any).catch(console.error);
+    notifyAccountStatusChange(id, status as any, reason).catch(console.error);
     res.json({ message: 'Status updated', user });
   } catch (error) {
     console.error('Error updating user status:', error);
@@ -197,10 +224,16 @@ export const updateUserStatus = async (req: Request, res: Response): Promise<voi
 export const disableUser = async (req: Request, res: Response): Promise<void> => {
   try {
     const id = req.params.id as string;
+    const reason = typeof req.body?.reason === 'string' ? req.body.reason.trim() : '';
+    if (!reason) {
+      res.status(400).json({ error: 'Reason is required for disabling accounts' });
+      return;
+    }
     const target = await prisma.user.findUnique({ where: { id } });
     if (!target) { res.status(404).json({ error: 'User not found' }); return; }
     if (target.role === Role.ADMIN) { res.status(400).json({ error: 'Cannot disable admin accounts' }); return; }
     const user = await prisma.user.update({ where: { id }, data: { status: 'BANNED' } as any });
+    notifyAccountStatusChange(id, 'BANNED', reason).catch(console.error);
     res.json({ message: 'User disabled', user });
   } catch (error) {
     console.error('Error disabling user:', error);
@@ -214,10 +247,15 @@ export const disableUser = async (req: Request, res: Response): Promise<void> =>
 export const enableUser = async (req: Request, res: Response): Promise<void> => {
   try {
     const id = req.params.id as string;
+    const reason = typeof req.body?.reason === 'string' ? req.body.reason.trim() : '';
+    if (!reason) {
+      res.status(400).json({ error: 'Reason is required for enabling accounts' });
+      return;
+    }
     const target = await prisma.user.findUnique({ where: { id } });
     if (!target) { res.status(404).json({ error: 'User not found' }); return; }
     const user = await prisma.user.update({ where: { id }, data: { status: 'ACTIVE' } as any });
-    notifyAccountStatusChange(id, 'ACTIVE').catch(console.error);
+    notifyAccountStatusChange(id, 'ACTIVE', reason).catch(console.error);
     res.json({ message: 'User enabled', user });
   } catch (error) {
     console.error('Error enabling user:', error);
@@ -270,7 +308,9 @@ export const getAdminCompanies = async (req: Request, res: Response): Promise<vo
 export const setCompanyVerification = async (req: Request, res: Response): Promise<void> => {
   try {
     const { verified } = req.body;
+    const reason = typeof req.body?.reason === 'string' ? req.body.reason.trim() : '';
     if (typeof verified !== 'boolean') { res.status(400).json({ error: '`verified` must be a boolean' }); return; }
+    if (!reason) { res.status(400).json({ error: 'Reason is required for company verification updates' }); return; }
     const id = req.params.id as string;
     const company = await prisma.employerProfile.findUnique({ where: { id } });
     if (!company) { res.status(404).json({ error: 'Company not found' }); return; }
@@ -278,7 +318,7 @@ export const setCompanyVerification = async (req: Request, res: Response): Promi
       where: { id },
       data: { isVerified: verified } as any,
     });
-    notifyCompanyVerificationChange(company.userId, verified).catch(console.error);
+    notifyCompanyVerificationChange(company.userId, verified, reason).catch(console.error);
     res.json({ message: verified ? 'Company verified' : 'Verification revoked', company: updated });
   } catch (error) {
     console.error('Error updating company verification:', error);
@@ -351,6 +391,12 @@ export const getAdminJobs = async (req: Request, res: Response): Promise<void> =
 export const closeJobAdmin = async (req: Request, res: Response): Promise<void> => {
   try {
     const id = req.params.id as string;
+    const reason = typeof req.body?.reason === 'string' ? req.body.reason.trim() : '';
+    if (!reason) {
+      res.status(400).json({ error: 'Close reason is required' });
+      return;
+    }
+
     const job = await prisma.job.findUnique({ where: { id } });
     if (!job) {
       res.status(404).json({ error: 'Job not found' });
@@ -359,10 +405,10 @@ export const closeJobAdmin = async (req: Request, res: Response): Promise<void> 
 
     const updated = await prisma.job.update({
       where: { id },
-      data: { status: JobStatus.CLOSED },
+      data: { status: JobStatus.CLOSED, adminNote: reason },
       include: { employer: true }
     });
-    notifyJobForceClosed(updated.employer.userId, updated.id, updated.title).catch(console.error);
+    notifyJobForceClosed(updated.employer.userId, updated.id, updated.title, reason).catch(console.error);
     notifyJobClosedToApplicants(updated.id, updated.title).catch(console.error);
     res.json({ message: 'Job closed by admin', job: updated });
   } catch (error) {
@@ -461,8 +507,10 @@ export const rejectJob = async (req: Request, res: Response): Promise<void> => {
     const updated = await prisma.job.update({
       where: { id },
       data: { status: 'REJECTED' as JobStatus, adminNote: String(reason).trim() },
+      include: { employer: true }
     });
     res.json({ message: 'Job rejected', job: updated });
+    notifyJobForceClosed(updated.employer.userId, updated.id, updated.title, String(reason).trim()).catch(console.error);
   } catch (error) {
     console.error('Error rejecting job:', error);
     res.status(500).json({ error: 'Internal server error' });

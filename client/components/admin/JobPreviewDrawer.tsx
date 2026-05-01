@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { adminFetch as apiFetch } from "../../lib/api";
+import { ConfirmActionModal } from "./ConfirmActionModal";
 
 export interface JobReport {
   id: string;
@@ -70,12 +71,27 @@ export function PreviewDrawer({
 }) {
   const [closing, setClosing] = useState(false);
   const [closeError, setCloseError] = useState("");
+  const [confirmClose, setConfirmClose] = useState(false);
+  const [closeReason, setCloseReason] = useState("");
+  const [closeReasonError, setCloseReasonError] = useState("");
 
   async function handleClose() {
+    const trimmedReason = closeReason.trim();
+    if (!trimmedReason) {
+      setCloseReasonError("Please provide a reason for closing this job.");
+      return;
+    }
+
     setClosing(true);
     setCloseError("");
     try {
-      await apiFetch(`/admin/jobs/${job.id}/close`, { method: "PATCH" });
+      await apiFetch(`/admin/jobs/${job.id}/close`, {
+        method: "PATCH",
+        body: JSON.stringify({ reason: trimmedReason }),
+      });
+      setConfirmClose(false);
+      setCloseReason("");
+      setCloseReasonError("");
       onJobClosed(job.id);
     } catch (e: any) {
       setCloseError(e.message ?? "Failed to close job.");
@@ -189,7 +205,11 @@ export function PreviewDrawer({
               <p className="text-[12px] text-red-600 mb-3">{closeError}</p>
             )}
             <button
-              onClick={handleClose}
+              onClick={() => {
+                setCloseError("");
+                setCloseReasonError("");
+                setConfirmClose(true);
+              }}
               disabled={closing}
               className="w-full py-3 rounded-xl bg-red-600 text-white text-[14px] font-bold hover:bg-red-700 transition-all disabled:opacity-60 flex items-center justify-center gap-2"
             >
@@ -208,6 +228,37 @@ export function PreviewDrawer({
           </div>
         )}
       </div>
+      <ConfirmActionModal
+        open={confirmClose}
+        title="Force Close Job Posting"
+        message="This action will immediately close the job post and notify the employer."
+        confirmLabel="Force Close"
+        confirmClassName="bg-red-600 hover:bg-red-700"
+        isProcessing={closing}
+        onCancel={() => {
+          if (closing) return;
+          setConfirmClose(false);
+          setCloseReasonError("");
+        }}
+        onConfirm={handleClose}
+      >
+        <label className="block text-[12px] font-semibold text-gray-700 mb-2">
+          Admin Feedback (required)
+        </label>
+        <textarea
+          value={closeReason}
+          onChange={(e) => {
+            setCloseReason(e.target.value);
+            if (closeReasonError) setCloseReasonError("");
+          }}
+          placeholder="Explain why this job was force closed..."
+          rows={4}
+          className="w-full rounded-xl border border-gray-200 px-3 py-2 text-[13px] text-gray-700 focus:outline-none focus:border-red-300 focus:ring-2 focus:ring-red-100 resize-none"
+        />
+        {closeReasonError && (
+          <p className="mt-2 text-[12px] text-red-600">{closeReasonError}</p>
+        )}
+      </ConfirmActionModal>
     </div>
   );
 }
