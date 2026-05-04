@@ -154,6 +154,15 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
                 <NavItem href="/dashboard/insights" icon="analytics" label="Market Insights" />
               </div>
             </div>
+            <div>
+              <p className="px-4 text-[11px] uppercase tracking-widest mb-4 font-semibold"
+                style={{ color: "var(--db-sidebar-section)" }}>
+                AI Tools
+              </p>
+              <div className="space-y-1">
+                <NavItem href="/dashboard/resume-analyser" icon="smart_toy" label="Resume Enhancer" />
+              </div>
+            </div>
           </nav>
 
           {/* User block */}
