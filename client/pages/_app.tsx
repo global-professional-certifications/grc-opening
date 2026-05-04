@@ -1,4 +1,5 @@
 import '../styles/globals.css'
+import '../modules/resume-analyser/resume-analyser.css'
 import type { AppProps } from 'next/app'
 import { useState, useEffect } from 'react'
 import { UserProvider } from '../contexts/UserContext'

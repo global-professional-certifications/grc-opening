@@ -58,7 +58,7 @@ export const analyseResume = async (req: Request, res: Response): Promise<void> 
     form.append('style', style);
 
     // ── Forward to AI microservice ───────────────────────────
-    console.log(`[ResumeAnalyser] Forwarding to AI service: ${AI_SERVICE_URL}/api/resume/enhance`);
+    console.log(`[ResumeAnalyser] Forwarding to AI service: ${AI_SERVICE_URL}/api/resume-analyzer/analyze`);
 
     const aiResponse = await fetch(`${AI_SERVICE_URL}/api/resume/enhance`, {
       method: 'POST',

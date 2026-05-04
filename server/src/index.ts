@@ -17,6 +17,7 @@ import resumeRouter from './routes/resume.routes';
 
 import resumeAnalyserRouter from './routes/resume-analyser.routes';
 import notificationRouter from './routes/notification.routes';
+import companyLookupRouter from './routes/company-lookup.routes';
 
 
 const app = express();
@@ -47,6 +48,7 @@ app.use('/admin', adminRouter);
 app.use('/resume', resumeRouter);
 app.use('/resume-analyser', resumeAnalyserRouter);
 app.use('/notifications', notificationRouter);
+app.use('/company-lookup', companyLookupRouter);
 
 // Start server
 app.listen(PORT, () => {

@@ -144,7 +144,7 @@ export function ResumeAnalyser({ isPublic = false, compact = false }: ResumeAnal
 
       const headers: Record<string, string> = {};
       if (!isPublic) {
-        const token = localStorage.getItem("grc_token");
+        const token = localStorage.getItem("grc_local_token");
         if (token) headers["Authorization"] = `Bearer ${token}`;
       }
 
