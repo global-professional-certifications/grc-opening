@@ -14,6 +14,7 @@ import applicationRouter from './routes/application.routes';
 import adminRouter from './routes/admin.routes';
 import { adminLogin } from './controllers/admin.controller';
 import resumeRouter from './routes/resume.routes';
+import resumeAnalyserRouter from './routes/resume-analyser.routes';
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -41,6 +42,7 @@ app.use('/applications', applicationRouter);
 app.post('/admin/login', adminLogin);   // public — registered before auth middleware
 app.use('/admin', adminRouter);
 app.use('/resume', resumeRouter);
+app.use('/resume-analyser', resumeAnalyserRouter);
 
 // Start server
 app.listen(PORT, () => {
