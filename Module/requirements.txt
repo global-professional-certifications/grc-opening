@@ -1,0 +1,13 @@
+fastapi
+uvicorn
+unstructured[pdf]
+unstructured-inference
+openai
+python-dotenv
+distro
+jiter
+structlog
+python-multipart
+python-docx
+docx2txt
+unstructured
