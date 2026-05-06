@@ -8,7 +8,7 @@ const lookupService = new CompanyLookupService();
 
 // Rate limit: 10 requests per minute per IP to prevent API key bleeding
 const lookupRateLimiter = rateLimit({
-  windowMs: 60 * 1000, 
+  windowMs: 60 * 1000,
   max: 10,
   message: { error: 'Too many lookup requests, please try again later.' },
   standardHeaders: true,
@@ -20,6 +20,7 @@ router.get(
   authenticateLocal,
   lookupRateLimiter,
   async (req: Request, res: Response): Promise<void> => {
+
     try {
       const q = req.query.q as string;
       if (!q || q.trim().length < 2) {
@@ -29,8 +30,8 @@ router.get(
 
       // Check if user is an employer
       if ((req as any).user?.role !== 'EMPLOYER') {
-         res.status(403).json({ error: 'Only employers can use this service.' });
-         return;
+        res.status(403).json({ error: 'Only employers can use this service.' });
+        return;
       }
 
       const result = await lookupService.lookupCompany(q);
@@ -45,6 +46,7 @@ router.get(
       console.error('[CompanyLookupRoute] Error:', error);
       res.status(500).json({ error: 'Failed to look up company details.' });
     }
+
   }
 );
 

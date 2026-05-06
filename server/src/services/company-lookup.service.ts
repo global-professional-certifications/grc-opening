@@ -33,9 +33,10 @@ export class CompanyLookupService {
             headers: {
               'Content-Type': 'application/json',
               'Cache-Control': 'no-cache',
+              'X-Api-Key': this.apolloKey,
             },
-            body: JSON.stringify({ api_key: this.apolloKey }),
-            signal: AbortSignal.timeout(5000) as any,
+            body: JSON.stringify({}),
+            signal: AbortSignal.timeout(10000) as any,
           }
         );
 
