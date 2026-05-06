@@ -41,7 +41,8 @@ export default function LandingPage() {
           </span>
           <span className="text-xl font-bold tracking-tight" style={{ color: "var(--db-text)" }}>GRC Openings</span>
         </div>
-        <div className="flex items-center gap-6">
+        {/* Nav actions: proper flex row, no overlap */}
+        <nav className="flex items-center gap-3">
           <Link
             href="/auth/login"
             className="text-base font-bold px-4 py-2 rounded-lg transition-colors duration-200 hover:bg-[#3a12921a] hover:text-[#3a1292] active:bg-[#3a12922a]"
@@ -60,7 +61,7 @@ export default function LandingPage() {
               arrow_forward
             </span>
           </Link>
-        </div>
+        </nav>
       </header>
 
       {/* ── Main Content ────────────────────────────────────────────────────── */}
@@ -91,7 +92,7 @@ export default function LandingPage() {
             {/* Hero Text Content (Left - 55%) */}
             <div className="w-full lg:w-[55%] space-y-8 text-white relative z-10 lg:pr-16 text-center lg:text-left">
               <span
-                className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest shadow-sm reveal-scroll opacity-0 translate-y-8 transition-all duration-1000"
+                className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest shadow-sm reveal-scroll opacity-0 translate-y-8 transition-all duration-1000 mb-2"
                 style={{ background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)" }}
               >
                 <span className="material-symbols-outlined text-[14px]">stars</span>
@@ -109,7 +110,7 @@ export default function LandingPage() {
               <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-4 reveal-scroll opacity-0 translate-y-8 transition-all duration-1000 delay-300">
                 <Link
                   href="/auth/register"
-                  className="group flex items-center justify-center gap-2 w-full sm:w-auto px-8 py-4 rounded-xl text-lg font-bold transition-all duration-300 hover:shadow-[0_8px_40px_rgba(255,255,255,0.4)] hover:-translate-y-[2px] active:scale-[0.98] active:translate-y-0"
+                  className="group flex items-center justify-center gap-2 w-full sm:w-auto min-w-[160px] px-8 py-4 rounded-xl text-lg font-bold transition-all duration-300 hover:shadow-[0_8px_40px_rgba(255,255,255,0.4)] hover:-translate-y-[2px] active:scale-[0.98] active:translate-y-0"
                   style={{ background: "#ffffff", color: "var(--db-primary)", boxShadow: "0 8px 24px rgba(0, 0, 0, 0.15)" }}
                 >
                   Get Started
@@ -119,7 +120,7 @@ export default function LandingPage() {
                 </Link>
                 <Link
                   href="/auth/login"
-                  className="flex items-center justify-center w-full sm:w-auto px-8 py-4 rounded-xl text-lg font-bold transition-all duration-300 hover:bg-white/10 hover:border-white/40 hover:shadow-[0_8px_30px_rgba(255,255,255,0.1)] hover:-translate-y-[2px] active:scale-[0.98] active:translate-y-0"
+                  className="flex items-center justify-center w-full sm:w-auto min-w-[160px] px-8 py-4 rounded-xl text-lg font-bold transition-all duration-300 hover:bg-white/10 hover:border-white/40 hover:shadow-[0_8px_30px_rgba(255,255,255,0.1)] hover:-translate-y-[2px] active:scale-[0.98] active:translate-y-0"
                   style={{
                     background: "rgba(255,255,255,0.05)",
                     border: "2px solid rgba(255,255,255,0.2)",
@@ -157,9 +158,9 @@ export default function LandingPage() {
           
           <div className="max-w-5xl mx-auto relative z-10">
             {/* Section Header */}
-            <div className="text-center mb-16 space-y-6">
+            <div className="text-center mb-16">
               <span
-                className="inline-flex items-center gap-2 px-5 py-2 rounded-full text-xs font-black uppercase tracking-[0.15em] shadow-sm backdrop-blur-md"
+                className="inline-flex items-center gap-2 px-5 py-2 rounded-full text-xs font-black uppercase tracking-[0.15em] shadow-sm backdrop-blur-md mb-3"
                 style={{ background: "var(--db-primary-10)", color: "var(--db-primary)", border: "1px solid var(--db-primary-20)" }}
               >
                 <span className="material-symbols-outlined" style={{ fontSize: 16 }}>magic_button</span>

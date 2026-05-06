@@ -73,17 +73,6 @@ function DashboardHeader() {
         {/* Divider */}
         <div className="h-8 w-px bg-slate-800" style={{ background: "var(--db-border)" }} />
 
-        {/* Theme toggle — matches bell size/style */}
-        <button
-          onClick={toggleTheme}
-          className="w-10 h-10 flex items-center justify-center rounded-full border transition-all duration-200 shadow-sm hover:shadow-md hover:scale-105"
-          style={{ background: "rgba(255, 255, 255, 0.05)", borderColor: "var(--db-border)", color: "var(--db-text-secondary)" }}
-          aria-label="Toggle theme"
-          title={theme === "dark" ? "Switch to Light mode" : "Switch to Dark mode"}
-        >
-          {theme === "dark" ? <SunIcon /> : <MoonIcon />}
-        </button>
-
         {/* Upload Resume */}
         <button
           className="db-btn-primary px-5 py-2.5 font-bold text-sm rounded-full shadow-lg transition-all"
@@ -97,13 +86,6 @@ function DashboardHeader() {
 }
 
 export default function DashboardPage() {
-  // Hide the auth theme toggle from _app.tsx on dashboard pages
-  useEffect(() => {
-    const toggle = document.querySelector<HTMLElement>(".theme-toggle");
-    if (toggle) toggle.style.display = "none";
-    return () => { if (toggle) toggle.style.display = ""; };
-  }, []);
-
   return (
     <DashboardLayout>
       <DashboardHeader />

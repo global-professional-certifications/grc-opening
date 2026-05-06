@@ -225,7 +225,12 @@ function UserRow({ user }: { user: any }) {
       {/* USER */}
       <div className="min-w-0">
         {name && <p className="text-[12px] font-semibold text-gray-800 truncate">{name}</p>}
-        <p className={`text-[11px] text-gray-400 truncate ${!name ? "font-medium text-gray-700" : ""}`}>{user.email}</p>
+        <p
+          className={`text-[11px] text-gray-400 truncate ${!name ? "font-medium text-gray-700" : ""}`}
+          title={user.email}
+        >
+          {user.email}
+        </p>
       </div>
       {/* ROLE */}
       <RoleBadge role={user.role} />
@@ -396,7 +401,10 @@ export default function AdminDashboard() {
               {loading ? skeleton("h-32") : (
                 stats?.categoryStats?.length
                   ? <CategoryBars data={stats.categoryStats} />
-                  : <p className="text-[12px] text-gray-400">No category data yet.</p>
+                  : <div className="flex flex-col items-center gap-2 py-6 text-center">
+                      <span className="material-symbols-outlined text-gray-300" style={{ fontSize: 32 }}>bar_chart</span>
+                      <p className="text-[12px] text-gray-400">No job category data yet.</p>
+                    </div>
               )}
             </div>
           </div>

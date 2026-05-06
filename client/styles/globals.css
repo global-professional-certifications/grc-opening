@@ -378,32 +378,6 @@ body {
   animation: glow-pulse 4s ease-in-out infinite;
 }
 
-/* ─── THEME TOGGLE ────────────────────────────────────── */
-.theme-toggle {
-  position: fixed;
-  top: 1.25rem;
-  right: 1.25rem;
-  z-index: 100;
-  background: var(--bg-card);
-  border: 1.5px solid var(--border);
-  border-radius: 99px;
-  padding: 6px 14px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--text-secondary);
-  transition: all 0.2s ease;
-  box-shadow: var(--shadow);
-}
-
-.theme-toggle:hover {
-  border-color: var(--brand);
-  color: var(--text-primary);
-}
-
 /* ─── SCROLLBAR ───────────────────────────────────────── */
 ::-webkit-scrollbar {
   width: 6px;

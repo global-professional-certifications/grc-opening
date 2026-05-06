@@ -297,15 +297,6 @@ function JobRow({ job, onClose, index, expanded, onToggleExpand, onEdit, onViewD
         >
           {s.label}
         </span>
-        {(job.status === "REJECTED" || job.status === "CLOSED") && job.adminNote && (
-          <p
-            className="text-[9px] mt-1 max-w-[180px] truncate"
-            style={{ color: job.status === "REJECTED" ? "#ef4444" : "#b45309" }}
-            title={job.adminNote}
-          >
-            {job.adminNote}
-          </p>
-        )}
       </td>
 
       {/* Applicants */}

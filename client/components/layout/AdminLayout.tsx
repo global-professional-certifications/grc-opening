@@ -139,7 +139,7 @@ export function AdminLayout({ children, title = "Admin" }: { children: React.Rea
 
           {/* Nav */}
           <nav className="flex-1 px-3 py-5 flex flex-col gap-0.5">
-            <p className="text-[10px] font-semibold text-slate-600 uppercase tracking-widest px-4 mb-2">Menu</p>
+            <p className="text-[10px] font-semibold text-slate-600 uppercase tracking-widest px-2 mb-2">Menu</p>
             {NAV.map(n => <NavItem key={n.href} {...n} />)}
           </nav>
 
@@ -167,12 +167,12 @@ export function AdminLayout({ children, title = "Admin" }: { children: React.Rea
         {/* ── Main content ── */}
         <main className="flex-1 ml-[240px] min-h-screen overflow-auto">
           {/* Top bar */}
-          <div className="sticky top-0 z-20 bg-[#f1f5f9]/90 backdrop-blur-sm border-b border-gray-200/60 px-8 py-4 flex items-center justify-between">
-            <div>
-              <h1 className="text-[18px] font-bold text-gray-900">{title}</h1>
+          <div className="sticky top-0 z-20 bg-[#f1f5f9]/90 backdrop-blur-sm border-b border-gray-200/60 px-8 py-4 flex items-center justify-between gap-4">
+            <div className="min-w-0">
+              <h1 className="text-[18px] font-bold text-gray-900 truncate">{title}</h1>
               <p className="text-[12px] text-gray-400 mt-0.5">Admin Moderation Hub · Real-time oversight of platform activity</p>
             </div>
-            <button className="flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 bg-white text-[13px] font-semibold text-gray-600 shadow-sm hover:shadow-md transition-all">
+            <button className="shrink-0 flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 bg-white text-[13px] font-semibold text-gray-600 shadow-sm hover:shadow-md transition-all">
               <span className="material-symbols-outlined" style={{ fontSize: 16 }}>download</span>
               Reports
             </button>
