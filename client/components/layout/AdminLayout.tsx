@@ -4,11 +4,13 @@ import Link from "next/link";
 import Head from "next/head";
 
 const NAV = [
-  { href: "/admin",            icon: "dashboard",      label: "Dashboard" },
-  { href: "/admin/moderation", icon: "fact_check",     label: "Moderation Queue" },
-  { href: "/admin/applications", icon: "description",  label: "Applications" },
-  { href: "/admin/users",      icon: "group",          label: "User Management" },
-  { href: "/admin/companies",  icon: "business",       label: "Companies" },
+  { href: "/admin",             icon: "dashboard",    label: "Dashboard" },
+  { href: "/admin/moderation",  icon: "fact_check",   label: "Moderation Queue" },
+  { href: "/admin/applications",icon: "description",  label: "Applications" },
+  { href: "/admin/users",       icon: "group",        label: "User Management" },
+  { href: "/admin/companies",   icon: "business",     label: "Companies" },
+  { href: "/admin/broadcast",   icon: "campaign",     label: "Broadcast" },
+  { href: "/admin/audit-logs",  icon: "history",      label: "Audit Logs" },
 ];
 
 function NavItem({ href, icon, label }: { href: string; icon: string; label: string }) {

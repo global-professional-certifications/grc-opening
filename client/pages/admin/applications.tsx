@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { AdminLayout } from "../../components/layout/AdminLayout";
 import { adminFetch as apiFetch } from "../../lib/api";
+import { SeekerProfileDrawer } from "../../components/admin/SeekerProfileDrawer";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -9,6 +10,7 @@ interface AdminApplication {
   status: string;
   appliedAt: string;
   seeker: {
+    id: string;
     firstName: string;
     lastName: string;
     headline: string | null;
@@ -71,25 +73,25 @@ function StatusSummary({ apps }: { apps: AdminApplication[] }) {
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 
-const GRID = "grid-cols-[minmax(0,1fr)_minmax(0,1fr)_170px_130px_110px]";
+const GRID = "grid-cols-[minmax(0,1fr)_minmax(0,1fr)_170px_130px_110px_90px]";
 
 export default function AdminApplicationsPage() {
-  const [apps, setApps] = useState<AdminApplication[]>([]);
-  const [allApps, setAllApps] = useState<AdminApplication[]>([]); // for summary
-  const [total, setTotal] = useState(0);
-  const [page, setPage] = useState(1);
+  const [apps, setApps]           = useState<AdminApplication[]>([]);
+  const [allApps, setAllApps]     = useState<AdminApplication[]>([]);
+  const [total, setTotal]         = useState(0);
+  const [page, setPage]           = useState(1);
   const [statusFilter, setStatusFilter] = useState("");
-  const [search, setSearch] = useState("");
+  const [search, setSearch]       = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [loading, setLoading]     = useState(true);
+  const [error, setError]         = useState("");
+  const [drawerSeekerId, setDrawerSeekerId] = useState<string | null>(null);
   const LIMIT = 20;
 
-  // Fetch all apps once for the summary bar (ignores pagination)
   useEffect(() => {
     apiFetch<{ applications: AdminApplication[] }>("/admin/applications?limit=200")
       .then(d => setAllApps(d.applications))
-      .catch(() => { /* summary bar is non-critical */ });
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -115,6 +117,11 @@ export default function AdminApplicationsPage() {
 
   return (
     <AdminLayout title="Applications">
+      <SeekerProfileDrawer
+        seekerId={drawerSeekerId}
+        onClose={() => setDrawerSeekerId(null)}
+      />
+
       {error && (
         <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-[13px] flex justify-between items-center">
           {error}
@@ -122,7 +129,6 @@ export default function AdminApplicationsPage() {
         </div>
       )}
 
-      {/* Status summary */}
       {allApps.length > 0 && <StatusSummary apps={allApps} />}
 
       {/* Filters */}
@@ -150,10 +156,9 @@ export default function AdminApplicationsPage() {
 
       {/* Table */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-        {/* Header */}
         <div className={`grid ${GRID} gap-4 px-6 py-3 border-b border-gray-100 bg-gray-50/60`}>
-          {["APPLICANT", "JOB", "COMPANY", "STATUS", "APPLIED"].map(h => (
-            <p key={h} className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{h}</p>
+          {["APPLICANT", "JOB", "COMPANY", "STATUS", "APPLIED", ""].map((h, i) => (
+            <p key={i} className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{h}</p>
           ))}
         </div>
 
@@ -161,7 +166,7 @@ export default function AdminApplicationsPage() {
           {loading ? (
             Array.from({ length: 8 }).map((_, i) => (
               <div key={i} className={`grid ${GRID} gap-4 px-6 py-4 items-center`}>
-                {Array.from({ length: 5 }).map((_, j) => (
+                {Array.from({ length: 6 }).map((_, j) => (
                   <div key={j} className="h-4 bg-gray-100 rounded animate-pulse" />
                 ))}
               </div>
@@ -218,6 +223,15 @@ export default function AdminApplicationsPage() {
               <p className="text-[11px] text-gray-400 whitespace-nowrap">
                 {new Date(app.appliedAt).toLocaleDateString("en", { month: "short", day: "numeric", year: "numeric" })}
               </p>
+
+              {/* VIEW PROFILE */}
+              <button
+                onClick={() => setDrawerSeekerId(app.seeker.id)}
+                className="flex items-center gap-1 text-[11px] font-semibold text-[#3a1292] hover:text-[#2e0e7a] hover:underline whitespace-nowrap"
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: 14 }}>open_in_new</span>
+                Profile
+              </button>
             </div>
           ))}
         </div>

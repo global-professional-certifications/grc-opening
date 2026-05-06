@@ -72,6 +72,9 @@ enum NotificationType {
 
   // System → Employer (new application received)
   NEW_APPLICATION
+
+  // Admin broadcast to all users / specific roles
+  ADMIN_BROADCAST
 }
 
 enum ResumeStatus {
@@ -103,6 +106,7 @@ model User {
   emailVerifications EmailVerification[]
   passwordResets     PasswordReset[]
   notifications      Notification[]
+  auditLogs          AuditLog[]
 
   @@map("users")
 }
@@ -392,4 +396,25 @@ model Notification {
   @@index([userId, createdAt])
   @@index([expiresAt]) // enables efficient TTL sweeps
   @@map("notifications")
+}
+
+// =====================================
+// AUDIT LOGS
+// =====================================
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  adminId    String   @map("admin_id")
+  action     String   // USER_DISABLED, JOB_CLOSED, COMPANY_VERIFIED, BROADCAST_SENT, etc.
+  targetType String?  @map("target_type") // USER, JOB, COMPANY, BROADCAST
+  targetId   String?  @map("target_id")
+  metadata   Json?    // { reason, email, title, previousStatus, targetRole, recipientCount, … }
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  admin User @relation(fields: [adminId], references: [id])
+
+  @@index([adminId])
+  @@index([createdAt])
+  @@index([action])
+  @@map("audit_logs")
 }

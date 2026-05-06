@@ -54,29 +54,6 @@ function EmployerDashboardHeader() {
 
       {/* Right: Actions */}
       <div className="flex items-center gap-2 flex-wrap">
-        {/* Notification bell */}
-        <button
-          onClick={() => router.push("/employer/notifications")}
-          className="w-9 h-9 flex items-center justify-center rounded-full border relative transition-all duration-200 hover:shadow-md hover:scale-105 hover:-translate-y-0.5"
-          style={{ background: "var(--db-card)", borderColor: "var(--db-border)" }}
-          aria-label="Notifications"
-          title="Open notifications"
-        >
-          <span
-            className="material-symbols-outlined"
-            style={{ fontSize: 19, color: "var(--db-text-secondary)" }}
-          >
-            notifications
-          </span>
-          <span
-            className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full"
-            style={{ border: "2px solid var(--db-card)" }}
-          />
-        </button>
-
-        {/* Divider */}
-        <div className="h-7 w-px" style={{ background: "var(--db-border)" }} />
-
         {/* Post a Job CTA */}
         <button
           onClick={() => router.push("/employer/post-job")}

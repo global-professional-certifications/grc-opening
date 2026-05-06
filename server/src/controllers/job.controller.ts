@@ -3,6 +3,18 @@ import { PrismaClient, JobStatus, WorkMode, ApplicationStatus } from '@prisma/cl
 
 const prisma = new PrismaClient();
 
+// Jaccard similarity on word token sets (case-insensitive)
+function jaccardSimilarity(a: string, b: string): number {
+  const words = (s: string) => new Set((s.toLowerCase().match(/\w+/g) ?? []).filter(w => w.length > 2));
+  const setA = words(a);
+  const setB = words(b);
+  if (setA.size === 0 && setB.size === 0) return 1;
+  if (setA.size === 0 || setB.size === 0) return 0;
+  let intersection = 0;
+  for (const w of setA) if (setB.has(w)) intersection++;
+  return intersection / (setA.size + setB.size - intersection);
+}
+
 type DiscoveryJob = {
   id: string;
   companyName: string;
@@ -80,6 +92,7 @@ export const createJob = async (req: Request, res: Response): Promise<void> => {
       salaryMin, salaryMax,
       certifications,
       deadline,
+      force,
     } = req.body;
 
     // 1. Ensure the Employer Profile exists before creating a job
@@ -111,6 +124,36 @@ export const createJob = async (req: Request, res: Response): Promise<void> => {
     if (parsedDeadline.getTime() < startOfToday().getTime()) {
       res.status(400).json({ error: 'Deadline must be today or later' });
       return;
+    }
+
+    // 2b. Duplicate detection — compare against employer's existing active jobs
+    if (!force) {
+      const existingJobs = await prisma.job.findMany({
+        where: {
+          employerId: employerProfile.id,
+          status: { notIn: [JobStatus.CLOSED] },
+        },
+        select: { id: true, title: true, description: true },
+      });
+
+      const duplicates: { id: string; title: string; score: number }[] = [];
+      for (const existing of existingJobs) {
+        const titleScore = jaccardSimilarity(title, existing.title);
+        const descScore  = jaccardSimilarity(description, existing.description);
+        const combined   = 0.6 * titleScore + 0.4 * descScore;
+        if (combined >= 0.65) {
+          duplicates.push({ id: existing.id, title: existing.title, score: Math.round(combined * 100) });
+        }
+      }
+
+      if (duplicates.length > 0) {
+        res.status(409).json({
+          error: 'Possible duplicate job detected',
+          code: 'DUPLICATE_JOB',
+          duplicates,
+        });
+        return;
+      }
     }
 
     const workModeKey = String(workMode ?? '').toUpperCase().replace('-', '_');

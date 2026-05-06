@@ -1,4 +1,4 @@
-import { PrismaClient, NotificationType } from '@prisma/client';
+import { PrismaClient, NotificationType, Role } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -212,9 +212,9 @@ export const notifyApplicationStatusChange = async (
 };
 
 export const notifyNewApplication = async (
-  employerUserId: string, 
-  seekerName: string, 
-  jobId: string, 
+  employerUserId: string,
+  seekerName: string,
+  jobId: string,
   jobTitle: string
 ): Promise<void> => {
   try {
@@ -231,4 +231,38 @@ export const notifyNewApplication = async (
   } catch (error) {
     console.error('[NotificationService] Error notifying employer about new application:', error);
   }
+};
+
+/**
+ * Send an admin broadcast notification to all users or a specific role.
+ * Returns the number of notifications created.
+ */
+export const broadcastNotification = async (
+  title: string,
+  message: string,
+  targetRole: 'ALL' | 'JOB_SEEKER' | 'EMPLOYER',
+): Promise<number> => {
+  const where = targetRole === 'ALL'
+    ? { status: 'ACTIVE' as any }
+    : { role: targetRole as Role, status: 'ACTIVE' as any };
+
+  const users = await prisma.user.findMany({
+    where,
+    select: { id: true },
+  });
+
+  if (users.length === 0) return 0;
+
+  const expiresAt = getTTL();
+  const records = users.map(u => ({
+    userId:    u.id,
+    type:      NotificationType.ADMIN_BROADCAST,
+    title,
+    message,
+    metadata:  { targetRole } as any,
+    expiresAt,
+  }));
+
+  const result = await prisma.notification.createMany({ data: records, skipDuplicates: true });
+  return result.count;
 };
