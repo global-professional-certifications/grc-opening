@@ -66,6 +66,7 @@ function PostJobFlow() {
         seniority:          j.seniority ?? '',
         certifications:     j.certifications.map(c => c.name),
         niceToHave:         j.niceToHave ?? '',
+        jdRole:             '',
       };
       setData(prefilled);
     }).catch(err => console.error('Failed to prefill job for edit:', err));

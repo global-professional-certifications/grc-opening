@@ -1,10 +1,11 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useJobPosting } from '../../../contexts/JobPostingContext';
 import { Input } from '../../../components/forms/Input';
 import { Select } from '../../../components/forms/Select';
 import { RadioGroup } from '../../../components/forms/RadioGroup';
 import { RichTextarea, extractText } from '../../../components/forms/RichTextarea';
 import { saveJobDraftAPI } from '@/lib/api/jobs';
+import { getRolesForSeniority, findJDTemplate, formatJDToHTML } from '../../../lib/jdTemplates';
 
 const MONO = { fontFamily: "'JetBrains Mono', monospace" };
 const SYNE = { fontFamily: "'Syne', sans-serif" };
@@ -27,6 +28,16 @@ const CURRENCIES = [
   { value: 'INR', label: 'INR', symbol: '₹'  },
   { value: 'CAD', label: 'CAD', symbol: 'C$' },
   { value: 'AUD', label: 'AUD', symbol: 'A$' },
+];
+
+const SENIORITY_OPTIONS = [
+  { value: '',             label: 'Select seniority level' },
+  { value: 'Entry',        label: 'Entry' },
+  { value: 'Associate',    label: 'Associate' },
+  { value: 'Mid-Senior',   label: 'Mid-Senior' },
+  { value: 'Lead/Manager', label: 'Lead / Manager' },
+  { value: 'Director',     label: 'Director' },
+  { value: 'Executive',    label: 'Executive' },
 ];
 
 type DraftState = 'idle' | 'saving' | 'saved' | 'error';
@@ -104,8 +115,42 @@ export function Step1Details() {
   const { data, updateData, nextStep, saveDraft, draftSavedAt } = useJobPosting();
   const [errors, setErrors]         = useState<Record<string, string>>({});
   const [draftState, setDraftState] = useState<DraftState>('idle');
+  const [jdApplied, setJdApplied]   = useState(false);
 
   const descTextLen = extractText(data.description).length;
+
+  // ── JD Template logic ────────────────────────────────────────────────────
+  const availableRoles = useMemo(
+    () => data.seniority ? getRolesForSeniority(data.seniority) : [],
+    [data.seniority],
+  );
+
+  const matchedTemplate = useMemo(
+    () => (data.seniority && data.jdRole) ? findJDTemplate(data.seniority, data.jdRole) : undefined,
+    [data.seniority, data.jdRole],
+  );
+
+  const hasUserDescription = extractText(data.description).length > 0;
+
+  const handleApplyTemplate = useCallback(() => {
+    if (!matchedTemplate) return;
+    updateData({
+      description: formatJDToHTML(matchedTemplate.description),
+      title: data.title || matchedTemplate.role,
+    });
+    setJdApplied(true);
+    setTimeout(() => setJdApplied(false), 3000);
+  }, [matchedTemplate, updateData, data.title]);
+
+  const handleSeniorityChange = useCallback((val: string) => {
+    updateData({ seniority: val, jdRole: '' });
+    setJdApplied(false);
+  }, [updateData]);
+
+  const handleRoleChange = useCallback((val: string) => {
+    updateData({ jdRole: val });
+    setJdApplied(false);
+  }, [updateData]);
 
   const currencySymbol =
     CURRENCIES.find((c) => c.value === data.currency)?.symbol ?? data.currency;
@@ -442,7 +487,116 @@ export function Step1Details() {
         </div>
       </SectionCard>
 
-      {/* ── Section 4: Job Description ── */}
+      {/* ── Section 4: Seniority & Role (JD Auto-fill) ── */}
+      <SectionCard>
+        <SectionTitle>Seniority &amp; Role Template</SectionTitle>
+        <p className="text-xs leading-relaxed -mt-2" style={{ color: 'var(--db-text-muted)' }}>
+          Select a seniority level and role to auto-populate a professional job description.
+        </p>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          {/* Seniority */}
+          <Select
+            id="seniority-step1"
+            label="SENIORITY LEVEL"
+            options={SENIORITY_OPTIONS}
+            value={data.seniority}
+            onChange={(e) => handleSeniorityChange(e.target.value)}
+          />
+
+          {/* Role (dynamic based on seniority) */}
+          <div className="flex flex-col gap-1">
+            <span
+              className="block mb-1.5 text-[10px] font-bold tracking-widest uppercase"
+              style={{ ...MONO, color: 'var(--db-text-muted)' }}
+            >
+              JOB ROLE TEMPLATE
+            </span>
+            <div className="relative">
+              <select
+                id="jd-role-select"
+                className="w-full pl-3 pr-8 py-2.5 rounded-lg border text-sm appearance-none outline-none transition-all focus:ring-1 focus:ring-[var(--db-primary)] focus:border-[var(--db-primary)]"
+                style={{
+                  ...MONO,
+                  borderColor: 'var(--db-border)',
+                  backgroundColor: 'transparent',
+                  color: 'var(--db-text)',
+                  cursor: data.seniority ? 'pointer' : 'not-allowed',
+                  opacity: data.seniority ? 1 : 0.5,
+                }}
+                value={data.jdRole}
+                onChange={(e) => handleRoleChange(e.target.value)}
+                disabled={!data.seniority}
+              >
+                <option value="" style={{ background: 'var(--db-card)', color: 'var(--db-text)' }}>
+                  {data.seniority ? 'Select a role…' : 'Select seniority first'}
+                </option>
+                {availableRoles.map((role) => (
+                  <option key={role} value={role} style={{ background: 'var(--db-card)', color: 'var(--db-text)' }}>
+                    {role}
+                  </option>
+                ))}
+              </select>
+              <div
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none"
+                style={{ color: 'var(--db-text-muted)' }}
+              >
+                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Auto-fill prompt */}
+        {matchedTemplate && !jdApplied && (
+          <div
+            className="flex items-center gap-3 p-3.5 rounded-lg border transition-all"
+            style={{
+              borderColor: 'rgba(4,255,180,0.3)',
+              backgroundColor: 'rgba(4,255,180,0.05)',
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: 20, color: 'var(--db-primary)' }}>auto_awesome</span>
+            <div className="flex-1">
+              <p className="text-sm font-semibold" style={{ color: 'var(--db-text)' }}>
+                JD template available for <span style={{ color: 'var(--db-primary)' }}>{matchedTemplate.role}</span>
+              </p>
+              <p className="text-xs mt-0.5" style={{ color: 'var(--db-text-muted)' }}>
+                {hasUserDescription
+                  ? 'This will replace your current description. You can edit it afterward.'
+                  : 'Click to populate the job description below. You can edit it afterward.'}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={handleApplyTemplate}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-lg font-bold text-xs transition-all hover:opacity-90 active:scale-[0.97] whitespace-nowrap"
+              style={{ background: 'var(--db-primary)', color: '#0a0a0a', ...MONO }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: 15 }}>edit_note</span>
+              {hasUserDescription ? 'Replace JD' : 'Auto-fill JD'}
+            </button>
+          </div>
+        )}
+
+        {/* Applied confirmation */}
+        {jdApplied && (
+          <div
+            className="flex items-center gap-2 p-3 rounded-lg border"
+            style={{
+              borderColor: 'rgba(4,255,180,0.3)',
+              backgroundColor: 'rgba(4,255,180,0.08)',
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: 18, color: 'var(--db-primary)' }}>check_circle</span>
+            <span className="text-xs font-semibold" style={{ ...MONO, color: 'var(--db-primary)' }}>JD template applied — edit below as needed</span>
+          </div>
+        )}
+      </SectionCard>
+
+      {/* ── Section 5: Job Description ── */}
       <SectionCard>
         <SectionTitle>Job Description</SectionTitle>
 

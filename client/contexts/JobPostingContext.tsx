@@ -15,6 +15,7 @@ export interface JobPostingData {
   currency: string;
   undisclosedSalary: boolean;
   description: string;
+  jdRole: string;
 
   responsibilities: string;
   qualifications: string;
@@ -55,6 +56,7 @@ const defaultData: JobPostingData = {
   currency: 'USD',
   undisclosedSalary: false,
   description: '',
+  jdRole: '',
   responsibilities: '',
   qualifications: '',
   experience: '',
