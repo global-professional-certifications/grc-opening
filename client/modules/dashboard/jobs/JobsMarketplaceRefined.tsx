@@ -193,16 +193,16 @@ export function ApplyModal({
     return () => { document.body.style.overflow = prev; };
   }, []);
 
+  function handleClose() {
+    setVisible(false);
+    setTimeout(onClose, 200);
+  }
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") handleClose(); };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   });
-
-  function handleClose() {
-    setVisible(false);
-    setTimeout(onClose, 200);
-  }
 
   async function handleSubmit() {
     if (submitting) return;
@@ -375,9 +375,10 @@ export function ReportModal({ jobId, jobTitle, onClose }: { jobId: string; jobTi
 
   useEffect(() => { const id = requestAnimationFrame(() => setVisible(true)); return () => cancelAnimationFrame(id); }, []);
   useEffect(() => { const prev = document.body.style.overflow; document.body.style.overflow = "hidden"; return () => { document.body.style.overflow = prev; }; }, []);
-  useEffect(() => { const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") handleClose(); }; document.addEventListener("keydown", onKey); return () => document.removeEventListener("keydown", onKey); });
 
   function handleClose() { setVisible(false); setTimeout(onClose, 200); }
+
+  useEffect(() => { const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") handleClose(); }; document.addEventListener("keydown", onKey); return () => document.removeEventListener("keydown", onKey); });
 
   async function handleSubmit() {
     if (!reason || submitting) return;

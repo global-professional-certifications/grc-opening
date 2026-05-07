@@ -209,7 +209,9 @@ function UserRow({ user }: { user: any }) {
         body: JSON.stringify({ status: next, reason }),
       });
       setStatus(next);
-    } catch {}
+    } catch (err) {
+      console.error('Failed to change user status:', err);
+    }
     setActionLoading(false);
     setConfirm(null);
     setActionReason("");
@@ -523,9 +525,10 @@ function ModerationPreview() {
 }
 
 function ModerationRow({ job, onClick, fading }: { job: AdminJob; onClick: () => void; fading: boolean }) {
+  const [sevenDaysAgo] = React.useState(() => Date.now() - 7 * 24 * 3600 * 1000);
   const isNew = React.useMemo(
-    () => new Date(job.employer?.createdAt).getTime() > Date.now() - 7 * 24 * 3600 * 1000,
-    [job.employer?.createdAt],
+    () => new Date(job.employer?.createdAt).getTime() > sevenDaysAgo,
+    [job.employer?.createdAt, sevenDaysAgo],
   );
   const reportCount = job._count?.reports ?? job.reports?.length ?? 0;
 
