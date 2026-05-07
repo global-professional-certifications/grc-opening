@@ -93,18 +93,18 @@ export function AuthLayout({ children, role = "job_seeker" }: AuthLayoutProps) {
   const content = role === "employer" ? employerContent : seekerContent;
 
   return (
-    <div className="auth-layout w-full min-h-screen bg-white" style={{ fontFamily: "'Poppins', sans-serif" }}>
-      {/* Left Panel: Form Section (Clean White) */}
-      <div className="w-full flex flex-col items-center px-6 lg:px-12 py-12 lg:py-24">
-        <div className="w-full max-w-[560px]">
+    <div className="auth-layout" style={{ fontFamily: "'Poppins', sans-serif" }}>
+      {/* Left Panel: Form — direct child of grid so CSS grid-template-columns applies */}
+      <div className="left-panel">
+        <div className="form-card">
           <Logo />
           {children}
         </div>
       </div>
 
-      {/* Right Panel: Marketing Section (Brand Blue) */}
-      <div className="hidden lg:block w-full bg-[#3a1292] relative">
-        <MarketingPanel 
+      {/* Right Panel: Marketing — second direct child of grid */}
+      <div className="auth-right-panel">
+        <MarketingPanel
           key={role}
           role={role}
           title={content.title}

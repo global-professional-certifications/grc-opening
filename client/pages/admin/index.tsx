@@ -3,9 +3,11 @@ import { AdminLayout } from "../../components/layout/AdminLayout";
 import { adminFetch as apiFetch } from "../../lib/api";
 import Link from "next/link";
 import { AdminJob, PreviewDrawer } from "../../components/admin/JobPreviewDrawer";
+import { ConfirmActionModal } from "../../components/admin/ConfirmActionModal";
 
 interface Stats {
   totalUsers: number;
+  userStatusBreakdown: { ACTIVE: number; SUSPENDED: number; BANNED: number };
   activeJobs: number;
   reportedJobs: number;
   totalApplications: number;
@@ -17,12 +19,13 @@ interface Stats {
 
 // ── Stat Card ──────────────────────────────────────────────────────────────
 function StatCard({
-  label, value, icon, accent, badge, trend, href,
+  label, value, icon, accent, badge, trend, href, footer,
 }: {
   label: string; value: number; icon: string; accent: string;
   badge?: { text: string; color: string };
   trend?: { value: number; up: boolean };
   href?: string;
+  footer?: React.ReactNode;
 }) {
   const inner = (
     <div className={`bg-white rounded-2xl p-5 shadow-sm border border-gray-100 flex flex-col gap-3 transition-all ${
@@ -50,10 +53,60 @@ function StatCard({
           )}
         </div>
       </div>
+      {footer && <div>{footer}</div>}
     </div>
   );
   if (href) return <Link href={href} className="block">{inner}</Link>;
   return inner;
+}
+
+function TotalUsersCard({ stats }: { stats: Stats }) {
+  const active = stats.userStatusBreakdown?.ACTIVE ?? 0;
+  const suspended = stats.userStatusBreakdown?.SUSPENDED ?? 0;
+  const banned = stats.userStatusBreakdown?.BANNED ?? 0;
+  const total = Math.max(1, active + suspended + banned);
+
+  const activePct = (active / total) * 100;
+  const suspendedPct = (suspended / total) * 100;
+  const conic = `conic-gradient(#10b981 0% ${activePct}%, #f59e0b ${activePct}% ${activePct + suspendedPct}%, #ef4444 ${activePct + suspendedPct}% 100%)`;
+
+  return (
+    <Link href="/admin/users" className="block h-full">
+      <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 flex flex-col justify-between transition-all hover:shadow-md hover:ring-2 hover:ring-[#3a1292]/10 h-full relative group">
+        
+        {/* Trend at top right */}
+        <span className="absolute top-5 right-5 text-[12px] font-bold flex items-center gap-0.5 text-emerald-500">
+          <span className="material-symbols-outlined" style={{ fontSize: 14 }}>trending_up</span>
+          12%
+        </span>
+
+        <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-1">Total Users</p>
+        
+        <div className="flex items-end justify-between mt-auto">
+          {/* Left: Big Number */}
+          <p className="text-[32px] font-bold text-gray-900 leading-none pb-1">{stats.totalUsers.toLocaleString()}</p>
+          
+          {/* Right: Stacked labels and Pie Chart */}
+          <div className="flex items-center gap-3">
+            <div className="flex flex-col items-end gap-1">
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 whitespace-nowrap">
+                Active {active}
+              </span>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 whitespace-nowrap">
+                Suspended {suspended}
+              </span>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-50 text-red-700 whitespace-nowrap">
+                Banned {banned}
+              </span>
+            </div>
+            <div className="relative w-12 h-12 rounded-full shrink-0 shadow-sm" style={{ background: conic }}>
+              <div className="absolute inset-[6px] rounded-full bg-white border border-gray-50" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </Link>
+  );
 }
 
 // ── Mini Bar Chart ─────────────────────────────────────────────────────────
@@ -138,18 +191,29 @@ const USER_GRID = "grid-cols-[minmax(0,1fr)_85px_85px_75px_95px]";
 function UserRow({ user }: { user: any }) {
   const [status, setStatus] = useState<string>(user.status ?? "ACTIVE");
   const [actionLoading, setActionLoading] = useState(false);
+  const [actionReason, setActionReason] = useState("");
+  const [actionReasonError, setActionReasonError] = useState("");
+  const [confirm, setConfirm] = useState<null | {
+    title: string;
+    message: string;
+    nextStatus: string;
+    confirmClassName: string;
+  }>(null);
 
-  async function changeStatus(next: string) {
+  async function changeStatus(next: string, reason: string) {
     if (next === status) return;
     setActionLoading(true);
     try {
       await apiFetch(`/admin/users/${user.id}/status`, {
         method: "PATCH",
-        body: JSON.stringify({ status: next }),
+        body: JSON.stringify({ status: next, reason }),
       });
       setStatus(next);
     } catch {}
     setActionLoading(false);
+    setConfirm(null);
+    setActionReason("");
+    setActionReasonError("");
   }
 
   const name = user.seekerProfile
@@ -161,7 +225,12 @@ function UserRow({ user }: { user: any }) {
       {/* USER */}
       <div className="min-w-0">
         {name && <p className="text-[12px] font-semibold text-gray-800 truncate">{name}</p>}
-        <p className={`text-[11px] text-gray-400 truncate ${!name ? "font-medium text-gray-700" : ""}`}>{user.email}</p>
+        <p
+          className={`text-[11px] text-gray-400 truncate ${!name ? "font-medium text-gray-700" : ""}`}
+          title={user.email}
+        >
+          {user.email}
+        </p>
       </div>
       {/* ROLE */}
       <RoleBadge role={user.role} />
@@ -181,7 +250,26 @@ function UserRow({ user }: { user: any }) {
         <select
           value={status}
           disabled={actionLoading}
-          onChange={e => changeStatus(e.target.value)}
+          onChange={e => {
+            const next = e.target.value;
+            if (next === status) return;
+            const message = next === "SUSPENDED"
+              ? "This will temporarily block this user from logging in."
+              : next === "BANNED"
+              ? "This will permanently block this user from accessing the platform."
+              : "This will restore full account access for this user.";
+            const confirmClassName = next === "ACTIVE"
+              ? "bg-emerald-600 hover:bg-emerald-700"
+              : next === "SUSPENDED"
+              ? "bg-amber-500 hover:bg-amber-600"
+              : "bg-red-600 hover:bg-red-700";
+            setConfirm({
+              title: "Confirm Status Change",
+              message,
+              nextStatus: next,
+              confirmClassName,
+            });
+          }}
           className="text-[11px] font-medium border border-gray-200 rounded-lg px-2 py-1 bg-white focus:outline-none focus:border-[#3a1292] w-full disabled:opacity-50 cursor-pointer"
         >
           <option value="ACTIVE">Active</option>
@@ -191,6 +279,44 @@ function UserRow({ user }: { user: any }) {
       ) : (
         <span className="text-[10px] text-amber-500 font-semibold italic">Protected</span>
       )}
+      <ConfirmActionModal
+        open={!!confirm}
+        title={confirm?.title ?? ""}
+        message={confirm?.message ?? ""}
+        confirmClassName={confirm?.confirmClassName ?? "bg-red-600 hover:bg-red-700"}
+        isProcessing={actionLoading}
+        onCancel={() => {
+          setConfirm(null);
+          setActionReason("");
+          setActionReasonError("");
+        }}
+        onConfirm={() => {
+          const trimmed = actionReason.trim();
+          if (!trimmed) {
+            setActionReasonError("Reason is required.");
+            return;
+          }
+          if (!confirm) return;
+          changeStatus(confirm.nextStatus, trimmed);
+        }}
+      >
+        <label className="block text-[12px] font-semibold text-gray-700 mb-2">
+          Reason (required)
+        </label>
+        <textarea
+          value={actionReason}
+          onChange={(e) => {
+            setActionReason(e.target.value);
+            if (actionReasonError) setActionReasonError("");
+          }}
+          rows={4}
+          placeholder="Explain why this status change is needed..."
+          className="w-full rounded-xl border border-gray-200 px-3 py-2 text-[13px] text-gray-700 focus:outline-none focus:border-[#3a1292] focus:ring-2 focus:ring-[#3a1292]/10 resize-none"
+        />
+        {actionReasonError && (
+          <p className="mt-2 text-[12px] text-red-600">{actionReasonError}</p>
+        )}
+      </ConfirmActionModal>
     </div>
   );
 }
@@ -224,7 +350,7 @@ export default function AdminDashboard() {
           ))
         ) : stats && (
           <>
-            <StatCard label="Total Users"        value={stats.totalUsers}          icon="group"       accent="#3a1292" trend={{ value: 12, up: true }}  href="/admin/users" />
+            <TotalUsersCard stats={stats} />
             <StatCard label="Active Jobs"         value={stats.activeJobs}          icon="work"        accent="#0ea5e9" trend={{ value: 5, up: true }}   href="/admin/moderation?tab=all" />
             <StatCard label="Reported Jobs"       value={stats.reportedJobs ?? 0}   icon="flag"        accent="#ef4444"
               badge={(stats.reportedJobs ?? 0) > 0 ? { text: "NEEDS REVIEW", color: "#ef4444" } : undefined}
@@ -275,7 +401,10 @@ export default function AdminDashboard() {
               {loading ? skeleton("h-32") : (
                 stats?.categoryStats?.length
                   ? <CategoryBars data={stats.categoryStats} />
-                  : <p className="text-[12px] text-gray-400">No category data yet.</p>
+                  : <div className="flex flex-col items-center gap-2 py-6 text-center">
+                      <span className="material-symbols-outlined text-gray-300" style={{ fontSize: 32 }}>bar_chart</span>
+                      <p className="text-[12px] text-gray-400">No job category data yet.</p>
+                    </div>
               )}
             </div>
           </div>

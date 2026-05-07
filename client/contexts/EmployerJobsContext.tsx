@@ -40,7 +40,7 @@ export interface EmployerJob {
 interface EmployerJobsContextType {
   jobs: EmployerJob[];
   loading: boolean;
-  addJob: (data: JobPostingData) => Promise<EmployerJob>;
+  addJob: (data: JobPostingData, force?: boolean) => Promise<EmployerJob>;
   editJob: (id: string, data: JobPostingData) => Promise<EmployerJob>;
   closeJob: (id: string) => Promise<void>;
   activeCount: number;
@@ -96,11 +96,11 @@ export function EmployerJobsProvider({ children }: { children: ReactNode }) {
       .finally(() => setLoading(false));
   }, []);
 
-  const addJob = useCallback(async (data: JobPostingData): Promise<EmployerJob> => {
+  const addJob = useCallback(async (data: JobPostingData, force = false): Promise<EmployerJob> => {
     const payload = buildJobPayload(data);
     const res = await apiFetch<{ job: any }>('/jobs', {
       method: 'POST',
-      body: JSON.stringify(payload),
+      body: JSON.stringify({ ...payload, force }),
     });
     const newJob = mapApiJob({ ...res.job, _count: { applications: 0 } });
     setJobs(prev => [newJob, ...prev]);

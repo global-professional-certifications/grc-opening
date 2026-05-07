@@ -45,7 +45,10 @@ export async function apiFetch<T>(path: string, options?: RequestInit & { token?
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
-    throw new Error(body.error || `Request failed: ${res.status}`);
+    const err = new Error(body.error || `Request failed: ${res.status}`) as Error & { code?: string; data?: unknown };
+    err.code = body.code;
+    err.data = body;
+    throw err;
   }
 
   return res.json() as Promise<T>;

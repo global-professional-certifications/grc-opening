@@ -54,42 +54,6 @@ function EmployerDashboardHeader() {
 
       {/* Right: Actions */}
       <div className="flex items-center gap-2 flex-wrap">
-        {/* Notification bell */}
-        <button
-          className="w-9 h-9 flex items-center justify-center rounded-full border relative transition-colors"
-          style={{ background: "var(--db-card)", borderColor: "var(--db-border)" }}
-          aria-label="Notifications"
-        >
-          <span
-            className="material-symbols-outlined"
-            style={{ fontSize: 19, color: "var(--db-text-secondary)" }}
-          >
-            notifications
-          </span>
-          <span
-            className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full"
-            style={{ border: "2px solid var(--db-card)" }}
-          />
-        </button>
-
-        {/* Divider */}
-        <div className="h-7 w-px" style={{ background: "var(--db-border)" }} />
-
-        {/* Theme toggle */}
-        <button
-          onClick={toggleTheme}
-          className="w-9 h-9 flex items-center justify-center rounded-full border transition-colors"
-          style={{
-            background: "var(--db-card)",
-            borderColor: "var(--db-border)",
-            color: "var(--db-text-secondary)",
-          }}
-          aria-label="Toggle theme"
-          title={theme === "dark" ? "Switch to Light mode" : "Switch to Dark mode"}
-        >
-          {theme === "dark" ? <SunIcon /> : <MoonIcon />}
-        </button>
-
         {/* Post a Job CTA */}
         <button
           onClick={() => router.push("/employer/post-job")}
@@ -105,15 +69,6 @@ function EmployerDashboardHeader() {
 }
 
 export default function EmployerDashboardPage() {
-  // Hide the global auth theme toggle on dashboard pages
-  useEffect(() => {
-    const toggle = document.querySelector<HTMLElement>(".theme-toggle");
-    if (toggle) toggle.style.display = "none";
-    return () => {
-      if (toggle) toggle.style.display = "";
-    };
-  }, []);
-
   return (
     <EmployerDashboardLayout>
       {/* Header */}

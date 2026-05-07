@@ -156,25 +156,25 @@ export function LoginForm({ onRoleChange }: LoginFormProps) {
           onChange={e => setEmail(e.target.value)}
         />
 
-        <div className="relative">
-          <ModernInput
-            label="Password"
-            type={showPassword ? "text" : "password"}
-            id="login-password"
-            icon="lock"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-          />
-          <button
-            type="button"
-            onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-4 bottom-[12px] text-gray-400 hover:text-[#3a1292] transition-colors"
-          >
-            <span className="material-symbols-outlined text-[20px]">
-              {showPassword ? "visibility_off" : "visibility"}
-            </span>
-          </button>
-        </div>
+        <ModernInput
+          label="Password"
+          type={showPassword ? "text" : "password"}
+          id="login-password"
+          icon="lock"
+          value={password}
+          onChange={e => setPassword(e.target.value)}
+          rightElement={
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="text-gray-400 hover:text-[#3a1292] transition-colors p-1"
+            >
+              <span className="material-symbols-outlined text-[20px]">
+                {showPassword ? "visibility_off" : "visibility"}
+              </span>
+            </button>
+          }
+        />
 
         <div className="flex items-center justify-between mb-2">
           <label className="flex items-center gap-2 cursor-pointer group">
@@ -182,12 +182,12 @@ export function LoginForm({ onRoleChange }: LoginFormProps) {
               type="checkbox"
               className="w-4 h-4 rounded border-gray-300 text-[#3a1292] focus:ring-[#3a1292] cursor-pointer transition-all"
             />
-            <span className="text-[13px] font-medium text-gray-500 group-hover:text-gray-900 transition-colors">
+            <span className="text-[13px] font-medium text-gray-500 group-hover:text-gray-900 transition-colors leading-none">
               Stay signed in
             </span>
           </label>
           <a href="/auth/forgot-password" 
-             className="text-[12px] font-bold text-[#3a1292] hover:opacity-80 transition-opacity uppercase tracking-wider">
+             className="text-[12px] font-bold text-[#3a1292] hover:opacity-80 transition-opacity uppercase tracking-wider leading-none">
             Forgot Password?
           </a>
         </div>

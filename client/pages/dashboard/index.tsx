@@ -5,7 +5,7 @@ import { RecommendedJobs } from "../../modules/dashboard/RecommendedJobs";
 import { RecentApplications } from "../../modules/dashboard/RecentApplications";
 import { ProfileCompletion } from "../../modules/dashboard/ProfileCompletion";
 import { GRCInsight } from "../../modules/dashboard/GRCInsight";
-import { SavedJobsPopover } from "../../modules/dashboard/SavedJobsPopover";
+import { NotificationsBell } from "../../modules/dashboard/NotificationsBell";
 import { useDashboardTheme } from "../../contexts/DashboardThemeContext";
 import { useUser } from "../../contexts/UserContext";
 
@@ -67,22 +67,11 @@ function DashboardHeader() {
       </div>
 
       <div className="flex items-center gap-4">
-        {/* Saved jobs popover (replaces notification bell) */}
-        <SavedJobsPopover />
+        {/* Notifications Bell */}
+        <NotificationsBell />
 
         {/* Divider */}
         <div className="h-8 w-px bg-slate-800" style={{ background: "var(--db-border)" }} />
-
-        {/* Theme toggle — matches bell size/style */}
-        <button
-          onClick={toggleTheme}
-          className="w-10 h-10 flex items-center justify-center rounded-full border transition-all duration-200 shadow-sm hover:shadow-md hover:scale-105"
-          style={{ background: "rgba(255, 255, 255, 0.05)", borderColor: "var(--db-border)", color: "var(--db-text-secondary)" }}
-          aria-label="Toggle theme"
-          title={theme === "dark" ? "Switch to Light mode" : "Switch to Dark mode"}
-        >
-          {theme === "dark" ? <SunIcon /> : <MoonIcon />}
-        </button>
 
         {/* Upload Resume */}
         <button
@@ -97,13 +86,6 @@ function DashboardHeader() {
 }
 
 export default function DashboardPage() {
-  // Hide the auth theme toggle from _app.tsx on dashboard pages
-  useEffect(() => {
-    const toggle = document.querySelector<HTMLElement>(".theme-toggle");
-    if (toggle) toggle.style.display = "none";
-    return () => { if (toggle) toggle.style.display = ""; };
-  }, []);
-
   return (
     <DashboardLayout>
       <DashboardHeader />

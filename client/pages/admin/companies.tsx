@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { AdminLayout } from "../../components/layout/AdminLayout";
 import { adminFetch as apiFetch } from "../../lib/api";
+import { ConfirmActionModal } from "../../components/admin/ConfirmActionModal";
 
 interface Company {
   id: string;
@@ -13,6 +14,8 @@ interface Company {
   _count: { jobs: number };
   user: { id: string; email: string; status: string };
 }
+
+interface ConfirmModal { title: string; message: string; onConfirm: (reason: string) => void; }
 
 function VerifiedBadge({ verified }: { verified: boolean }) {
   return verified ? (
@@ -53,6 +56,9 @@ export default function AdminCompaniesPage() {
   const [verifiedFilter, setVerifiedFilter] = useState("");
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [confirm, setConfirm] = useState<ConfirmModal | null>(null);
+  const [actionReason, setActionReason] = useState("");
+  const [actionReasonError, setActionReasonError] = useState("");
   const [error, setError] = useState("");
   const LIMIT = 20;
 
@@ -74,20 +80,33 @@ export default function AdminCompaniesPage() {
 
   useEffect(() => { fetchCompanies(); }, [fetchCompanies]);
 
-  async function toggleVerify(company: Company) {
+  async function executeToggleVerify(company: Company, reason: string) {
     setActionLoading(company.id);
     try {
       const next = !company.isVerified;
       await apiFetch(`/admin/companies/${company.id}/verify`, {
         method: "PATCH",
-        body: JSON.stringify({ verified: next }),
+        body: JSON.stringify({ verified: next, reason }),
       });
       setCompanies(prev => prev.map(c => c.id === company.id ? { ...c, isVerified: next } : c));
     } catch (e: any) {
       setError(e.message);
     } finally {
       setActionLoading(null);
+      setConfirm(null);
+      setActionReason("");
+      setActionReasonError("");
     }
+  }
+
+  function toggleVerify(company: Company) {
+    setConfirm({
+      title: company.isVerified ? "Revoke Verification" : "Verify Company",
+      message: company.isVerified
+        ? "This will remove the verified status from this company. They will be notified."
+        : "This will verify the company and allow them to post jobs. They will be notified.",
+      onConfirm: (reason) => executeToggleVerify(company, reason),
+    });
   }
 
   const totalPages = Math.ceil(total / LIMIT);
@@ -210,6 +229,43 @@ export default function AdminCompaniesPage() {
           </div>
         </div>
       )}
+      <ConfirmActionModal
+        open={!!confirm}
+        title={confirm?.title ?? ""}
+        message={confirm?.message ?? ""}
+        confirmClassName="bg-[#3a1292] hover:bg-[#2e0e74]"
+        isProcessing={!!actionLoading}
+        onCancel={() => {
+          setConfirm(null);
+          setActionReason("");
+          setActionReasonError("");
+        }}
+        onConfirm={() => {
+          const trimmed = actionReason.trim();
+          if (!trimmed) {
+            setActionReasonError("Reason is required.");
+            return;
+          }
+          confirm?.onConfirm(trimmed);
+        }}
+      >
+        <label className="block text-[12px] font-semibold text-gray-700 mb-2">
+          Reason (required)
+        </label>
+        <textarea
+          value={actionReason}
+          onChange={(e) => {
+            setActionReason(e.target.value);
+            if (actionReasonError) setActionReasonError("");
+          }}
+          rows={4}
+          placeholder="Explain this verification decision..."
+          className="w-full rounded-xl border border-gray-200 px-3 py-2 text-[13px] text-gray-700 focus:outline-none focus:border-[#3a1292] focus:ring-2 focus:ring-[#3a1292]/10 resize-none"
+        />
+        {actionReasonError && (
+          <p className="mt-2 text-[12px] text-red-600">{actionReasonError}</p>
+        )}
+      </ConfirmActionModal>
     </AdminLayout>
   );
 }

@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { PrismaClient, ApplicationStatus } from '@prisma/client';
+import { notifyNewApplication, notifyApplicationStatusChange } from '../services/notification.service';
 
 const prisma = new PrismaClient();
 
@@ -23,7 +24,10 @@ export const applyToJob = async (req: Request, res: Response): Promise<void> => 
     }
 
     // 2. Verify the Job exists and is OPEN
-    const job = await prisma.job.findUnique({ where: { id: jobId } });
+    const job = await prisma.job.findUnique({ 
+      where: { id: jobId },
+      include: { employer: true }
+    });
     
     if (!job) {
       res.status(404).json({ error: 'Job not found' });
@@ -62,6 +66,9 @@ export const applyToJob = async (req: Request, res: Response): Promise<void> => 
         status: ApplicationStatus.PENDING
       }
     });
+
+    const seekerFullName = `${seekerProfile.firstName} ${seekerProfile.lastName}`.trim();
+    notifyNewApplication(job.employer.userId, seekerFullName, job.id, job.title).catch(console.error);
 
     res.status(201).json({ message: 'Application submitted successfully', application });
   } catch (error) {
@@ -392,7 +399,7 @@ export const updateApplicationStatus = async (req: Request, res: Response): Prom
     // 3. Find the application and ensure the employer owns the parent Job
     const application = await prisma.application.findUnique({
       where: { id: applicationId },
-      include: { job: true }
+      include: { job: true, seeker: true }
     });
 
     if (!application) {
@@ -410,6 +417,15 @@ export const updateApplicationStatus = async (req: Request, res: Response): Prom
       where: { id: applicationId },
       data: { status: status as ApplicationStatus }
     });
+
+    notifyApplicationStatusChange(
+      application.seeker.userId, 
+      applicationId, 
+      application.job.id,
+      application.job.title, 
+      employerProfile.companyName, 
+      status
+    ).catch(console.error);
 
     res.status(200).json({ 
       message: 'Application status updated', 

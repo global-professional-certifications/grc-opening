@@ -4,7 +4,7 @@ import bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
 
-const ADMIN_EMAIL    = 'admin@grcopenings.com';
+const ADMIN_EMAIL = 'admin@grcopenings.com';
 const ADMIN_PASSWORD = 'Admin@GRC2026!';
 
 async function main() {

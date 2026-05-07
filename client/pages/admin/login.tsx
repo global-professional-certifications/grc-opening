@@ -142,7 +142,7 @@ export default function AdminLoginPage() {
               </form>
 
               <div className="mt-6 p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-start gap-2">
-                <span className="material-symbols-outlined text-slate-400 shrink-0 mt-0.5" style={{ fontSize: 14 }}>info</span>
+                <span className="material-symbols-outlined text-slate-400 shrink-0" style={{ fontSize: 14, marginTop: 2 }}>info</span>
                 <p className="text-[11px] text-slate-500 leading-relaxed">
                   Unauthorized access attempts are logged and monitored. Admin accounts are provisioned exclusively by platform administrators.
                 </p>

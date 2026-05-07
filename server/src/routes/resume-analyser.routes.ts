@@ -4,6 +4,7 @@ import path from 'path';
 import fs from 'fs';
 import { authenticateLocal } from '../middleware/auth-local.middleware';
 import { analyseResume } from '../controllers/resume-analyser.controller';
+import rateLimit from 'express-rate-limit';
 
 const router: Router = Router();
 
@@ -44,10 +45,19 @@ const analyserUpload = multer({
   },
 });
 
+const publicRateLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000, // 10 minutes
+  max: 5, // Limit each IP to 5 requests per window
+  message: { error: 'Too many analysis requests from this IP, please try again after 10 minutes' },
+  standardHeaders: true, 
+  legacyHeaders: false, 
+});
+
 // Public endpoint — no authentication required
 // Anyone (even without an account) can use the analyser from the home page
 router.post(
   '/public/analyse',
+  publicRateLimiter,
   analyserUpload.single('resume'),
   analyseResume
 );

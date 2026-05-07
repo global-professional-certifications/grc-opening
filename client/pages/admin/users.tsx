@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { AdminLayout } from "../../components/layout/AdminLayout";
 import { adminFetch as apiFetch } from "../../lib/api";
+import { ConfirmActionModal } from "../../components/admin/ConfirmActionModal";
 
 interface AdminUser {
   id: string; email: string; role: string; status: string; createdAt: string;
@@ -8,7 +9,7 @@ interface AdminUser {
   employerProfile?: { companyName: string; isVerified: boolean } | null;
 }
 
-interface ConfirmModal { title: string; message: string; onConfirm: () => void; }
+interface ConfirmModal { title: string; message: string; confirmColor?: string; onConfirm: (reason: string) => void; }
 
 function RoleBadge({ role }: { role: string }) {
   const map: Record<string, string> = {
@@ -46,7 +47,7 @@ function UserRow({
 }: {
   u: AdminUser;
   actionLoading: string | null;
-  onStatusChange: (id: string, status: string) => void;
+  onStatusChange: (id: string, status: string, reason: string) => void;
   onConfirm: (modal: ConfirmModal) => void;
 }) {
   const name = u.seekerProfile
@@ -76,11 +77,23 @@ function UserRow({
           onChange={e => {
             const nextStatus = e.target.value;
             if (nextStatus === u.status) return;
-            const statusLabel = nextStatus === "ACTIVE" ? "activate" : nextStatus.toLowerCase();
+            let message = "";
+            let confirmColor = "bg-red-600 hover:bg-red-700";
+            if (nextStatus === 'SUSPENDED') {
+              message = "This will temporarily restrict platform access. The user cannot log in but their data is preserved. You can reinstate them at any time.";
+              confirmColor = "bg-amber-500 hover:bg-amber-600";
+            } else if (nextStatus === 'BANNED') {
+              message = "This will permanently block all platform access. This action should only be taken for serious policy violations.";
+              confirmColor = "bg-red-600 hover:bg-red-700";
+            } else if (nextStatus === 'ACTIVE') {
+              message = "This will reactivate the account and restore full platform access.";
+              confirmColor = "bg-emerald-600 hover:bg-emerald-700";
+            }
             onConfirm({
               title: "Confirm Status Change",
-              message: `Are you sure you want to ${statusLabel} the user?`,
-              onConfirm: () => onStatusChange(u.id, nextStatus),
+              message,
+              confirmColor,
+              onConfirm: (reason) => onStatusChange(u.id, nextStatus, reason),
             });
           }}
           className="text-[11px] font-medium border border-gray-200 rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:border-[#3a1292] min-w-[100px] hover:border-gray-300 transition-colors"
@@ -105,6 +118,8 @@ export default function AdminUsersPage() {
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [confirm, setConfirm] = useState<ConfirmModal | null>(null);
+  const [actionReason, setActionReason] = useState("");
+  const [actionReasonError, setActionReasonError] = useState("");
   const [error, setError] = useState("");
   const LIMIT = 20;
 
@@ -127,14 +142,19 @@ export default function AdminUsersPage() {
 
   useEffect(() => { fetchUsers(); }, [fetchUsers]);
 
-  async function changeStatus(userId: string, status: string) {
+  async function changeStatus(userId: string, status: string, reason: string) {
     setActionLoading(userId);
     try {
-      await apiFetch(`/admin/users/${userId}/status`, { method: "PATCH", body: JSON.stringify({ status }) });
+      await apiFetch(`/admin/users/${userId}/status`, {
+        method: "PATCH",
+        body: JSON.stringify({ status, reason }),
+      });
       setUsers(prev => prev.map(u => u.id === userId ? { ...u, status } : u));
     } catch (e: any) { setError(e.message); }
     setActionLoading(null);
     setConfirm(null);
+    setActionReason("");
+    setActionReasonError("");
   }
 
   const adminUsers = users.filter(u => u.role === "ADMIN");
@@ -162,12 +182,12 @@ export default function AdminUsersPage() {
       <div className="mb-5 flex items-center gap-4 text-[11px] text-gray-500">
         <span className="flex items-center gap-1.5">
           <span className="w-2 h-2 rounded-full bg-amber-400" />
-          <strong>Suspend</strong> — temporarily restricts account actions
+          <strong>Suspend</strong> — temporarily restricts login; data preserved
         </span>
         <span className="text-gray-300">|</span>
         <span className="flex items-center gap-1.5">
           <span className="w-2 h-2 rounded-full bg-red-500" />
-          <strong>Ban</strong> — permanently blocks all platform access
+          <strong>Ban</strong> — permanently blocks all access
         </span>
       </div>
 
@@ -280,23 +300,43 @@ export default function AdminUsersPage() {
         </div>
       )}
 
-      {/* Confirm modal */}
-      {confirm && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
-            <h3 className="text-[17px] font-bold text-gray-900 mb-2">{confirm.title}</h3>
-            <p className="text-[13px] text-gray-500 mb-6 leading-relaxed">{confirm.message}</p>
-            <div className="flex gap-3">
-              <button onClick={() => setConfirm(null)}
-                className="flex-1 py-2.5 rounded-xl border border-gray-200 text-[14px] font-semibold text-gray-600 hover:bg-gray-50 transition-all"
-              >Cancel</button>
-              <button onClick={confirm.onConfirm}
-                className="flex-1 py-2.5 rounded-xl bg-red-600 text-white text-[14px] font-bold hover:bg-red-700 transition-all"
-              >Confirm</button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmActionModal
+        open={!!confirm}
+        title={confirm?.title ?? ""}
+        message={confirm?.message ?? ""}
+        confirmClassName={confirm?.confirmColor || "bg-red-600 hover:bg-red-700"}
+        isProcessing={!!actionLoading}
+        onCancel={() => {
+          setConfirm(null);
+          setActionReason("");
+          setActionReasonError("");
+        }}
+        onConfirm={() => {
+          const trimmed = actionReason.trim();
+          if (!trimmed) {
+            setActionReasonError("Reason is required.");
+            return;
+          }
+          confirm?.onConfirm(trimmed);
+        }}
+      >
+        <label className="block text-[12px] font-semibold text-gray-700 mb-2">
+          Reason (required)
+        </label>
+        <textarea
+          value={actionReason}
+          onChange={(e) => {
+            setActionReason(e.target.value);
+            if (actionReasonError) setActionReasonError("");
+          }}
+          rows={4}
+          placeholder="Explain why this status change is needed..."
+          className="w-full rounded-xl border border-gray-200 px-3 py-2 text-[13px] text-gray-700 focus:outline-none focus:border-[#3a1292] focus:ring-2 focus:ring-[#3a1292]/10 resize-none"
+        />
+        {actionReasonError && (
+          <p className="mt-2 text-[12px] text-red-600">{actionReasonError}</p>
+        )}
+      </ConfirmActionModal>
     </AdminLayout>
   );
 }

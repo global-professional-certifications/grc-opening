@@ -3,6 +3,7 @@ import { useRouter } from "next/router";
 import { DashboardThemeProvider, useDashboardTheme } from "../../contexts/DashboardThemeContext";
 import { useUser } from "../../contexts/UserContext";
 import { EmployerJobsProvider } from "../../contexts/EmployerJobsContext";
+import { NotificationsBell } from "../../modules/dashboard/NotificationsBell";
 
 const SYNE    = { fontFamily: "'Syne', sans-serif" };
 const MONO    = { fontFamily: "'JetBrains Mono', monospace" };
@@ -91,7 +92,7 @@ function EmployerDashboardLayoutInner({ children }: { children: React.ReactNode 
 
       <div className="flex min-h-screen">
 
-        {/* ΓöÇΓöÇ Sidebar ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
+        {/* ────────────────────────────────────────────────────────────────────────── */}
         <aside
           className={`fixed left-0 top-0 h-full w-[260px] flex flex-col z-50 transition-transform duration-300
             ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
@@ -130,23 +131,23 @@ function EmployerDashboardLayoutInner({ children }: { children: React.ReactNode 
           <nav className="flex-1 px-4 py-2 overflow-y-auto scrollbar-hide space-y-6">
             <div>
               <p
-                className="px-4 text-[11px] uppercase tracking-widest mb-3"
+                className="px-2 text-[11px] uppercase tracking-widest mb-3"
                 style={{ ...MONO, color: "var(--db-sidebar-section)" }}
               >
                 Main Menu
               </p>
               <div className="space-y-0.5">
-                <NavItem href="/employer/dashboard"   icon="dashboard"    label="Dashboard" />
-                <NavItem href="/employer/post-job"    icon="add_circle"   label="Post a Job" />
-                <NavItem href="/employer/jobs"        icon="work_history"  label="My Job Listings" />
-                <NavItem href="/employer/applicants"  icon="group"        label="Applicants" />
-                <NavItem href="/employer/analytics"   icon="bar_chart"    label="Analytics" />
+                <NavItem href="/employer/dashboard"      icon="dashboard"       label="Dashboard" />
+                <NavItem href="/employer/post-job"       icon="add_circle"      label="Post a Job" />
+                <NavItem href="/employer/jobs"           icon="work_history"    label="My Job Listings" />
+                <NavItem href="/employer/applicants"     icon="group"           label="Applicants" />
+                <NavItem href="/employer/notifications"  icon="notifications"   label="Notifications" />
               </div>
             </div>
 
             <div>
               <p
-                className="px-4 text-[11px] uppercase tracking-widest mb-3"
+                className="px-2 text-[11px] uppercase tracking-widest mb-3"
                 style={{ ...MONO, color: "var(--db-sidebar-section)" }}
               >
                 Account
@@ -199,7 +200,7 @@ function EmployerDashboardLayoutInner({ children }: { children: React.ReactNode 
           </div>
         </aside>
 
-        {/* ΓöÇΓöÇ Mobile header bar ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
+        {/* ────────────────── Mobile header bar ───────────────────────────────────── */}
         <div
           className="lg:hidden fixed top-0 left-0 right-0 z-30 flex items-center gap-3 px-4 h-14"
           style={{ background: "var(--db-sidebar-bg)", borderBottom: "1px solid var(--db-sidebar-border)" }}
@@ -220,17 +221,22 @@ function EmployerDashboardLayoutInner({ children }: { children: React.ReactNode 
           </span>
         </div>
 
-        {/* ΓöÇΓöÇ Main content ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
+        {/* ────────────────── Main content ────────────────────────────────────────── */}
         <main
-          className="lg:ml-[260px] flex-1 p-6 lg:p-8 space-y-6 lg:space-y-8 pt-20 lg:pt-8"
+          className="relative lg:ml-[260px] flex-1 min-h-screen"
           style={{
             background: "var(--db-bg)",
             color: "var(--db-text)",
-            minHeight: "100vh",
             minWidth: 0,
           }}
         >
-          {children}
+          {/* Top bar with notification bell */}
+          <div className="sticky top-0 z-20 flex items-center justify-end px-6 lg:px-8 py-4 lg:py-5" style={{ background: "var(--db-bg)", borderBottom: "1px solid var(--db-border)" }}>
+            <NotificationsBell />
+          </div>
+          <div className="p-6 lg:p-8 space-y-6 lg:space-y-8 pt-4 lg:pt-4">
+            {children}
+          </div>
         </main>
       </div>
     </div>
