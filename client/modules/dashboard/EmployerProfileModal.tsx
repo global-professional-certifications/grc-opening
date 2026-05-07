@@ -58,16 +58,16 @@ export function EmployerProfileModal({ employer, onClose }: Props) {
     return () => { document.body.style.overflow = prev; };
   }, []);
 
+  function handleClose() {
+    setVisible(false);
+    setTimeout(onClose, 200);
+  }
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') handleClose(); };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
   });
-
-  function handleClose() {
-    setVisible(false);
-    setTimeout(onClose, 200);
-  }
 
   const initials = employer.companyName
     .split(/\s+/)

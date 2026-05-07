@@ -48,9 +48,10 @@ function EmployerJobDetailDialog({ job, onClose }: { job: EmployerJob; onClose: 
   const [visible, setVisible] = React.useState(false);
   React.useEffect(() => { const id = requestAnimationFrame(() => setVisible(true)); return () => cancelAnimationFrame(id); }, []);
   React.useEffect(() => { const prev = document.body.style.overflow; document.body.style.overflow = "hidden"; return () => { document.body.style.overflow = prev; }; }, []);
-  React.useEffect(() => { const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") close(); }; document.addEventListener("keydown", onKey); return () => document.removeEventListener("keydown", onKey); });
 
   function close() { setVisible(false); setTimeout(onClose, 220); }
+
+  React.useEffect(() => { const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") close(); }; document.addEventListener("keydown", onKey); return () => document.removeEventListener("keydown", onKey); });
 
   const cat = CATEGORY_LABELS[job.category] ?? job.category ?? "—";
   const s = STATUS_STYLES[job.status] ?? STATUS_STYLES.CLOSED;

@@ -131,6 +131,11 @@ export function ApplicantDetailDialog({
     return () => { document.body.style.overflow = prev; };
   }, []);
 
+  function handleClose() {
+    setVisible(false);
+    setTimeout(onClose, 220);
+  }
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") handleClose(); };
     document.addEventListener("keydown", onKey);
@@ -145,11 +150,6 @@ export function ApplicantDetailDialog({
       .finally(() => { if (mounted) setLoading(false); });
     return () => { mounted = false; };
   }, [applicationId]);
-
-  function handleClose() {
-    setVisible(false);
-    setTimeout(onClose, 220);
-  }
 
   const seeker = detail?.seeker;
   const initials = seeker
@@ -193,7 +193,6 @@ export function ApplicantDetailDialog({
             }}
           >
             {seeker?.avatarUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
               <img src={seeker.avatarUrl} alt={seeker.fullName} className="h-full w-full object-cover" />
             ) : (
               initials

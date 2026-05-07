@@ -16,9 +16,11 @@ export default function AdminLoginPage() {
       try {
         const payload = JSON.parse(atob(token.split(".")[1]));
         if (payload.role === "ADMIN") { router.replace("/admin"); return; }
-      } catch {}
+      } catch (_) {
+        // JWT parsing failed — user will see the login form
+      }
     }
-  }, []);
+  }, [router]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
