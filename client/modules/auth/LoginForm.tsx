@@ -54,7 +54,8 @@ export function LoginForm({ onRoleChange }: LoginFormProps) {
     try {
       // 1. Call Local Auth API — pass selected role so the server can enforce role-specific login
       const requestedRole = activeRole === "employer" ? "EMPLOYER" : "JOB_SEEKER";
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/local/login`, {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+      const response = await fetch(`${API_URL}/auth/local/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password, role: requestedRole }),
