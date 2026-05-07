@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { apiFetch } from "@/lib/api";
 import { useEmployerJobs } from "../../../contexts/EmployerJobsContext";
 
 const MONO = { fontFamily: "'JetBrains Mono', monospace" };
@@ -110,8 +111,13 @@ function SkeletonCard() {
 
 export function EmployerStatsOverview() {
   const { activeCount, closedCount, totalApplicants, loading } = useEmployerJobs();
+  const [shortlisted, setShortlisted] = useState(0);
 
-  const shortlisted = 0; // placeholder — wire to real API when available
+  useEffect(() => {
+    apiFetch<{ stats: { shortlisted: number } }>('/jobs/stats')
+      .then(res => setShortlisted(res.stats.shortlisted))
+      .catch(() => {});
+  }, []);
   const closedPct = (activeCount + closedCount) > 0
     ? Math.round((closedCount / (activeCount + closedCount)) * 100)
     : 0;

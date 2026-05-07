@@ -236,18 +236,35 @@ export function WorkExperienceSection({ workExperience, onChange }: Props) {
       className="db-card rounded-2xl p-6 space-y-4 shadow-sm"
       style={{ background: "var(--db-card)", border: "1px solid var(--db-border)" }}
     >
-      <div className="flex items-center gap-3 border-l-4 pl-3" style={{ borderColor: "var(--db-primary)" }}>
-        <div className="p-2 rounded-lg" style={{ background: "var(--db-primary-10)" }}>
-          <span className="material-symbols-outlined" style={{ fontSize: 18, color: "var(--db-primary)" }}>
-            work
-          </span>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3 border-l-4 pl-3" style={{ borderColor: "var(--db-primary)" }}>
+          <div className="p-2 rounded-lg" style={{ background: "var(--db-primary-10)" }}>
+            <span className="material-symbols-outlined" style={{ fontSize: 18, color: "var(--db-primary)" }}>
+              work
+            </span>
+          </div>
+          <h3
+            className="text-sm font-bold uppercase tracking-widest"
+            style={{ color: "var(--db-text)" }}
+          >
+            Work Experience
+          </h3>
         </div>
-        <h3
-          className="text-sm font-bold uppercase tracking-widest"
-          style={{ color: "var(--db-text)" }}
-        >
-          Work Experience
-        </h3>
+        {workExperience.length > 0 && (
+          <button
+            onClick={() => onChange({ workExperience: [] })}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors"
+            style={{
+              color: "var(--db-error, #ef4444)",
+              background: "rgba(239, 68, 68, 0.1)",
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
+              delete_sweep
+            </span>
+            Clear All
+          </button>
+        )}
       </div>
 
       {workExperience.length > 0 && (

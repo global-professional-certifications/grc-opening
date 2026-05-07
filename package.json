@@ -12,7 +12,10 @@
     "build:server": "pnpm --filter @grc/server build",
     "lint": "pnpm -r lint",
     "start:client": "pnpm --filter @grc/client start",
-    "start:server": "pnpm --filter @grc/server start"
+    "start:server": "pnpm --filter @grc/server start",
+    "worker": "pnpm --filter @grc/server worker",
+    "worker:watch": "pnpm --filter @grc/server worker:watch",
+    "test:parser": "pnpm --filter @grc/server test:parser"
   },
   "keywords": [],
   "author": "",

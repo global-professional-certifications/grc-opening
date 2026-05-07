@@ -153,17 +153,20 @@ function SuccessScreen({ jobId }: { jobId: string }) {
 
 // ─── Main component ────────────────────────────────────────────────────────────
 
+interface DuplicateJob { id: string; title: string; score: number }
+
 export function Step3Preview() {
-  const { data, prevStep, goToStep, reset } = useJobPosting();
+  const { data, prevStep, goToStep, reset, editId } = useJobPosting();
   const { user } = useUser();
-  const { addJob } = useEmployerJobs();
+  const { addJob, editJob } = useEmployerJobs();
   const router = useRouter();
 
   const [isPublishing, setIsPublishing] = useState(false);
   const [showSuccess, setShowSuccess]   = useState(false);
   const [publishedId, setPublishedId]   = useState('');
   const [publishError, setPublishError] = useState<string | null>(null);
-  const hasPublished = useRef(false); // prevent double-submit
+  const [duplicates, setDuplicates]     = useState<DuplicateJob[]>([]);
+  const hasPublished = useRef(false);
 
   const companyName = user?.firstName || 'Your Company';
 
@@ -173,35 +176,41 @@ export function Step3Preview() {
     ? `${data.salaryMin || '0'} – ${data.salaryMax || '0'} ${data.currency}`
     : 'Not specified';
 
-  const handlePublish = async () => {
+  const doPublish = async (force = false) => {
     if (hasPublished.current || isPublishing) return;
     hasPublished.current = true;
     setIsPublishing(true);
     setPublishError(null);
+    setDuplicates([]);
 
     try {
-      // addJob() writes to the shared EmployerJobsContext (localStorage-backed)
-      // and returns the new job object synchronously.
-      // TODO: when backend is ready, also call publishJobAPI(data) here and
-      // use the returned server id instead of the locally generated one.
-      const newJob = addJob(data);
-      setPublishedId(newJob.id);
+      const savedJob = editId
+        ? await editJob(editId, data)
+        : await addJob(data, force);
+      setPublishedId(savedJob.id);
       setShowSuccess(true);
 
-      // State is already updated — safe to redirect immediately
       setTimeout(() => {
         reset();
         router.push('/employer/jobs');
       }, 3000);
     } catch (err: unknown) {
       hasPublished.current = false;
-      setPublishError(
-        err instanceof Error ? err.message : 'Something went wrong. Please try again.'
-      );
+      const apiErr = err as Error & { code?: string; data?: { duplicates?: DuplicateJob[] } };
+      if (apiErr.code === 'DUPLICATE_JOB' && apiErr.data?.duplicates?.length) {
+        setDuplicates(apiErr.data.duplicates);
+      } else {
+        setPublishError(
+          err instanceof Error ? err.message : 'Something went wrong. Please try again.'
+        );
+      }
     } finally {
       setIsPublishing(false);
     }
   };
+
+  const handlePublish = () => doPublish(false);
+  const handleForcePublish = () => doPublish(true);
 
   if (showSuccess) return <SuccessScreen jobId={publishedId} />;
 
@@ -291,7 +300,9 @@ export function Step3Preview() {
             <SectionHeader label="Details at a Glance" onEdit={() => goToStep(1)} />
             <div className="flex flex-wrap gap-2">
               <MetaPill icon="payments"     label={salaryDisplay} />
-              {data.workMode   && <MetaPill icon="location_on"  label={data.workMode} />}
+              {data.workMode === 'Remote' && <MetaPill icon="wifi"      label="Remote" />}
+              {data.workMode === 'Hybrid'  && <MetaPill icon="home_work" label={data.location ? `Hybrid · ${data.location}` : 'Hybrid'} />}
+              {data.workMode === 'On-site' && <MetaPill icon="apartment" label={data.location || 'On-site'} />}
               {data.jobType    && <MetaPill icon="schedule"      label={data.jobType} />}
               {data.experience && <MetaPill icon="trending_up"   label={`${data.experience} yrs exp`} />}
               {data.seniority  && <MetaPill icon="military_tech" label={data.seniority} />}
@@ -344,6 +355,48 @@ export function Step3Preview() {
         </div>
       </div>
 
+      {/* ── Duplicate job warning ── */}
+      {duplicates.length > 0 && (
+        <div className="rounded-xl border p-4 space-y-3" style={{ backgroundColor: 'rgba(234,179,8,0.06)', borderColor: 'rgba(234,179,8,0.35)' }}>
+          <div className="flex items-start gap-3">
+            <span className="material-symbols-outlined flex-shrink-0 text-yellow-500" style={{ fontSize: 20 }}>warning</span>
+            <div>
+              <p className="text-sm font-bold text-yellow-400">Similar job already posted</p>
+              <p className="text-xs text-yellow-300/80 mt-0.5">
+                We found {duplicates.length} existing posting{duplicates.length > 1 ? 's' : ''} that look similar. Review them below, then decide.
+              </p>
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            {duplicates.map(d => (
+              <div key={d.id} className="flex items-center justify-between gap-3 px-3 py-2 rounded-lg bg-black/20">
+                <span className="text-xs text-yellow-200 truncate">{d.title}</span>
+                <span className="text-[10px] font-bold text-yellow-400 shrink-0">{d.score}% match</span>
+              </div>
+            ))}
+          </div>
+          <div className="flex gap-2 pt-1">
+            <button
+              type="button"
+              onClick={() => setDuplicates([])}
+              className="flex-1 py-2 rounded-lg text-xs font-semibold border transition-all"
+              style={{ borderColor: 'rgba(234,179,8,0.4)', color: '#fde68a' }}
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleForcePublish}
+              disabled={isPublishing}
+              className="flex-1 py-2 rounded-lg text-xs font-bold transition-all"
+              style={{ background: 'rgba(234,179,8,0.15)', color: '#fde68a', border: '1px solid rgba(234,179,8,0.4)' }}
+            >
+              Post Anyway
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* ── Error banner ── */}
       {publishError && (
         <div
@@ -369,12 +422,12 @@ export function Step3Preview() {
           {isPublishing ? (
             <>
               <span className="w-4 h-4 rounded-full border-2 border-current border-t-transparent animate-spin" />
-              Publishing…
+              {editId ? 'Saving…' : 'Publishing…'}
             </>
           ) : (
             <>
-              <span className="material-symbols-outlined" style={{ fontSize: 20 }}>rocket_launch</span>
-              Publish Job
+              <span className="material-symbols-outlined" style={{ fontSize: 20 }}>{editId ? 'save' : 'rocket_launch'}</span>
+              {editId ? 'Save changes' : 'Publish Job'}
             </>
           )}
         </button>

@@ -1,7 +1,9 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Head from 'next/head';
+import { useRouter } from 'next/router';
 import { EmployerDashboardLayout } from '../../../components/layout/EmployerDashboardLayout';
-import { JobPostingProvider, useJobPosting } from '../../../contexts/JobPostingContext';
+import { JobPostingProvider, useJobPosting, JobPostingData, WorkMode, JobType } from '../../../contexts/JobPostingContext';
+import { apiFetch } from '@/lib/api';
 import { PostJobProgress } from '../../../modules/employer/post-job/PostJobProgress';
 import { Step1Details } from '../../../modules/employer/post-job/Step1Details';
 import { Step2Requirements } from '../../../modules/employer/post-job/Step2Requirements';
@@ -13,8 +15,62 @@ const SYNE = { fontFamily: "'Syne', sans-serif" };
 // ─── Inner flow (has access to context) ──────────────────────────────────────
 
 function PostJobFlow() {
-  const { currentStep, isDirty } = useJobPosting();
+  const { currentStep, isDirty, setData, setEditId, editId } = useJobPosting();
+  const router = useRouter();
   const prevStepRef = useRef(currentStep);
+  const prefillAttemptedRef = useRef<string | null>(null);
+  const [isVerified, setIsVerified] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    apiFetch<{ profile: { isVerified?: boolean } }>('/profile/employer')
+      .then(r => setIsVerified(r.profile?.isVerified ?? false))
+      .catch(() => setIsVerified(false));
+  }, []);
+
+  useEffect(() => {
+    if (!router.isReady) return;
+    const qEditId = typeof router.query.editId === 'string' ? router.query.editId : null;
+    if (!qEditId) {
+      if (editId) setEditId(null);
+      return;
+    }
+    if (prefillAttemptedRef.current === qEditId) return;
+    prefillAttemptedRef.current = qEditId;
+    setEditId(qEditId);
+    apiFetch<{ job: {
+      title: string; description: string; location: string | null; workMode: string;
+      category: string | null; jobType: string | null; seniority: string | null; experience: string | null;
+      responsibilities: string | null; qualifications: string | null; niceToHave: string | null;
+      currency: string | null; undisclosedSalary: boolean;
+      salaryMin: number | null; salaryMax: number | null;
+      deadline: string | null;
+      certifications: { name: string }[];
+    } }>(`/jobs/${qEditId}`).then(res => {
+      const j = res.job;
+      const wmMap: Record<string, WorkMode> = { REMOTE: 'Remote', HYBRID: 'Hybrid', ON_SITE: 'On-site' };
+      const prefilled: JobPostingData = {
+        title:              j.title,
+        category:           j.category ?? '',
+        workMode:           (wmMap[j.workMode] ?? '') as WorkMode | '',
+        location:           j.location ?? '',
+        jobType:            (j.jobType as JobType) ?? '',
+        deadline:           j.deadline ? j.deadline.slice(0, 10) : '',
+        salaryMin:          j.salaryMin != null ? String(j.salaryMin) : '',
+        salaryMax:          j.salaryMax != null ? String(j.salaryMax) : '',
+        currency:           j.currency ?? 'USD',
+        undisclosedSalary:  j.undisclosedSalary,
+        description:        j.description,
+        responsibilities:   j.responsibilities ?? '',
+        qualifications:     j.qualifications ?? '',
+        experience:         j.experience ?? '',
+        seniority:          j.seniority ?? '',
+        certifications:     j.certifications.map(c => c.name),
+        niceToHave:         j.niceToHave ?? '',
+        jdRole:             '',
+      };
+      setData(prefilled);
+    }).catch(err => console.error('Failed to prefill job for edit:', err));
+  }, [router.isReady, router.query.editId, setData, setEditId, editId]);
 
   // Warn on browser close / tab navigate away when there are unsaved changes
   useEffect(() => {
@@ -33,13 +89,37 @@ function PostJobFlow() {
 
   const showProgress = currentStep < 3;
 
+  if (isVerified === false) {
+    return (
+      <div className="w-full">
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold" style={{ fontFamily: "'Syne', sans-serif", color: 'var(--db-text)' }}>
+            Post a Job
+          </h1>
+        </div>
+        <div className="max-w-2xl mx-auto rounded-2xl border border-amber-200 bg-amber-50 p-8 flex flex-col items-center gap-4 text-center">
+          <span className="material-symbols-outlined text-amber-500" style={{ fontSize: 48 }}>verified_user</span>
+          <h2 className="text-[18px] font-bold text-amber-900">Company Verification Required</h2>
+          <p className="text-[14px] text-amber-800 max-w-md leading-relaxed">
+            Your company has not been verified yet. An admin must verify your company before you can post jobs.
+            Please contact support or check back later.
+          </p>
+          <a href="mailto:admin@grcopenings.com" className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-amber-600 text-white font-semibold text-[14px] hover:bg-amber-700 transition-all">
+            <span className="material-symbols-outlined" style={{ fontSize: 18 }}>mail</span>
+            Contact Support
+          </a>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full relative">
       {/* ── Page title row ── */}
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1
-            className="text-base font-bold uppercase tracking-widest"
+            className="text-2xl font-bold"
             style={{ fontFamily: "'Syne', sans-serif", color: 'var(--db-text)' }}
           >
             Post a Job

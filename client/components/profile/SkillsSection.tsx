@@ -64,11 +64,10 @@ function TagInput({ placeholder, onAdd }: TagInputProps) {
 
 interface Props {
   coreCompetencies: string[];
-  certifications: Certification[];
   onChange: (updates: Partial<ProfileFormData>) => void;
 }
 
-export function SkillsSection({ coreCompetencies, certifications, onChange }: Props) {
+export function SkillsSection({ coreCompetencies, onChange }: Props) {
   function addSkill(skill: string) {
     if (!coreCompetencies.includes(skill)) {
       onChange({ coreCompetencies: [...coreCompetencies, skill] });
@@ -79,42 +78,43 @@ export function SkillsSection({ coreCompetencies, certifications, onChange }: Pr
     onChange({ coreCompetencies: coreCompetencies.filter((s) => s !== skill) });
   }
 
-  function addCertification(name: string) {
-    onChange({ certifications: [...certifications, { id: genId(), name }] });
-  }
-
-  function removeCertification(id: string) {
-    onChange({ certifications: certifications.filter((c) => c.id !== id) });
-  }
-
   return (
     <div
       className="db-card rounded-2xl p-6 space-y-6 shadow-sm"
       style={{ background: "var(--db-card)", border: "1px solid var(--db-border)" }}
     >
-      <div className="flex items-center gap-3 border-l-4 pl-3" style={{ borderColor: "var(--db-primary)" }}>
-        <div className="p-2 rounded-lg" style={{ background: "var(--db-primary-10)" }}>
-          <span className="material-symbols-outlined" style={{ fontSize: 18, color: "var(--db-primary)" }}>
-            verified
-          </span>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3 border-l-4 pl-3" style={{ borderColor: "var(--db-primary)" }}>
+          <div className="p-2 rounded-lg" style={{ background: "var(--db-primary-10)" }}>
+            <span className="material-symbols-outlined" style={{ fontSize: 18, color: "var(--db-primary)" }}>
+              verified
+            </span>
+          </div>
+          <h3
+            className="text-sm font-bold uppercase tracking-widest"
+            style={{ color: "var(--db-text)" }}
+          >
+            Skills
+          </h3>
         </div>
-        <h3
-          className="text-sm font-bold uppercase tracking-widest"
-          style={{ color: "var(--db-text)" }}
-        >
-          Skills &amp; Certifications
-        </h3>
+        {coreCompetencies.length > 0 && (
+          <button
+            onClick={() => onChange({ coreCompetencies: [] })}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors"
+            style={{
+              color: "var(--db-error, #ef4444)",
+              background: "rgba(239, 68, 68, 0.1)",
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
+              delete_sweep
+            </span>
+            Clear All
+          </button>
+        )}
       </div>
 
-      {/* Core Competencies */}
-      <div>
-        <p
-          className="text-[10px] font-bold uppercase tracking-widest mb-3"
-          style={{ color: "var(--db-text-muted)" }}
-        >
-          Core Competencies
-        </p>
-        <div className="flex flex-wrap gap-2 items-center">
+      <div className="flex flex-wrap gap-2 items-center">
           {coreCompetencies.map((skill) => (
             <span
               key={skill}
@@ -142,50 +142,6 @@ export function SkillsSection({ coreCompetencies, certifications, onChange }: Pr
           ))}
           <TagInput placeholder="+ Add Skill" onAdd={addSkill} />
         </div>
-      </div>
-
-      <div style={{ borderTop: "1px solid var(--db-border)" }} />
-
-      {/* Professional Certifications */}
-      <div>
-        <p
-          className="text-[10px] font-bold uppercase tracking-widest mb-3"
-          style={{ color: "var(--db-text-muted)" }}
-        >
-          Professional Certifications
-        </p>
-        <div className="flex flex-wrap gap-2 items-center">
-          {certifications.map((cert) => (
-            <span
-              key={cert.id}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold"
-              style={{
-                background: "var(--db-primary)",
-                color: "#ffffff",
-              }}
-            >
-              <span className="material-symbols-outlined" style={{ fontSize: 12 }}>
-                workspace_premium
-              </span>
-              {cert.name}
-              <button
-                onClick={() => removeCertification(cert.id)}
-                style={{
-                  color: "#ffffff",
-                  opacity: 0.8,
-                  fontSize: 14,
-                  lineHeight: 1,
-                  marginLeft: 1,
-                }}
-                title={`Remove ${cert.name}`}
-              >
-                ×
-              </button>
-            </span>
-          ))}
-          <TagInput placeholder="+ Add Certificate" onAdd={addCertification} />
-        </div>
-      </div>
     </div>
   );
 }

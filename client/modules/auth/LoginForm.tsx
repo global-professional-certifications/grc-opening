@@ -5,6 +5,7 @@ import { apiFetch } from "../../lib/api";
 import { setToken, setStoredUser, isFirstLogin, markVisited } from "../../lib/auth";
 import { useUser } from "../../contexts/UserContext";
 import { getDashboardPath, UserRole } from "../../lib/userRole";
+import { COUNTRY_CODE_TO_CURRENCY, getCurrencyFromLocation } from "../../lib/currencyMap";
 
 interface LoginResponse {
   token: string;
@@ -51,50 +52,54 @@ export function LoginForm({ onRoleChange }: LoginFormProps) {
     setLoading(true);
 
     try {
-      const res = await apiFetch<LoginResponse>("/auth/login", {
+      // 1. Call Local Auth API — pass selected role so the server can enforce role-specific login
+      const requestedRole = activeRole === "employer" ? "EMPLOYER" : "JOB_SEEKER";
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+      const response = await fetch(`${API_URL}/auth/local/login`, {
         method: "POST",
-        body: JSON.stringify({ 
-          email, 
-          password, 
-          role: activeRole === "employer" ? "EMPLOYER" : "JOB_SEEKER" 
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password, role: requestedRole }),
       });
 
-      setToken(res.token);
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Login failed");
 
-      let firstName = "";
-      let lastName = "";
-      let headline = "";
+      // 2. Store the local token & initialize auth bridge
+      localStorage.setItem("grc_local_token", data.token);
+      setToken(data.token); // Updates api.ts bridge
+      
+      // 3. Fetch user info 
+      const meRes = await apiFetch<{ user: { id: string; role: string; email_verified: boolean } }>("/auth/me");
+      
+      const dbUser = { 
+        id: meRes.user.id,
+        role: meRes.user.role,
+        emailVerified: meRes.user.email_verified,
+        email 
+      };
 
-      try {
-        if (res.user.role === "JOB_SEEKER") {
-          const profileRes = await apiFetch<SeekerProfileResponse>("/profile/seeker");
-          firstName = profileRes.profile.firstName;
-          lastName = profileRes.profile.lastName;
-          headline = profileRes.profile.headline ?? "";
-        } else if (res.user.role === "EMPLOYER") {
-          const profileRes = await apiFetch<EmployerProfileResponse>("/profile/employer");
-          firstName = profileRes.profile.companyName;
-        }
-      } catch {
-        firstName = email.split("@")[0];
-      }
-
-      const storedUser = { ...res.user, firstName, lastName, headline };
-      setUser(storedUser);
-      setStoredUser(storedUser);
-
-      const roleEnum = (res.user.role === "EMPLOYER" ? "employer" : "job_seeker") as UserRole;
+      // 4. Update Global State
+      setUser(dbUser as any);
+      setStoredUser(dbUser as any);
+      
+      const roleEnum = (dbUser.role === "EMPLOYER" ? "employer" : "job_seeker") as UserRole;
       import("../../lib/userRole").then(lib => lib.saveRole(roleEnum));
 
-      if (isFirstLogin(res.user.id)) {
-        markVisited(res.user.id);
-        router.push(roleEnum === "employer" ? "/employer/profile" : "/dashboard/profile");
-      } else {
-        router.push(getDashboardPath(roleEnum));
+      // Set default currency from country/location for seekers (if not already set)
+      if (dbUser.role === "JOB_SEEKER" && !localStorage.getItem("grc_preferred_currency")) {
+        apiFetch<{ profile: { country?: string; location?: string } }>("/profile/seeker").then(r => {
+          const currency =
+            COUNTRY_CODE_TO_CURRENCY[(r.profile?.country ?? "").toLowerCase()] ??
+            getCurrencyFromLocation(r.profile?.location ?? "");
+          if (currency) localStorage.setItem("grc_preferred_currency", currency);
+        }).catch(() => {});
       }
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Login failed. Please check your credentials.");
+
+      // 5. Redirect based on role
+      router.push(dbUser.role === "EMPLOYER" ? "/employer/dashboard" : "/dashboard");
+    } catch (err: any) {
+      console.error("[LocalLogin] Error:", err.message);
+      setError(err.message || "Invalid credentials.");
     } finally {
       setLoading(false);
     }
@@ -152,25 +157,25 @@ export function LoginForm({ onRoleChange }: LoginFormProps) {
           onChange={e => setEmail(e.target.value)}
         />
 
-        <div className="relative">
-          <ModernInput
-            label="Password"
-            type={showPassword ? "text" : "password"}
-            id="login-password"
-            icon="lock"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-          />
-          <button
-            type="button"
-            onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-4 bottom-[12px] text-gray-400 hover:text-[#3a1292] transition-colors"
-          >
-            <span className="material-symbols-outlined text-[20px]">
-              {showPassword ? "visibility_off" : "visibility"}
-            </span>
-          </button>
-        </div>
+        <ModernInput
+          label="Password"
+          type={showPassword ? "text" : "password"}
+          id="login-password"
+          icon="lock"
+          value={password}
+          onChange={e => setPassword(e.target.value)}
+          rightElement={
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="text-gray-400 hover:text-[#3a1292] transition-colors p-1"
+            >
+              <span className="material-symbols-outlined text-[20px]">
+                {showPassword ? "visibility_off" : "visibility"}
+              </span>
+            </button>
+          }
+        />
 
         <div className="flex items-center justify-between mb-2">
           <label className="flex items-center gap-2 cursor-pointer group">
@@ -178,12 +183,12 @@ export function LoginForm({ onRoleChange }: LoginFormProps) {
               type="checkbox"
               className="w-4 h-4 rounded border-gray-300 text-[#3a1292] focus:ring-[#3a1292] cursor-pointer transition-all"
             />
-            <span className="text-[13px] font-medium text-gray-500 group-hover:text-gray-900 transition-colors">
+            <span className="text-[13px] font-medium text-gray-500 group-hover:text-gray-900 transition-colors leading-none">
               Stay signed in
             </span>
           </label>
           <a href="/auth/forgot-password" 
-             className="text-[12px] font-bold text-[#3a1292] hover:opacity-80 transition-opacity uppercase tracking-wider">
+             className="text-[12px] font-bold text-[#3a1292] hover:opacity-80 transition-opacity uppercase tracking-wider leading-none">
             Forgot Password?
           </a>
         </div>

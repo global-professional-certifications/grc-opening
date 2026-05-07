@@ -30,7 +30,7 @@ function MarketingPanel({
   stats: { label: string; value: string }[]
 }) {
   return (
-    <div className="relative w-full h-full p-12 lg:p-16 flex flex-col justify-between text-white overflow-hidden">
+    <div className="relative w-full min-h-full p-10 lg:p-14 xl:p-20 flex flex-col justify-between text-white overflow-hidden">
       {/* Premium Mesh Gradient Background */}
       <div className="absolute inset-0 bg-[#3a1292] z-0" />
       <div className="absolute top-[-10%] right-[-10%] w-[700px] h-[700px] bg-[#5a2dc1] opacity-40 blur-[120px] rounded-full animate-pulse" />
@@ -38,26 +38,26 @@ function MarketingPanel({
       
       {/* Decorative Overlay */}
       <div className="absolute inset-0 opacity-[0.03] z-0" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '32px 32px' }} />
-
+ 
       {/* Hero Content */}
-      <div className="relative z-10 flex flex-col gap-8 max-w-[540px]">
+      <div className="relative z-10 flex flex-col gap-6 max-w-[540px]">
         <div className="px-5 py-2 rounded-full bg-white/10 border border-white/10 backdrop-blur-md self-start">
           <span className="text-[11px] font-bold tracking-[0.15em] uppercase opacity-90" style={{ fontFamily: "'Poppins', sans-serif" }}>
             {role.replace("_", " ")} PLATFORM
           </span>
         </div>
         
-        <h1 className="text-[52px] lg:text-[60px] font-bold leading-[1.1] tracking-tight" style={{ fontFamily: "'Poppins', sans-serif" }}>
+        <h1 className="text-[40px] lg:text-[46px] xl:text-[54px] font-bold leading-[1.15] tracking-tight" style={{ fontFamily: "'Poppins', sans-serif" }}>
           {title}
         </h1>
         
-        <p className="text-[18px] lg:text-[19px] leading-relaxed opacity-80 font-normal" style={{ fontFamily: "'Poppins', sans-serif" }}>
+        <p className="text-[17px] lg:text-[18px] leading-relaxed opacity-80 font-normal" style={{ fontFamily: "'Poppins', sans-serif" }}>
           {subtitle}
         </p>
       </div>
-
+ 
       {/* Stats Section: Glassmorphism */}
-      <div className="relative z-10 grid grid-cols-3 gap-8 p-8 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-xl">
+      <div className="relative z-10 grid grid-cols-3 gap-6 p-6 lg:p-8 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-xl">
         {stats.map((stat, i) => (
           <div key={i} className="flex flex-col gap-1">
             <span className="text-[28px] font-bold leading-none" style={{ fontFamily: "'Poppins', sans-serif" }}>{stat.value}</span>
@@ -93,18 +93,18 @@ export function AuthLayout({ children, role = "job_seeker" }: AuthLayoutProps) {
   const content = role === "employer" ? employerContent : seekerContent;
 
   return (
-    <div className="auth-layout w-full min-h-screen" style={{ fontFamily: "'Poppins', sans-serif" }}>
-      {/* Left Panel: Form Section (Clean White) */}
-      <div className="w-full h-full bg-white flex flex-col items-center justify-center px-6 lg:px-12 py-4">
-        <div className="w-full max-w-[560px]">
+    <div className="auth-layout" style={{ fontFamily: "'Poppins', sans-serif" }}>
+      {/* Left Panel: Form — direct child of grid so CSS grid-template-columns applies */}
+      <div className="left-panel">
+        <div className="form-card">
           <Logo />
           {children}
         </div>
       </div>
 
-      {/* Right Panel: Marketing Section (Brand Blue) */}
-      <div className="hidden lg:block w-full h-full bg-[#3a1292] relative">
-        <MarketingPanel 
+      {/* Right Panel: Marketing — second direct child of grid */}
+      <div className="auth-right-panel">
+        <MarketingPanel
           key={role}
           role={role}
           title={content.title}
