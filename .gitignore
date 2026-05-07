@@ -5,6 +5,10 @@ node_modules/
 .next/
 out/
 
+# lockfiles
+package-lock.json
+yarn.lock
+
 # env files
 .env
 .env.local

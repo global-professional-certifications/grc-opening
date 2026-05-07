@@ -2,6 +2,7 @@ import React from "react";
 import type { EmployerProfileData } from "./types";
 import { INDUSTRY_OPTIONS, COMPANY_SIZE_OPTIONS } from "./types";
 import { SectionCard, Field, SelectField } from "./shared";
+import { CompanyAutoFill } from "./CompanyAutoFill";
 
 interface Props {
   data: Pick<
@@ -20,6 +21,7 @@ const YEAR_OPTIONS = Array.from({ length: currentYear - 1899 }, (_, i) =>
 export function CompanyInfoSection({ data, onChange, errors = {} }: Props) {
   return (
     <SectionCard icon="business" title="Company Information">
+      <CompanyAutoFill currentName={data.companyName} onApply={onChange} />
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Field
           id="companyName"

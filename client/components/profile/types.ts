@@ -1,4 +1,4 @@
-﻿export interface WorkExperience {
+export interface WorkExperience {
   id: string;
   title: string;
   company: string;
@@ -6,6 +6,17 @@
   startDate: string;
   endDate: string;
   current: boolean;
+  description: string;
+}
+
+export interface Education {
+  id: string;
+  institution: string;
+  degree: string;
+  field: string;
+  gpa: string;
+  startDate: string;
+  endDate: string;
   description: string;
 }
 
@@ -20,10 +31,12 @@ export interface ProfileFormData {
   lastName: string;
   professionalTitle: string;
   email: string;
+  phone?: string;
   location: string;
   linkedInUrl: string;
   summary: string;
   workExperience: WorkExperience[];
+  education: Education[];
   coreCompetencies: string[];
   certifications: Certification[];
   resumeUrl: string | null;

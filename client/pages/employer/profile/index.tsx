@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { EmployerDashboardLayout } from "../../../components/layout/EmployerDashboardLayout";
 import { useDashboardTheme } from "../../../contexts/DashboardThemeContext";
+import { apiFetch } from "../../../lib/api";
 import type { EmployerProfileData } from "../../../components/employer/profile/types";
 import { EMPTY_EMPLOYER_PROFILE } from "../../../components/employer/profile/types";
 import {
@@ -447,21 +448,57 @@ export default function EmployerProfilePage() {
   const isBlank =
     !formData.companyName && !formData.industry && !formData.description && !formData.contactName;
 
-  // Load from localStorage on mount
+  // Load from API on mount, fall back to localStorage cache
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved) as EmployerProfileData;
-        setFormData(parsed);
-        setOriginal(parsed);
-        setHasEverSaved(true);
-        if (parsed.logoUrl) setLogoImage(parsed.logoUrl);
-      }
-    } catch {
-      // fall through -- use empty profile
-    }
-    setLoading(false);
+    apiFetch<{ profile: any }>("/profile/employer")
+      .then(({ profile: p }) => {
+        const mapped: EmployerProfileData = {
+          companyName:      p.companyName        ?? "",
+          industry:         p.industry           ?? "",
+          companySize:      p.companySize        ?? "",
+          foundedYear:      p.foundedYear        ?? "",
+          website:          p.website            ?? "",
+          tagline:          p.tagline            ?? "",
+          description:      p.description        ?? "",
+          contactName:      p.contactName        ?? "",
+          contactEmail:     p.contactEmail       ?? "",
+          contactPhone:     p.phone              ?? "",
+          contactPhoneCode: p.contactPhoneCode   ?? "+1",
+          address:          p.address            ?? "",
+          city:             p.city               ?? "",
+          state:            p.state              ?? "",
+          stateCode:        "",
+          country:          p.country            ?? "",
+          countryCode:      p.countryCode        ?? "",
+          linkedInUrl:      p.linkedInUrl        ?? "",
+          twitterUrl:       p.twitterUrl         ?? "",
+          otherUrl:         "",
+          customLinks:      [],
+          emailNotifications: true,
+          applicantAlerts:    true,
+          weeklyDigest:       false,
+          logoUrl:          p.logoUrl            ?? null,
+        };
+        setFormData(mapped);
+        setOriginal(mapped);
+        if (mapped.companyName) setHasEverSaved(true);
+        if (mapped.logoUrl) setLogoImage(mapped.logoUrl);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(mapped));
+      })
+      .catch(() => {
+        // fall back to localStorage cache
+        try {
+          const cached = localStorage.getItem(STORAGE_KEY);
+          if (cached) {
+            const parsed = JSON.parse(cached) as EmployerProfileData;
+            setFormData(parsed);
+            setOriginal(parsed);
+            setHasEverSaved(true);
+            if (parsed.logoUrl) setLogoImage(parsed.logoUrl);
+          }
+        } catch { /* ignore */ }
+      })
+      .finally(() => setLoading(false));
   }, []);
 
   // Auto-save to localStorage on every change (debounce-style -- on unmount save too)
@@ -563,27 +600,52 @@ export default function EmployerProfilePage() {
     }
 
     setSaving(true);
-    await new Promise((r) => setTimeout(r, 600)); // simulate network
-
-    // Auto prepend https filter
     const prep = (u: string) => (u && !u.startsWith("http") ? `https://${u}` : u);
     const finalData = {
       ...formData,
-      website: prep(formData.website),
+      website:    prep(formData.website),
       linkedInUrl: prep(formData.linkedInUrl),
-      twitterUrl: prep(formData.twitterUrl),
-      otherUrl: prep(formData.otherUrl),
+      twitterUrl:  prep(formData.twitterUrl),
+      otherUrl:    prep(formData.otherUrl),
       customLinks: formData.customLinks?.map(prep),
     };
 
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(finalData));
-    setOriginal(finalData);
-    setFormData(finalData);
-    setHasEverSaved(true);
-    setSaving(false);
-    // Show toast
-    setToastVisible(true);
-    setTimeout(() => setToastVisible(false), 3000);
+    try {
+      await apiFetch("/profile/employer", {
+        method: "PATCH",
+        body: JSON.stringify({
+          companyName:      finalData.companyName,
+          description:      finalData.description,
+          website:          finalData.website,
+          industry:         finalData.industry,
+          companySize:      finalData.companySize,
+          tagline:          finalData.tagline,
+          foundedYear:      finalData.foundedYear,
+          logoUrl:          finalData.logoUrl,
+          phone:            finalData.contactPhone,
+          contactPhoneCode: finalData.contactPhoneCode,
+          contactName:      finalData.contactName,
+          contactEmail:     finalData.contactEmail,
+          address:          finalData.address,
+          city:             finalData.city,
+          state:            finalData.state,
+          country:          finalData.country,
+          countryCode:      finalData.countryCode,
+          linkedInUrl:      finalData.linkedInUrl,
+          twitterUrl:       finalData.twitterUrl,
+        }),
+      });
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(finalData));
+      setOriginal(finalData);
+      setFormData(finalData);
+      setHasEverSaved(true);
+      setToastVisible(true);
+      setTimeout(() => setToastVisible(false), 3000);
+    } catch (err: any) {
+      setErrors({ companyName: err?.message ?? "Failed to save. Please try again." });
+    } finally {
+      setSaving(false);
+    }
   }
 
   function handleEditClick() {

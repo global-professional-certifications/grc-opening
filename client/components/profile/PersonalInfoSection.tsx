@@ -64,7 +64,7 @@ function Field({ label, value, onChange, type = "text", placeholder, colSpan }: 
 interface Props {
   data: Pick<
     ProfileFormData,
-    "firstName" | "lastName" | "professionalTitle" | "email" | "location" | "linkedInUrl"
+    "firstName" | "lastName" | "professionalTitle" | "email" | "phone" | "location" | "linkedInUrl"
   >;
   onChange: (updates: Partial<ProfileFormData>) => void;
 }
@@ -85,18 +85,41 @@ export function PersonalInfoSection({ data, onChange }: Props) {
       className="db-card rounded-2xl p-6 space-y-5 shadow-sm"
       style={{ background: "var(--db-card)", border: "1px solid var(--db-border)" }}
     >
-      <div className="flex items-center gap-3 border-l-4 pl-3" style={{ borderColor: "var(--db-primary)" }}>
-        <div className="p-2 rounded-lg" style={{ background: "var(--db-primary-10)" }}>
-          <span className="material-symbols-outlined" style={{ fontSize: 18, color: "var(--db-primary)" }}>
-            person
-          </span>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3 border-l-4 pl-3" style={{ borderColor: "var(--db-primary)" }}>
+          <div className="p-2 rounded-lg" style={{ background: "var(--db-primary-10)" }}>
+            <span className="material-symbols-outlined" style={{ fontSize: 18, color: "var(--db-primary)" }}>
+              person
+            </span>
+          </div>
+          <h3
+            className="text-sm font-bold tracking-widest uppercase"
+            style={{ color: "var(--db-text)" }}
+          >
+            Personal Information
+          </h3>
         </div>
-        <h3
-          className="text-sm font-bold tracking-widest uppercase"
-          style={{ color: "var(--db-text)" }}
+        <button
+          onClick={() => onChange({
+            firstName: "",
+            lastName: "",
+            professionalTitle: "",
+            email: "",
+            phone: "",
+            location: "",
+            linkedInUrl: ""
+          })}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors"
+          style={{
+            color: "var(--db-error, #ef4444)",
+            background: "rgba(239, 68, 68, 0.1)",
+          }}
         >
-          Personal Information
-        </h3>
+          <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
+            delete_sweep
+          </span>
+          Clear All
+        </button>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
@@ -124,6 +147,13 @@ export function PersonalInfoSection({ data, onChange }: Props) {
           value={data.location}
           onChange={(v) => onChange({ location: v })}
           placeholder="London, United Kingdom"
+        />
+        <Field
+          label="Phone Number"
+          value={data.phone ?? ""}
+          onChange={(v) => onChange({ phone: v })}
+          type="tel"
+          placeholder="+1 555 000 0000"
         />
         <Field
           label="LinkedIn URL"

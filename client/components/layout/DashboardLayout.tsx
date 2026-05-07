@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/router";
 import { DashboardThemeProvider, useDashboardTheme } from "../../contexts/DashboardThemeContext";
 import { useUser } from "../../contexts/UserContext";
+import { COUNTRY_CODE_TO_CURRENCY, getCurrencyFromLocation } from "../../lib/currencyMap";
 
 // Fonts are now handled globally via Poppins in _document.tsx
 
@@ -24,15 +25,11 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  const displayName = user
-    ? [user.firstName, user.lastName].filter(Boolean).join(" ") || user.email
-    : "—";
-  const displaySub = user?.headline || (user?.role === "EMPLOYER" ? "Employer" : "GRC Professional");
-  const initials = user
-    ? ((user.firstName?.[0] ?? "") + (user.lastName?.[0] ?? "")).toUpperCase() || user.email[0].toUpperCase()
-    : "?";
+  // Tracks whether auth/role check passed. While false, we render a neutral
+  // splash so a wrong-role user never sees seeker content before the redirect.
+  const [roleChecked, setRoleChecked] = useState(false);
 
-  // Redirect to login if no token (catches back-button after logout)
+  // Consolidated auth + role guard. Runs on mount and whenever user changes.
   useEffect(() => {
     if (typeof window === "undefined") return;
     const token = localStorage.getItem("grc_token");
@@ -40,12 +37,45 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
       router.replace("/auth/login");
       return;
     }
-    
-    // Redirect employers away from seeker pages
-    if (user?.role === "EMPLOYER" && !router.pathname.startsWith("/employer")) {
+    // UserContext hydrates async from localStorage; wait for it.
+    if (!user) return;
+    if (user.role !== "JOB_SEEKER") {
       router.replace("/employer/dashboard");
+      return;
     }
-  }, [router, user]);
+    setRoleChecked(true);
+  }, [user, router]);
+
+  const [profile, setProfile] = useState<any>(null);
+
+  useEffect(() => {
+    if (!roleChecked) return;
+    import("../../lib/api").then(({ apiFetch }) => {
+      apiFetch<{ profile: any }>("/profile/seeker")
+        .then(res => {
+          setProfile(res.profile);
+          const country = (res.profile?.country ?? "").toLowerCase();
+          const location = res.profile?.location ?? "";
+          const currency = COUNTRY_CODE_TO_CURRENCY[country] ?? getCurrencyFromLocation(location);
+          if (currency && localStorage.getItem("grc_preferred_currency") !== currency) {
+            localStorage.setItem("grc_preferred_currency", currency);
+            window.dispatchEvent(new StorageEvent("storage", { key: "grc_preferred_currency", newValue: currency }));
+          }
+        })
+        .catch(console.error);
+    });
+  }, [roleChecked]);
+
+  const firstName = profile?.firstName || profile?.representativeFirstName || user?.firstName;
+  const lastName = profile?.lastName || profile?.representativeLastName || user?.lastName;
+
+  const displayName = user
+    ? [firstName, lastName].filter(Boolean).join(" ") || user.email
+    : "—";
+  const displaySub = profile?.headline || profile?.industry || (user?.role === "EMPLOYER" ? "Employer" : "GRC Professional");
+  const initials = user
+    ? ((firstName?.[0] ?? "") + (lastName?.[0] ?? "")).toUpperCase() || user.email[0].toUpperCase()
+    : "?";
 
   // Close menu when clicking outside
   useEffect(() => {
@@ -62,6 +92,17 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
     logout();
     // replace() so the dashboard is removed from history — back button won't return to it
     router.replace("/auth/login");
+  }
+
+  if (!roleChecked) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ background: "var(--db-bg)", color: "var(--db-text-muted)" }}>
+        <div className="flex flex-col items-center gap-3">
+          <span className="h-6 w-6 rounded-full border-2 border-current border-t-transparent animate-spin" />
+          <p className="text-xs">Verifying access…</p>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -98,8 +139,10 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
               <div className="space-y-1">
                 <NavItem href="/dashboard"              icon="dashboard"   label="Dashboard" />
                 <NavItem href="/dashboard/jobs"         icon="work"        label="Jobs" />
-                <NavItem href="/dashboard/applications" icon="description" label="Applications" />
-                <NavItem href="/dashboard/messages"     icon="mail"        label="Messages" />
+                <NavItem href="/dashboard/saved-jobs"   icon="bookmark"    label="Saved Jobs" />
+                <NavItem href="/dashboard/notifications" icon="notifications" label="Notifications" />
+                {/* <NavItem href="/dashboard/applications" icon="description" label="Applications" /> */}
+                {/* <NavItem href="/dashboard/messages"     icon="mail"        label="Messages" /> */}
                 <NavItem href="/dashboard/profile"      icon="person"      label="Profile" />
               </div>
             </div>
@@ -111,6 +154,15 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
               <div className="space-y-1">
                 <NavItem href="/dashboard/search"   icon="search"    label="Search Certs" />
                 <NavItem href="/dashboard/insights" icon="analytics" label="Market Insights" />
+              </div>
+            </div>
+            <div>
+              <p className="px-4 text-[11px] uppercase tracking-widest mb-4 font-semibold"
+                style={{ color: "var(--db-sidebar-section)" }}>
+                AI Tools
+              </p>
+              <div className="space-y-1">
+                <NavItem href="/dashboard/resume-analyser" icon="smart_toy" label="Resume Enhancer" />
               </div>
             </div>
           </nav>

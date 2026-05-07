@@ -3,7 +3,7 @@ import { useJobPosting } from '../../../contexts/JobPostingContext';
 import { Select } from '../../../components/forms/Select';
 import { RichTextarea, extractText } from '../../../components/forms/RichTextarea';
 import { TagInput } from '../../../components/forms/TagInput';
-import { saveJobDraftAPI } from '../../../lib/api/jobs';
+import { saveJobDraftAPI } from '@/lib/api/jobs';
 
 const MONO = { fontFamily: "'JetBrains Mono', monospace" };
 const SYNE = { fontFamily: "'Syne', sans-serif" };

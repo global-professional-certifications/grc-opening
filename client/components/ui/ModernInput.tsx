@@ -5,13 +5,14 @@ interface ModernInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   icon?: string;
   error?: string;
   hint?: string;
+  rightElement?: React.ReactNode;
 }
 
-export function ModernInput({ label, icon, error, hint, id, ...props }: ModernInputProps) {
+export function ModernInput({ label, icon, error, hint, id, rightElement, ...props }: ModernInputProps) {
   const [focused, setFocused] = React.useState(false);
 
   return (
-    <div className="flex flex-col gap-1 w-full group">
+    <div className="flex flex-col gap-2 w-full group">
       <label
         htmlFor={id}
         className={`text-[13px] font-semibold transition-colors duration-200 tracking-tight ${
@@ -51,6 +52,11 @@ export function ModernInput({ label, icon, error, hint, id, ...props }: ModernIn
           style={{ fontFamily: "'Poppins', sans-serif" }}
           {...props}
         />
+        {rightElement && (
+          <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center">
+            {rightElement}
+          </div>
+        )}
       </div>
 
       {error ? (

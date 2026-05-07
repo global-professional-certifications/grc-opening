@@ -27,6 +27,16 @@ interface ApiProfilePayload {
       current: boolean;
       description: string | null;
     }[];
+    educations?: {
+      id: string;
+      institution: string;
+      degree: string | null;
+      field: string | null;
+      gpa: string | null;
+      startDate: string | null;
+      endDate: string | null;
+      description: string | null;
+    }[];
     certifications: { id: string; name: string }[];
     user: { email: string };
   };
@@ -52,8 +62,18 @@ function mapApiToForm(api: ApiProfilePayload): ProfileFormData {
       endDate: wx.endDate ?? "",
       current: wx.current,
       description: wx.description ?? "",
-    })),
-    coreCompetencies: p.skills.map((s) => s.name),
+    })) || [],
+    education: p.educations?.map((edu: any) => ({
+      id: edu.id,
+      institution: edu.institution,
+      degree: edu.degree ?? "",
+      field: edu.field ?? "",
+      gpa: edu.gpa ?? "",
+      startDate: edu.startDate ?? "",
+      endDate: edu.endDate ?? "",
+      description: edu.description ?? "",
+    })) || [],
+    coreCompetencies: p.skills?.map((s: any) => s.name) || [],
     certifications: p.certifications.map((c) => ({ id: c.id, name: c.name })),
     resumeUrl: p.resumeUrl,
     resumeFileName: p.resumeUrl ? "Resume.pdf" : null,
@@ -74,6 +94,7 @@ const EMPTY: ProfileFormData = {
   linkedInUrl: "",
   summary: "",
   workExperience: [],
+  education: [],
   coreCompetencies: [],
   certifications: [],
   resumeUrl: null,
@@ -301,6 +322,60 @@ export default function DigitalResumePage() {
                             style={{ color: "var(--db-text-muted)" }}
                           >
                             {wx.description}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* Education */}
+            {profile.education.length > 0 && (
+              <section>
+                <SectionHeading icon="school" label="Education" />
+                <div className="mt-3 space-y-5">
+                  {profile.education.map((edu) => (
+                    <div key={edu.id} className="flex gap-4">
+                      {/* Timeline dot */}
+                      <div className="flex flex-col items-center pt-1">
+                        <div
+                          className="w-2.5 h-2.5 rounded-full shrink-0"
+                          style={{ background: "var(--db-primary)" }}
+                        />
+                        <div
+                          className="w-px flex-1 mt-1"
+                          style={{ background: "var(--db-border)" }}
+                        />
+                      </div>
+
+                      <div className="pb-2">
+                        <p
+                          className="text-sm font-semibold"
+                          style={{ color: "var(--db-text)" }}
+                        >
+                          {edu.institution}
+                        </p>
+                        <p
+                          className="text-xs mt-0.5"
+                          style={{ color: "var(--db-primary)" }}
+                        >
+                          {edu.degree}{edu.field ? ` in ${edu.field}` : ""}
+                          {edu.gpa ? ` · GPA: ${edu.gpa}` : ""}
+                        </p>
+                        <p
+                          className="text-xs mt-0.5"
+                          style={{ ...MONO, color: "var(--db-text-muted)" }}
+                        >
+                          {edu.startDate} — {edu.endDate}
+                        </p>
+                        {edu.description && (
+                          <p
+                            className="text-sm mt-2 leading-relaxed"
+                            style={{ color: "var(--db-text-muted)" }}
+                          >
+                            {edu.description}
                           </p>
                         )}
                       </div>

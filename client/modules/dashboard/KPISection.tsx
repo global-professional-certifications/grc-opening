@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { apiFetch } from "@/lib/api";
 
 function SparkBar({ h, active }: { h: string; active: boolean }) {
   return (
@@ -26,7 +27,7 @@ function StatCard({ children }: { children: React.ReactNode }) {
   );
 }
 
-function Card1() {
+function Card1({ count }: { count: number }) {
   return (
     <StatCard>
       <div className="flex justify-between items-start mb-6">
@@ -36,8 +37,8 @@ function Card1() {
         </div>
       </div>
       <div className="flex items-baseline gap-2 mb-6">
-        <h3 className="text-4xl font-bold tracking-tight">12</h3>
-        <span className="text-sm font-medium" style={{ color: "rgba(255, 255, 255, 0.9)" }}>+14% ↑</span>
+        <h3 className="text-4xl font-bold tracking-tight">{count}</h3>
+        <span className="text-sm font-medium" style={{ color: "rgba(255, 255, 255, 0.9)" }}>Active</span>
       </div>
       <div className="h-8 flex items-end gap-1.5 opacity-90">
         <SparkBar h="40%" active={false} /><SparkBar h="60%" active={false} />
@@ -58,15 +59,14 @@ function Card2() {
         </div>
       </div>
       <div className="flex items-baseline gap-2 mb-6">
-        <h3 className="text-4xl font-bold tracking-tight">47</h3>
-        <span className="text-sm font-medium opacity-70">-- 0%</span>
+        <h3 className="text-4xl font-bold tracking-tight">—</h3>
       </div>
-      <p className="text-xs opacity-70 font-medium">Viewed by 8 recruiters this week</p>
+      <p className="text-xs opacity-70 font-medium">Tracking not yet enabled</p>
     </StatCard>
   );
 }
 
-function Card3() {
+function Card3({ saved }: { saved: number }) {
   return (
     <StatCard>
       <div className="flex justify-between items-start mb-6">
@@ -76,12 +76,12 @@ function Card3() {
         </div>
       </div>
       <div className="flex items-baseline gap-2 mb-6">
-        <h3 className="text-4xl font-bold tracking-tight">8</h3>
-        <span className="text-sm font-medium" style={{ color: "rgba(255, 255, 255, 0.9)" }}>+2 new</span>
+        <h3 className="text-4xl font-bold tracking-tight">{saved}</h3>
+        <span className="text-sm font-medium" style={{ color: "rgba(255, 255, 255, 0.9)" }}>Total</span>
       </div>
       <div className="flex -space-x-2">
         {["DS","GS","K"].map((i, idx) => (
-          <div key={i} className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] text-primary font-bold ${["bg-slate-100","bg-slate-200","bg-slate-300"][idx]}`}
+          <div key={i} className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold ${["bg-slate-100","bg-slate-200","bg-slate-300"][idx]}`}
             style={{ border: "2px solid var(--db-primary)", color: "var(--db-primary)" }}>{i}</div>
         ))}
       </div>
@@ -89,7 +89,7 @@ function Card3() {
   );
 }
 
-function Card4() {
+function Card4({ rate }: { rate: number }) {
   return (
     <StatCard>
       <div className="flex justify-between items-start mb-6">
@@ -99,13 +99,7 @@ function Card4() {
         </div>
       </div>
       <div className="flex items-center justify-between">
-        <h3 className="text-4xl font-bold tracking-tight">41%</h3>
-        <div className="relative w-12 h-12">
-          <svg className="w-full h-full -rotate-90" viewBox="0 0 64 64">
-            <circle cx="32" cy="32" r="28" fill="transparent" stroke="rgba(255, 255, 255, 0.1)" strokeWidth="6" />
-            <circle cx="32" cy="32" r="28" fill="transparent" stroke="#ffffff" strokeWidth="6" strokeDasharray="175" strokeDashoffset="103" strokeLinecap="round" />
-          </svg>
-        </div>
+        <h3 className="text-4xl font-bold tracking-tight">{rate}%</h3>
       </div>
       <p className="mt-4 text-xs opacity-70 font-medium tracking-tight">Top 15% among GRC candidates</p>
     </StatCard>
@@ -113,9 +107,25 @@ function Card4() {
 }
 
 export function KPISection() {
+  const [stats, setStats] = useState({ applicationsSent: 0, profileViews: 0, savedJobs: 0, responseRate: 0 });
+
+  useEffect(() => {
+    let mounted = true;
+    apiFetch<{ stats: any }>('/applications/stats')
+      .then(res => {
+        if (mounted && res.stats) setStats(res.stats);
+      })
+      .catch(console.error);
+    return () => { mounted = false; };
+  }, []);
+
   return (
     <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      <Card1 /><Card2 /><Card3 /><Card4 />
+      <Card1 count={stats.applicationsSent} />
+      <Card2 />
+      <Card3 saved={stats.savedJobs} />
+      <Card4 rate={stats.responseRate} />
     </section>
   );
 }
+
