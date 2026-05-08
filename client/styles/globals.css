@@ -274,7 +274,7 @@ body {
 
 .grc-input:focus {
   border-color: var(--border-focus);
-  box-shadow: 0 0 0 3px rgba(0, 212, 178, 0.12);
+  box-shadow: 0 0 0 3px rgba(58, 18, 146, 0.12);
 }
 
 .grc-input-error {
@@ -426,17 +426,6 @@ body {
 
 .panel-enter {
   animation: panelEnter 0.28s ease both;
-}
-
-/* ─── BADGE CARD HOVER ───────────────────────────────────── */
-.badge-card {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  cursor: default;
-}
-
-.badge-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 20px rgba(0, 196, 164, 0.15);
 }
 
 /* ─── INPUT IMPROVEMENTS ─────────────────────────────────── */
@@ -1321,5 +1310,17 @@ body {
 
   .ra-exp-meta {
     align-items: flex-start;
+  }
+}
+
+/* ─── REDUCED MOTION ─────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

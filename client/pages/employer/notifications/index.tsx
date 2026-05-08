@@ -23,6 +23,13 @@ export default function EmployerNotificationsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [feedbackModal, setFeedbackModal] = useState<FeedbackModalState | null>(null);
+
+  useEffect(() => {
+    if (!feedbackModal) return;
+    const handleKeyDown = (e: KeyboardEvent) => { if (e.key === 'Escape') setFeedbackModal(null); };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [feedbackModal]);
   
   // Filtering & Pagination
   const [activeTab, setActiveTab] = useState('ALL'); // ALL, ADMIN, APPLICATIONS
@@ -309,7 +316,7 @@ export default function EmployerNotificationsPage() {
               <button
                 disabled={page === 1}
                 onClick={() => setPage(p => p - 1)}
-                className="px-4 py-2 rounded-xl border text-sm font-bold disabled:opacity-40 transition-all hover:bg-black/5 dark:hover:bg-white/5"
+                className="px-4 py-2 rounded-xl border text-sm font-bold disabled:opacity-40 disabled:cursor-not-allowed transition-all hover:bg-black/5 dark:hover:bg-white/5"
                 style={{ borderColor: "var(--db-border)", color: "var(--db-text)" }}
               >
                 Previous
@@ -317,7 +324,7 @@ export default function EmployerNotificationsPage() {
               <button
                 disabled={page === totalPages}
                 onClick={() => setPage(p => p + 1)}
-                className="px-4 py-2 rounded-xl border text-sm font-bold disabled:opacity-40 transition-all hover:bg-black/5 dark:hover:bg-white/5"
+                className="px-4 py-2 rounded-xl border text-sm font-bold disabled:opacity-40 disabled:cursor-not-allowed transition-all hover:bg-black/5 dark:hover:bg-white/5"
                 style={{ borderColor: "var(--db-border)", color: "var(--db-text)" }}
               >
                 Next
@@ -366,7 +373,7 @@ export default function EmployerNotificationsPage() {
 
               {/* Body */}
               <div className="px-6 py-5">
-                <p className="text-[13px] leading-relaxed" style={{ color: "var(--db-text-secondary)" }}>
+                <p className="text-[13px] leading-relaxed" style={{ color: "var(--db-text-secondary)", wordBreak: "break-word" }}>
                   {feedbackModal.feedback}
                 </p>
               </div>

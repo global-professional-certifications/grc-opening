@@ -72,8 +72,8 @@ function EmployerDashboardLayoutInner({ children }: { children: React.ReactNode 
   if (!roleChecked) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: "var(--db-bg)", color: "var(--db-text-muted)" }}>
-        <div className="flex flex-col items-center gap-3">
-          <span className="h-6 w-6 rounded-full border-2 border-current border-t-transparent animate-spin" />
+        <div role="status" aria-live="polite" className="flex flex-col items-center gap-3">
+          <span className="h-6 w-6 rounded-full border-2 border-current border-t-transparent animate-spin" aria-hidden="true" />
           <p className="text-xs">Verifying access…</p>
         </div>
       </div>
@@ -85,8 +85,9 @@ function EmployerDashboardLayoutInner({ children }: { children: React.ReactNode 
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/60 lg:hidden"
+          className="fixed inset-0 z-48 bg-black/60 lg:hidden"
           onClick={() => setSidebarOpen(false)}
+          aria-hidden="true"
         />
       )}
 
@@ -94,11 +95,12 @@ function EmployerDashboardLayoutInner({ children }: { children: React.ReactNode 
 
         {/* ────────────────────────────────────────────────────────────────────────── */}
         <aside
-          className={`fixed left-0 top-0 h-full w-[260px] flex flex-col z-50 transition-transform duration-300
+          className={`fixed left-0 top-0 h-full w-[260px] flex flex-col z-50 transition-transform duration-300 ease-in-out
             ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
           style={{
             background: "var(--db-sidebar-bg)",
             borderRight: "1px solid var(--db-sidebar-border)",
+            willChange: "transform",
           }}
         >
           {/* Logo */}
@@ -230,10 +232,12 @@ function EmployerDashboardLayoutInner({ children }: { children: React.ReactNode 
             minWidth: 0,
           }}
         >
-          {/* Top bar with notification bell */}
-          <div className="sticky top-0 z-20 flex items-center justify-end px-6 lg:px-8 py-4 lg:py-5" style={{ background: "var(--db-bg)", borderBottom: "1px solid var(--db-border)" }}>
-            <NotificationsBell />
-          </div>
+          {/* Top bar with notification bell — hidden on the notifications page itself */}
+          {router.pathname !== '/employer/notifications' && (
+            <div className="sticky top-0 z-20 flex items-center justify-end px-6 lg:px-8 py-4 lg:py-5" style={{ background: "var(--db-bg)", borderBottom: "1px solid var(--db-border)" }}>
+              <NotificationsBell />
+            </div>
+          )}
           <div className="p-6 lg:p-8 space-y-6 lg:space-y-8 pt-4 lg:pt-4">
             {children}
           </div>

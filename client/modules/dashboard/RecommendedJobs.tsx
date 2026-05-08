@@ -58,7 +58,7 @@ function JobCard({ job, isSaved, isApplied, onViewDetails, onRequestApply, onWit
           <div className="flex items-center gap-2">
             <button
               onClick={(e) => { e.stopPropagation(); onToggleSave(); }}
-              className="w-8 h-8 rounded-full border flex items-center justify-center transition-all hover:scale-110"
+              className="w-8 h-8 rounded-full border flex items-center justify-center transition-all hover:scale-110 focus:outline-none focus:ring-2 focus:ring-(--db-primary) focus:ring-offset-1"
               style={{
                 background:  isSaved ? PRIMARY : "transparent",
                 color:       isSaved ? "var(--db-primary-text, #fff)" : "var(--db-text-secondary)",
@@ -66,19 +66,19 @@ function JobCard({ job, isSaved, isApplied, onViewDetails, onRequestApply, onWit
                 boxShadow:   isSaved ? "0 4px 12px var(--db-primary-20)" : "none",
               }}
               aria-label={isSaved ? "Unsave job" : "Save job"}
+              aria-pressed={isSaved}
             >
-              <span className="material-symbols-outlined" style={{ fontSize: 16, fontVariationSettings: isSaved ? "'FILL' 1" : "'FILL' 0" }}>
+              <span className="material-symbols-outlined" style={{ fontSize: 16, fontVariationSettings: isSaved ? "'FILL' 1" : "'FILL' 0" }} aria-hidden="true">
                 bookmark
               </span>
             </button>
             <button
               onClick={(e) => { e.stopPropagation(); onReport(); }}
-              className="w-8 h-8 rounded-full border flex items-center justify-center transition-all hover:scale-110"
+              className="w-8 h-8 rounded-full border flex items-center justify-center transition-all hover:scale-110 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-1"
               style={{ background: "transparent", borderColor: "rgba(239,68,68,0.3)", color: "#f87171" }}
               aria-label="Report this job"
-              title="Report this job"
             >
-              <span className="material-symbols-outlined" style={{ fontSize: 15 }}>flag</span>
+              <span className="material-symbols-outlined" style={{ fontSize: 15 }} aria-hidden="true">flag</span>
             </button>
             <ActiveBadge pulse />
           </div>
@@ -98,7 +98,7 @@ function JobCard({ job, isSaved, isApplied, onViewDetails, onRequestApply, onWit
       <div className="flex gap-2 mt-auto">
         <button
           onClick={(e) => { e.stopPropagation(); onViewDetails(); }}
-          className="flex-1 py-2.5 font-bold text-sm rounded-full border transition-all hover:opacity-80"
+          className="flex-1 py-2.5 font-bold text-sm rounded-full border transition-all hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-(--db-primary) focus:ring-offset-1"
           style={{ borderColor: PRIMARY, color: PRIMARY, background: "transparent" }}
         >
           View Details
@@ -106,7 +106,7 @@ function JobCard({ job, isSaved, isApplied, onViewDetails, onRequestApply, onWit
         {isApplied ? (
           <button
             onClick={(e) => { e.stopPropagation(); onWithdraw(); }}
-            className="flex-1 py-2.5 font-bold text-sm rounded-full border transition-all hover:opacity-90"
+            className="flex-1 py-2.5 font-bold text-sm rounded-full border transition-all hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-1"
             style={{ background: "transparent", color: "#f87171", borderColor: "rgba(239,68,68,0.4)" }}
           >
             Withdraw
@@ -114,7 +114,7 @@ function JobCard({ job, isSaved, isApplied, onViewDetails, onRequestApply, onWit
         ) : (
           <button
             onClick={(e) => { e.stopPropagation(); onRequestApply(); }}
-            className="flex-1 py-2.5 font-bold text-sm rounded-full transition-all hover:opacity-90"
+            className="flex-1 py-2.5 font-bold text-sm rounded-full transition-all hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-(--db-primary) focus:ring-offset-1"
             style={{ background: PRIMARY, color: "#fff", border: "none", boxShadow: "0 4px 12px var(--db-primary-20)" }}
           >
             Apply Now
