@@ -3,8 +3,9 @@ import Head from "next/head";
 import { DashboardLayout } from "../../components/layout/DashboardLayout";
 import { ResumeChecker } from "../../modules/resume-analyser/ResumeChecker";
 import { ResumeAnalyser } from "../../modules/resume-analyser/ResumeAnalyser";
+import { ResumeJDLibrary } from "../../modules/resume-analyser/ResumeJDLibrary";
 
-type Tool = "checker" | "enhancer" | null;
+type Tool = "checker" | "enhancer" | "jdlibrary" | null;
 
 const TOOLS = [
   {
@@ -24,6 +25,15 @@ const TOOLS = [
     description:
       "Tailor your resume to a specific job description. AI rewrites and enhances your resume for maximum ATS impact.",
     bullets: ["Job-description matching", "ATS keyword weaving", "Style templates", "Full rewrite"],
+  },
+  {
+    id: "jdlibrary" as Tool,
+    badge: "Advanced",
+    icon: "library_books",
+    title: "JD Library Enhancer",
+    description:
+      "Pick your experience level and target GRC role — our curated JD library auto-fills the job description and AI optimizes your resume.",
+    bullets: ["Curated GRC JD library", "Auto-populated descriptions", "Role-specific optimization", "One-click enhancement"],
   },
 ];
 
@@ -57,7 +67,7 @@ export default function ResumeToolsPage() {
       </header>
 
       {/* ── Tool selector tiles ── */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mb-8">
         {TOOLS.map((tool) => {
           const isActive = activeTool === tool.id;
           return (
@@ -194,6 +204,30 @@ export default function ResumeToolsPage() {
             </span>
           </div>
           <ResumeAnalyser isPublic={false} />
+        </section>
+      )}
+
+      {activeTool === "jdlibrary" && (
+        <section aria-label="JD Library Enhancer">
+          <div className="flex items-center gap-3 mb-5">
+            <span
+              className="material-symbols-outlined"
+              style={{ fontSize: 20, color: "#10b981" }}
+              aria-hidden="true"
+            >
+              library_books
+            </span>
+            <h3 className="text-lg font-bold" style={{ color: "var(--db-text)" }}>
+              JD Library Enhancer
+            </h3>
+            <span
+              className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-0.5 rounded-full"
+              style={{ fontFamily: "'JetBrains Mono', monospace", background: "rgba(16, 185, 129, 0.1)", color: "#10b981" }}
+            >
+              Advanced
+            </span>
+          </div>
+          <ResumeJDLibrary isPublic={false} />
         </section>
       )}
     </DashboardLayout>
