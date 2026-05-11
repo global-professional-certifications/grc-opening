@@ -162,7 +162,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
                 AI Tools
               </p>
               <div className="space-y-1">
-                <NavItem href="/dashboard/resume-analyser" icon="smart_toy" label="Resume Enhancer" />
+                <NavItem href="/dashboard/resume-analyser" icon="smart_toy" label="Resume Tools" />
               </div>
             </div>
           </nav>

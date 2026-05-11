@@ -1,9 +1,14 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Head from "next/head";
 import Link from "next/link";
 import { ResumeAnalyser } from "../modules/resume-analyser/ResumeAnalyser";
+import { ResumeChecker } from "../modules/resume-analyser/ResumeChecker";
+
+type HomeTool = "checker" | "enhancer";
 
 export default function LandingPage() {
+  const [activeTool, setActiveTool] = useState<HomeTool>("enhancer");
+
   // Simple scroll reveal observer
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -150,49 +155,91 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* ── Premium AI Resume Enhancer Section (Public) ──────────────────────────── */}
-        <section id="ai-resume-enhancer" className="px-6 py-24 lg:py-32 relative reveal-scroll opacity-0 translate-y-8 transition-all duration-1000 overflow-hidden" style={{ background: "var(--db-surface)" }}>
+        {/* ── AI Resume Tools Section (Public) ──────────────────────────── */}
+        <section id="ai-resume-tools" className="px-6 py-24 lg:py-32 relative reveal-scroll opacity-0 translate-y-8 transition-all duration-1000 overflow-hidden" style={{ background: "var(--db-surface)" }}>
           {/* Glassmorphic Background Accents */}
           <div className="absolute top-10 left-1/4 w-[600px] h-[600px] rounded-full blur-[140px] pointer-events-none opacity-20 transform -translate-x-1/2" style={{ background: "var(--db-primary)" }} />
           <div className="absolute bottom-10 right-1/4 w-[500px] h-[500px] rounded-full blur-[120px] pointer-events-none opacity-15 transform translate-x-1/3" style={{ background: "#7c3aed" }} />
-          
+
           <div className="max-w-5xl mx-auto relative z-10">
             {/* Section Header */}
-            <div className="text-center mb-16">
+            <div className="text-center mb-12">
               <span
                 className="inline-flex items-center gap-2 px-5 py-2 rounded-full text-xs font-black uppercase tracking-[0.15em] shadow-sm backdrop-blur-md mb-3"
                 style={{ background: "var(--db-primary-10)", color: "var(--db-primary)", border: "1px solid var(--db-primary-20)" }}
               >
-                <span className="material-symbols-outlined" style={{ fontSize: 16 }}>magic_button</span>
-                AI-Powered Tool
+                <span className="material-symbols-outlined" style={{ fontSize: 16 }}>smart_toy</span>
+                AI-Powered Tools
               </span>
               <h2 className="text-4xl lg:text-5xl font-black tracking-tight leading-tight" style={{ color: "var(--db-text)" }}>
-                Elevate Your Career with <br className="hidden md:block" />
-                <span className="text-transparent bg-clip-text" style={{ backgroundImage: "linear-gradient(135deg, var(--db-primary), #7c3aed)" }}>Intelligent Resume Enhancement</span>
+                Supercharge Your Resume <br className="hidden md:block" />
+                <span className="text-transparent bg-clip-text" style={{ backgroundImage: "linear-gradient(135deg, var(--db-primary), #7c3aed)" }}>with Intelligent AI</span>
               </h2>
-              <p className="text-lg font-medium max-w-2xl mx-auto leading-relaxed" style={{ color: "var(--db-text-muted)" }}>
-                Instantly align your experience with any job description. Our advanced AI re-writes, optimizes for ATS, and highlights your key strengths—without needing an account.
+              <p className="text-lg font-medium max-w-2xl mx-auto leading-relaxed mt-4" style={{ color: "var(--db-text-muted)" }}>
+                Check your resume for quality issues or tailor it to a specific job—no account needed.
               </p>
             </div>
 
-            {/* Resume Analyser Component Wrapped in Premium Glass Container */}
+            {/* Tab switcher */}
+            <div className="flex items-center justify-center gap-3 mb-8">
+              {([
+                { id: "checker" as HomeTool,  icon: "fact_check",    label: "AI Resume Checker",  badge: "Basic"        },
+                { id: "enhancer" as HomeTool, icon: "auto_awesome",  label: "AI Resume Enhancer", badge: "Intermediate" },
+              ]).map((tab) => {
+                const isActive = activeTool === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => setActiveTool(tab.id)}
+                    className="flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold transition-all duration-200 focus:outline-none focus:ring-2"
+                    style={{
+                      background: isActive ? "var(--db-primary)" : "var(--db-primary-10)",
+                      color: isActive ? "#ffffff" : "var(--db-primary)",
+                      border: `1px solid ${isActive ? "var(--db-primary)" : "var(--db-primary-20)"}`,
+                      boxShadow: isActive ? "0 4px 14px rgba(58,18,146,0.25)" : "none",
+                    }}
+                    aria-pressed={isActive}
+                  >
+                    <span className="material-symbols-outlined" style={{ fontSize: 16 }} aria-hidden="true">{tab.icon}</span>
+                    {tab.label}
+                    <span
+                      className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full"
+                      style={{
+                        fontFamily: "'JetBrains Mono', monospace",
+                        background: isActive ? "rgba(255,255,255,0.2)" : "var(--db-primary-20)",
+                        color: isActive ? "#fff" : "var(--db-primary)",
+                      }}
+                    >
+                      {tab.badge}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Tool Container */}
             <div className="ra-home-wrapper relative rounded-[32px] p-1 overflow-hidden shadow-[0_30px_80px_rgba(58,18,146,0.12)]">
               {/* Animated Gradient Border Layer */}
               <div className="absolute inset-0 bg-gradient-to-br from-[var(--db-primary)] via-transparent to-[#7c3aed] opacity-30" />
-              
+
               <div className="relative rounded-[30px] p-8 md:p-12 backdrop-blur-xl" style={{ background: "rgba(255, 255, 255, 0.7)", border: "1px solid rgba(255, 255, 255, 0.8)" }}>
-                <ResumeAnalyser isPublic={true} compact={true} />
+                {activeTool === "checker" ? (
+                  <ResumeChecker isPublic={true} />
+                ) : (
+                  <ResumeAnalyser isPublic={true} compact={true} />
+                )}
               </div>
             </div>
 
             {/* CTA Nudge */}
             <div className="text-center mt-12 flex justify-center items-center gap-4 flex-col sm:flex-row">
               <p className="text-base font-semibold" style={{ color: "var(--db-text-muted)" }}>
-                Want to save your enhanced resumes and track applications?
+                Want to save your results and track applications?
               </p>
-              <Link 
-                href="/auth/register" 
-                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-bold transition-all duration-300 hover:-translate-y-1 hover:shadow-lg" 
+              <Link
+                href="/auth/register"
+                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-bold transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
                 style={{ background: "var(--db-primary)", color: "#fff", boxShadow: "0 4px 14px rgba(58, 18, 146, 0.2)" }}
               >
                 Create a Free Account
