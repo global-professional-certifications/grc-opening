@@ -287,7 +287,7 @@ export function Step2Requirements() {
             type="button"
             onClick={handleNext}
             className="flex items-center gap-2 px-6 py-2.5 rounded-lg font-bold text-sm transition-all hover:opacity-90 active:scale-[0.98]"
-            style={{ background: 'var(--db-primary)', color: '#0a0a0a', ...MONO }}
+            style={{ background: 'var(--db-primary)', color: '#ffffff', ...MONO }}
           >
             Next: Preview
             <span className="material-symbols-outlined" style={{ fontSize: 18 }}>arrow_forward</span>

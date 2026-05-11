@@ -558,7 +558,7 @@ export function Step1Details() {
               type="button"
               onClick={handleApplyTemplate}
               className="flex items-center gap-1.5 px-4 py-2 rounded-lg font-bold text-xs transition-all hover:opacity-90 active:scale-[0.97] whitespace-nowrap"
-              style={{ background: 'var(--db-primary)', color: '#0a0a0a', ...MONO }}
+              style={{ background: 'var(--db-primary)', color: '#ffffff', ...MONO }}
             >
               <span className="material-symbols-outlined" style={{ fontSize: 15 }}>edit_note</span>
               {hasUserDescription ? 'Replace JD' : 'Auto-fill JD'}
@@ -653,7 +653,7 @@ export function Step1Details() {
           type="button"
           onClick={handleNext}
           className="flex items-center gap-2 px-6 py-2.5 rounded-lg font-bold text-sm transition-all hover:opacity-90 active:scale-[0.98]"
-          style={{ background: 'var(--db-primary)', color: '#0a0a0a', ...MONO }}
+          style={{ background: 'var(--db-primary)', color: '#ffffff', ...MONO }}
         >
           Next: Requirements
           <span className="material-symbols-outlined" style={{ fontSize: 18 }}>arrow_forward</span>
