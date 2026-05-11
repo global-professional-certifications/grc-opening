@@ -486,8 +486,6 @@ body {
 
 /* ── Container ──────────────────────────────────────────────── */
 .ra-container {
-  max-width: 720px;
-  margin: 0 auto;
   display: flex;
   flex-direction: column;
   gap: 24px;
