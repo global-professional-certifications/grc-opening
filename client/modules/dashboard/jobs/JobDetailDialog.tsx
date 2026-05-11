@@ -102,12 +102,42 @@ function SectionLabel({ text }: { text: string }) {
   );
 }
 
+const HTML_TAG_PATTERN = /<\/?[a-z][\s\S]*>/i;
+
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function sanitizeRichHtml(html: string): string {
+  return html
+    .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, "")
+    .replace(/<style[\s\S]*?>[\s\S]*?<\/style>/gi, "")
+    .replace(/<\/?(iframe|object|embed|link|meta|base)[^>]*>/gi, "")
+    .replace(/\son\w+=(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, "")
+    .replace(/\s(href|src)\s*=\s*(['"])\s*javascript:[\s\S]*?\2/gi, " $1=\"#\"");
+}
+
+function toContentHtml(raw: string): string {
+  const trimmed = raw.trim();
+  if (!trimmed) return "";
+  if (HTML_TAG_PATTERN.test(trimmed)) return sanitizeRichHtml(trimmed);
+  return escapeHtml(trimmed).replace(/\n/g, "<br />");
+}
+
 function ContentBlock({ text }: { text: string }) {
   if (text.trim()) {
+    const html = toContentHtml(text);
     return (
-      <p className="text-[0.92rem] leading-[1.78] whitespace-pre-line" style={{ color: TEXT_SECONDARY }}>
-        {text.trim()}
-      </p>
+      <div
+        className="text-[0.92rem] leading-[1.78] [&_p]:mb-3 [&_ul]:my-3 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:my-3 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:mb-1"
+        style={{ color: TEXT_SECONDARY }}
+        dangerouslySetInnerHTML={{ __html: html }}
+      />
     );
   }
   return (

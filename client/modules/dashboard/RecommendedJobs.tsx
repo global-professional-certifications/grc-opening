@@ -2,9 +2,50 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { apiFetch } from "@/lib/api";
 import { JobDetailDialog, DialogJob, SupportedCurrency } from "./jobs/JobDetailDialog";
 import { ApplyModal, ApplySuccessToast, ReportModal } from "./jobs/JobsMarketplaceRefined";
+import { EmployerProfileModal, type EmployerForModal } from "./EmployerProfileModal";
 
 const PRIMARY = "var(--db-primary)";
 const CARD    = "var(--db-card)";
+
+type EmployerPayload = {
+  companyName?: string | null;
+  industry?: string | null;
+  companySize?: string | null;
+  description?: string | null;
+  tagline?: string | null;
+  foundedYear?: string | null;
+  website?: string | null;
+  address?: string | null;
+  city?: string | null;
+  state?: string | null;
+  country?: string | null;
+};
+
+type JobDetailWithEmployerResponse = {
+  job?: {
+    employer?: EmployerPayload | null;
+  } | null;
+};
+
+function normalizeOptionalText(value: unknown): string | null {
+  return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
+function toEmployerForModal(employer: EmployerPayload | null | undefined, fallbackName: string): EmployerForModal {
+  return {
+    companyName: normalizeOptionalText(employer?.companyName) ?? fallbackName,
+    industry: normalizeOptionalText(employer?.industry),
+    companySize: normalizeOptionalText(employer?.companySize),
+    description: normalizeOptionalText(employer?.description),
+    tagline: normalizeOptionalText(employer?.tagline),
+    foundedYear: normalizeOptionalText(employer?.foundedYear),
+    website: normalizeOptionalText(employer?.website),
+    address: normalizeOptionalText(employer?.address),
+    city: normalizeOptionalText(employer?.city),
+    state: normalizeOptionalText(employer?.state),
+    country: normalizeOptionalText(employer?.country),
+  };
+}
 
 function CertTag({ label }: { label: string }) {
   return (
@@ -34,13 +75,14 @@ interface JobCardProps {
   isSaved: boolean;
   isApplied: boolean;
   onViewDetails: () => void;
+  onViewCompany: () => void;
   onRequestApply: () => void;
   onWithdraw: () => void;
   onReport: () => void;
   onToggleSave: () => void;
 }
 
-function JobCard({ job, isSaved, isApplied, onViewDetails, onRequestApply, onWithdraw, onReport, onToggleSave }: JobCardProps) {
+function JobCard({ job, isSaved, isApplied, onViewDetails, onViewCompany, onRequestApply, onWithdraw, onReport, onToggleSave }: JobCardProps) {
   return (
     <div
       className="db-card p-6 flex flex-col justify-between border-transparent shadow-md min-w-[300px] max-w-[320px] lg:max-w-none lg:w-[calc(33.333%-1rem)] shrink-0 cursor-pointer"
@@ -86,7 +128,16 @@ function JobCard({ job, isSaved, isApplied, onViewDetails, onRequestApply, onWit
 
         <h4 className="text-lg font-bold mb-1 line-clamp-2" style={{ color: "var(--db-text)" }}>{job.title}</h4>
         <p className="text-sm mb-4 font-medium" style={{ color: "var(--db-text-secondary)" }}>
-          {job.companyName} · {job.location || job.workMode}
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); onViewCompany(); }}
+            className="font-semibold transition-opacity hover:opacity-80 focus:outline-none"
+            style={{ color: PRIMARY }}
+            aria-label={`View ${job.companyName} profile`}
+          >
+            {job.companyName}
+          </button>
+          <span> · {job.location || job.workMode}</span>
         </p>
 
         <div className="flex flex-wrap gap-2 mb-6">
@@ -96,13 +147,6 @@ function JobCard({ job, isSaved, isApplied, onViewDetails, onRequestApply, onWit
       </div>
 
       <div className="flex gap-2 mt-auto">
-        <button
-          onClick={(e) => { e.stopPropagation(); onViewDetails(); }}
-          className="flex-1 py-2.5 font-bold text-sm rounded-full border transition-all hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-(--db-primary) focus:ring-offset-1"
-          style={{ borderColor: PRIMARY, color: PRIMARY, background: "transparent" }}
-        >
-          View Details
-        </button>
         {isApplied ? (
           <button
             onClick={(e) => { e.stopPropagation(); onWithdraw(); }}
@@ -133,9 +177,11 @@ export function RecommendedJobs() {
   const [appliedIds, setAppliedIds] = useState<Set<string>>(new Set());
   const [saveError, setSaveError]       = useState<string | null>(null);
   const [withdrawError, setWithdrawError] = useState<string | null>(null);
+  const [employerError, setEmployerError] = useState<string | null>(null);
   const [applyTarget, setApplyTarget] = useState<DialogJob | null>(null);
   const [applySuccess, setApplySuccess] = useState<{ jobTitle: string } | null>(null);
   const [reportTarget, setReportTarget] = useState<DialogJob | null>(null);
+  const [selectedEmployer, setSelectedEmployer] = useState<EmployerForModal | null>(null);
   const [currency, setCurrency]   = useState<SupportedCurrency>("USD");
   const scrollContainerRef        = useRef<HTMLDivElement>(null);
 
@@ -204,6 +250,16 @@ export function RecommendedJobs() {
     setAppliedIds(prev => new Set(prev).add(jobId));
   }, []);
 
+  const openEmployerProfile = useCallback(async (job: Pick<DialogJob, "id" | "companyName">) => {
+    setEmployerError(null);
+    try {
+      const response = await apiFetch<JobDetailWithEmployerResponse>(`/jobs/${job.id}`);
+      setSelectedEmployer(toEmployerForModal(response.job?.employer, job.companyName));
+    } catch (e: unknown) {
+      setEmployerError(e instanceof Error ? e.message : "Failed to load employer details");
+    }
+  }, []);
+
   const scrollLeft  = () => scrollContainerRef.current?.scrollBy({ left: -320, behavior: "smooth" });
   const scrollRight = () => scrollContainerRef.current?.scrollBy({ left:  320, behavior: "smooth" });
 
@@ -265,6 +321,25 @@ export function RecommendedJobs() {
       {reportTarget && (
         <ReportModal jobId={reportTarget.id} jobTitle={reportTarget.title} onClose={() => setReportTarget(null)} />
       )}
+      {selectedEmployer && (
+        <EmployerProfileModal employer={selectedEmployer} onClose={() => setSelectedEmployer(null)} />
+      )}
+      {employerError && (
+        <div className="mb-5 rounded-[18px] border px-5 py-4 flex items-center justify-between gap-4"
+          style={{ background: "rgba(239,68,68,0.06)", borderColor: "rgba(239,68,68,0.25)" }}>
+          <div className="flex items-center gap-3 min-w-0">
+            <span className="material-symbols-outlined shrink-0" style={{ fontSize: 20, color: "#f87171" }}>error</span>
+            <span className="truncate" style={{ fontSize: "0.9rem", color: "#f87171" }}>
+              Could not load employer details - {employerError}
+            </span>
+          </div>
+          <button type="button" onClick={() => setEmployerError(null)}
+            className="inline-flex h-9 w-9 items-center justify-center rounded-full border"
+            style={{ borderColor: "rgba(239,68,68,0.35)", color: "#f87171", background: "transparent" }}>
+            <span className="material-symbols-outlined" style={{ fontSize: 18 }}>close</span>
+          </button>
+        </div>
+      )}
       <div className="flex justify-between items-end mb-6">
         <h3 className="text-xl font-bold border-l-4 pl-3" style={{ color: "var(--db-text)", borderColor: PRIMARY }}>
           Recommended Jobs
@@ -314,6 +389,7 @@ export function RecommendedJobs() {
               isSaved={savedIds.has(job.id)}
               isApplied={appliedIds.has(job.id)}
               onViewDetails={() => setSelectedJob(job)}
+              onViewCompany={() => openEmployerProfile(job)}
               onRequestApply={() => setApplyTarget(job)}
               onWithdraw={makeWithdraw(job.id)}
               onReport={() => setReportTarget(job)}
@@ -338,3 +414,4 @@ export function RecommendedJobs() {
     </section>
   );
 }
+

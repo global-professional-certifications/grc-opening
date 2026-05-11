@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState, useCallback, useRef } from "react"
 import { apiFetch } from "../../../lib/api";
 import { JobDetailDialog } from "./JobDetailDialog";
 import type { DialogJob, SupportedCurrency } from "./JobDetailDialog";
+import { EmployerProfileModal, type EmployerForModal } from "../EmployerProfileModal";
 
 // Types
 
@@ -47,6 +48,26 @@ type DiscoveryResponse = {
   meta: { totalJobs: number };
 };
 
+type EmployerPayload = {
+  companyName?: string | null;
+  industry?: string | null;
+  companySize?: string | null;
+  description?: string | null;
+  tagline?: string | null;
+  foundedYear?: string | null;
+  website?: string | null;
+  address?: string | null;
+  city?: string | null;
+  state?: string | null;
+  country?: string | null;
+};
+
+type JobDetailWithEmployerResponse = {
+  job?: {
+    employer?: EmployerPayload | null;
+  } | null;
+};
+
 //  Constants
 const POPPINS = { fontFamily: "'Poppins', sans-serif" };
 const MONO    = { fontFamily: "'JetBrains Mono', monospace" };
@@ -88,6 +109,26 @@ const ALL_EXPERIENCE_LEVELS: Array<{ value: string; label: string }> = [
   { value: "5-8", label: "Senior (5–8 years)" },
   { value: "8+",  label: "Director / VP (8+ years)" },
 ];
+
+function normalizeOptionalText(value: unknown): string | null {
+  return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
+function toEmployerForModal(employer: EmployerPayload | null | undefined, fallbackName: string): EmployerForModal {
+  return {
+    companyName: normalizeOptionalText(employer?.companyName) ?? fallbackName,
+    industry: normalizeOptionalText(employer?.industry),
+    companySize: normalizeOptionalText(employer?.companySize),
+    description: normalizeOptionalText(employer?.description),
+    tagline: normalizeOptionalText(employer?.tagline),
+    foundedYear: normalizeOptionalText(employer?.foundedYear),
+    website: normalizeOptionalText(employer?.website),
+    address: normalizeOptionalText(employer?.address),
+    city: normalizeOptionalText(employer?.city),
+    state: normalizeOptionalText(employer?.state),
+    country: normalizeOptionalText(employer?.country),
+  };
+}
 
 function titleCaseCategory(value: string): string {
   const match = ALL_CATEGORIES.find((c) => c.value.toLowerCase() === value.toLowerCase());
@@ -473,7 +514,7 @@ export function ReportModal({ jobId, jobTitle, onClose }: { jobId: string; jobTi
 // ─── Job List Card ────────────────────────────────────────────────────────────
 
 function JobCard({
-  job, selectedCurrency, isApplied, onRequestApply, onWithdraw, onReport, onToggleSave, onViewDetails,
+  job, selectedCurrency, isApplied, onRequestApply, onWithdraw, onReport, onToggleSave, onViewDetails, onViewCompany,
 }: {
   job: DiscoveryJob;
   selectedCurrency: SupportedCurrency;
@@ -483,11 +524,22 @@ function JobCard({
   onReport: () => void;
   onToggleSave: () => void;
   onViewDetails: () => void;
+  onViewCompany: () => void;
 }) {
+  const openOnKeyboard = (e: React.KeyboardEvent<HTMLElement>) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      onViewDetails();
+    }
+  };
 
   return (
     <article
-      className="rounded-[20px] border px-5 py-5 md:px-6 md:py-6"
+      role="button"
+      tabIndex={0}
+      onClick={onViewDetails}
+      onKeyDown={openOnKeyboard}
+      className="rounded-[20px] border px-5 py-5 md:px-6 md:py-6 cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_24px_44px_rgba(145,170,200,0.20)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--db-primary)]"
       style={{ background: CARD, borderColor: BORDER, boxShadow: "0 18px 34px rgba(145,170,200,0.14)" }}
     >
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
@@ -502,7 +554,15 @@ function JobCard({
 
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-[0.98rem] font-bold" style={{ color: PRIMARY }}>{job.companyName}</span>
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); onViewCompany(); }}
+                className="text-[0.98rem] font-bold transition-opacity hover:opacity-80 focus:outline-none"
+                style={{ color: PRIMARY }}
+                aria-label={`View ${job.companyName} profile`}
+              >
+                {job.companyName}
+              </button>
               {job.verified && (
                 <span className="material-symbols-outlined" style={{ fontSize: 17, color: PRIMARY }}>verified</span>
               )}
@@ -556,7 +616,7 @@ function JobCard({
             <div className="flex items-center gap-2 flex-wrap justify-end">
               {/* Bookmark */}
               <button
-                onClick={onToggleSave}
+                onClick={(e) => { e.stopPropagation(); onToggleSave(); }}
                 className="inline-flex h-10 w-10 items-center justify-center rounded-full border transition-all hover:scale-110 active:scale-95"
                 style={{
                   background:  job.isSaved ? PRIMARY : CARD,
@@ -572,19 +632,9 @@ function JobCard({
                 </span>
               </button>
 
-              {/* View Details */}
-              <button
-                onClick={onViewDetails}
-                className="inline-flex items-center gap-1.5 rounded-full px-5 py-2.5 text-[0.88rem] border transition-all hover:scale-105 active:scale-95"
-                style={{ background: "transparent", color: PRIMARY, borderColor: PRIMARY, fontWeight: 700 }}
-              >
-                <span className="material-symbols-outlined" style={{ fontSize: 16 }}>open_in_new</span>
-                View Details
-              </button>
-
               {/* Report flag */}
               <button
-                onClick={onReport}
+                onClick={(e) => { e.stopPropagation(); onReport(); }}
                 className="inline-flex h-10 w-10 items-center justify-center rounded-full border transition-all hover:scale-110 active:scale-95 shrink-0"
                 style={{ background: "transparent", borderColor: "rgba(239,68,68,0.3)", color: "#f87171" }}
                 aria-label="Report this job"
@@ -596,7 +646,7 @@ function JobCard({
               {/* Withdraw / Apply */}
               {isApplied ? (
                 <button
-                  onClick={onWithdraw}
+                  onClick={(e) => { e.stopPropagation(); onWithdraw(); }}
                   className="inline-flex items-center justify-center gap-2 rounded-full px-7 py-3 text-[0.95rem] border transition-all hover:scale-105 active:scale-95"
                   style={{ background: "transparent", color: "#f87171", borderColor: "rgba(239,68,68,0.4)", fontWeight: 800 }}
                 >
@@ -605,7 +655,7 @@ function JobCard({
                 </button>
               ) : (
                 <button
-                  onClick={onRequestApply}
+                  onClick={(e) => { e.stopPropagation(); onRequestApply(); }}
                   className="inline-flex items-center justify-center gap-2 rounded-full px-7 py-3 text-[0.95rem] transition-all hover:scale-105 active:scale-95"
                   style={{ background: PRIMARY, color: "var(--db-primary-text)", border: "none", fontWeight: 800, boxShadow: "0 12px 24px var(--db-primary-20)" }}
                 >
@@ -623,7 +673,7 @@ function JobCard({
 // ─── Job Grid Card ────────────────────────────────────────────────────────────
 
 function JobGridCard({
-  job, selectedCurrency, isApplied, onRequestApply, onWithdraw, onReport, onToggleSave, onViewDetails,
+  job, selectedCurrency, isApplied, onRequestApply, onWithdraw, onReport, onToggleSave, onViewDetails, onViewCompany,
 }: {
   job: DiscoveryJob;
   selectedCurrency: SupportedCurrency;
@@ -633,10 +683,22 @@ function JobGridCard({
   onReport: () => void;
   onToggleSave: () => void;
   onViewDetails: () => void;
+  onViewCompany: () => void;
 }) {
+  const openOnKeyboard = (e: React.KeyboardEvent<HTMLElement>) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      onViewDetails();
+    }
+  };
 
   return (
-    <article className="flex flex-col rounded-[24px] border p-6 transition-all hover:shadow-[0_20px_40px_rgba(145,170,200,0.18)]"
+    <article
+      role="button"
+      tabIndex={0}
+      onClick={onViewDetails}
+      onKeyDown={openOnKeyboard}
+      className="flex flex-col rounded-[24px] border p-6 cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_24px_44px_rgba(145,170,200,0.20)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--db-primary)]"
       style={{ background: CARD, borderColor: BORDER, boxShadow: "0 14px 28px rgba(145,170,200,0.12)" }}>
       <div className="flex items-start justify-between">
         <div className="flex h-[48px] w-[48px] shrink-0 items-center justify-center rounded-xl"
@@ -651,7 +713,15 @@ function JobGridCard({
 
       <div className="mt-5 grow">
         <div className="flex items-center gap-1.5">
-          <span className="text-[0.88rem] font-bold" style={{ color: PRIMARY }}>{job.companyName}</span>
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); onViewCompany(); }}
+            className="text-[0.88rem] font-bold transition-opacity hover:opacity-80 focus:outline-none"
+            style={{ color: PRIMARY }}
+            aria-label={`View ${job.companyName} profile`}
+          >
+            {job.companyName}
+          </button>
           {job.verified && <span className="material-symbols-outlined" style={{ fontSize: 16, color: PRIMARY }}>verified</span>}
         </div>
         <h3 className="mt-1 text-[1.25rem] leading-snug" style={{ color: TEXT_PRIMARY, fontWeight: 700, ...POPPINS }}>{job.title}</h3>
@@ -689,7 +759,7 @@ function JobGridCard({
         <div className="flex items-center gap-2">
           {/* Bookmark */}
           <button
-            onClick={onToggleSave}
+            onClick={(e) => { e.stopPropagation(); onToggleSave(); }}
             className="inline-flex h-9 w-9 items-center justify-center rounded-full border transition-all hover:scale-110 active:scale-95 shrink-0"
             style={{
               background:  job.isSaved ? PRIMARY : CARD,
@@ -705,18 +775,9 @@ function JobGridCard({
             </span>
           </button>
 
-          {/* View Details */}
-          <button
-            onClick={onViewDetails}
-            className="inline-flex items-center justify-center rounded-full px-3.5 py-2 text-[0.78rem] border transition-all hover:scale-105 active:scale-95 shrink-0"
-            style={{ background: "transparent", color: PRIMARY, borderColor: PRIMARY, fontWeight: 700 }}
-          >
-            Details
-          </button>
-
           {/* Report flag */}
           <button
-            onClick={onReport}
+            onClick={(e) => { e.stopPropagation(); onReport(); }}
             className="inline-flex h-9 w-9 items-center justify-center rounded-full border transition-all hover:scale-110 active:scale-95 shrink-0"
             style={{ background: "transparent", borderColor: "rgba(239,68,68,0.3)", color: "#f87171" }}
             aria-label="Report this job"
@@ -728,7 +789,7 @@ function JobGridCard({
           {/* Withdraw / Apply */}
           {isApplied ? (
             <button
-              onClick={onWithdraw}
+              onClick={(e) => { e.stopPropagation(); onWithdraw(); }}
               className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-full px-4 py-2.5 text-[0.85rem] border transition-all hover:scale-105 active:scale-95"
               style={{ background: "transparent", color: "#f87171", borderColor: "rgba(239,68,68,0.4)", fontWeight: 800 }}
             >
@@ -737,7 +798,7 @@ function JobGridCard({
             </button>
           ) : (
             <button
-              onClick={onRequestApply}
+              onClick={(e) => { e.stopPropagation(); onRequestApply(); }}
               className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-full px-4 py-2.5 text-[0.85rem] transition-all hover:scale-105 active:scale-95"
               style={{ background: PRIMARY, color: "var(--db-primary-text)", border: "none", fontWeight: 800, boxShadow: "0 8px 16px var(--db-primary-20)" }}
             >
@@ -842,6 +903,8 @@ export function JobsMarketplaceRefined() {
   const [saveError, setSaveError]       = useState<string | null>(null);
   const [withdrawError, setWithdrawError] = useState<string | null>(null);
   const [selectedJob, setSelectedJob] = useState<DiscoveryJob | null>(null);
+  const [selectedEmployer, setSelectedEmployer] = useState<EmployerForModal | null>(null);
+  const [employerError, setEmployerError] = useState<string | null>(null);
 
   const [query, setQuery]                       = useState("");
   const [location, setLocation]                 = useState("");
@@ -931,6 +994,16 @@ export function JobsMarketplaceRefined() {
     });
   }, [savedIds]);
 
+  const openEmployerProfile = useCallback(async (job: Pick<DiscoveryJob, "id" | "companyName">) => {
+    setEmployerError(null);
+    try {
+      const response = await apiFetch<JobDetailWithEmployerResponse>(`/jobs/${job.id}`);
+      setSelectedEmployer(toEmployerForModal(response.job?.employer, job.companyName));
+    } catch (e: unknown) {
+      setEmployerError(e instanceof Error ? e.message : "Failed to load employer details");
+    }
+  }, []);
+
   const derivedCategories = useMemo(() => ALL_CATEGORIES.map((c) => c.value), []);
   const derivedExperienceLevels = useMemo(() => ALL_EXPERIENCE_LEVELS.map((l) => l.value), []);
   const derivedWorkModes = useMemo(() => [...ALL_WORK_MODES], []);
@@ -994,6 +1067,9 @@ export function JobsMarketplaceRefined() {
           onToggleSave={makeToggleSave(selectedJob.id)}
         />
       )}
+      {selectedEmployer && (
+        <EmployerProfileModal employer={selectedEmployer} onClose={() => setSelectedEmployer(null)} />
+      )}
       {applyTarget && (
         <ApplyModal
           job={applyTarget}
@@ -1015,6 +1091,20 @@ export function JobsMarketplaceRefined() {
           jobTitle={reportTarget.title}
           onClose={() => setReportTarget(null)}
         />
+      )}
+      {employerError && (
+        <div className="rounded-[20px] border px-6 py-5 flex items-center justify-between gap-4"
+          style={{ background: "rgba(239,68,68,0.06)", borderColor: "rgba(239,68,68,0.25)" }}>
+          <div className="flex items-center gap-3 min-w-0">
+            <span className="material-symbols-outlined shrink-0" style={{ fontSize: 20, color: "#f87171" }}>error</span>
+            <span className="truncate" style={{ fontSize: "0.9rem", color: "#f87171" }}>Could not load employer details - {employerError}</span>
+          </div>
+          <button type="button" onClick={() => setEmployerError(null)}
+            className="inline-flex h-9 w-9 items-center justify-center rounded-full border"
+            style={{ borderColor: "rgba(239,68,68,0.35)", color: "#f87171", background: "transparent" }}>
+            <span className="material-symbols-outlined" style={{ fontSize: 18 }}>close</span>
+          </button>
+        </div>
       )}
 
       <div className="overflow-hidden rounded-[34px] border"
@@ -1266,6 +1356,7 @@ export function JobsMarketplaceRefined() {
                       onReport={() => setReportTarget(job)}
                       onToggleSave={makeToggleSave(job.id)}
                       onViewDetails={() => setSelectedJob(job)}
+                      onViewCompany={() => openEmployerProfile(job)}
                     />
                   ))}
                 </div>
@@ -1281,6 +1372,7 @@ export function JobsMarketplaceRefined() {
                       onReport={() => setReportTarget(job)}
                       onToggleSave={makeToggleSave(job.id)}
                       onViewDetails={() => setSelectedJob(job)}
+                      onViewCompany={() => openEmployerProfile(job)}
                     />
                   ))}
                 </div>
@@ -1355,3 +1447,4 @@ export function JobsMarketplaceRefined() {
     </section>
   );
 }
+
