@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState, useCallback } from "react";
+import React, { useEffect, useMemo, useState, useCallback, useRef } from "react";
 import { apiFetch } from "../../../lib/api";
 import { JobDetailDialog } from "./JobDetailDialog";
 import type { DialogJob, SupportedCurrency } from "./JobDetailDialog";
@@ -750,6 +750,87 @@ function JobGridCard({
   );
 }
 
+// ─── Filter Dropdown ─────────────────────────────────────────────────────────
+
+function FilterDropdown({
+  id, label, activeCount, openId, onToggle, children,
+}: {
+  id: string;
+  label: string;
+  activeCount: number;
+  openId: string | null;
+  onToggle: (id: string) => void;
+  children: React.ReactNode;
+}) {
+  const isOpen = openId === id;
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    function handleOutside(e: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        onToggle(id); // closes by passing same id
+      }
+    }
+    function handleEsc(e: KeyboardEvent) {
+      if (e.key === "Escape") onToggle(id);
+    }
+    document.addEventListener("mousedown", handleOutside);
+    document.addEventListener("keydown", handleEsc);
+    return () => {
+      document.removeEventListener("mousedown", handleOutside);
+      document.removeEventListener("keydown", handleEsc);
+    };
+  }, [isOpen, id, onToggle]);
+
+  return (
+    <div ref={containerRef} className="relative shrink-0">
+      <button
+        type="button"
+        onClick={() => onToggle(id)}
+        aria-expanded={isOpen}
+        className="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-[0.82rem] font-semibold transition-all hover:border-[var(--db-primary)] hover:text-[var(--db-primary)] focus:outline-none"
+        style={{
+          background: isOpen || activeCount > 0 ? "var(--db-primary-10)" : "var(--db-card)",
+          borderColor: isOpen || activeCount > 0 ? PRIMARY : BORDER,
+          color: isOpen || activeCount > 0 ? PRIMARY : TEXT_SECONDARY,
+          ...POPPINS,
+        }}
+      >
+        {label}
+        {activeCount > 0 && (
+          <span
+            className="inline-flex h-5 w-5 items-center justify-center rounded-full text-[0.62rem] font-black"
+            style={{ background: PRIMARY, color: "var(--db-primary-text)" }}
+          >
+            {activeCount}
+          </span>
+        )}
+        <span
+          className="material-symbols-outlined transition-transform duration-200"
+          style={{ fontSize: 16, transform: isOpen ? "rotate(180deg)" : "none" }}
+          aria-hidden="true"
+        >
+          expand_more
+        </span>
+      </button>
+
+      {isOpen && (
+        <div
+          className="absolute left-0 top-[calc(100%+8px)] z-[150] min-w-[220px] rounded-[16px] border shadow-xl"
+          style={{
+            background: "var(--db-card)",
+            borderColor: BORDER,
+            boxShadow: "0 16px 48px rgba(58,18,146,0.12), 0 4px 12px rgba(0,0,0,0.08)",
+          }}
+        >
+          {children}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export function JobsMarketplaceRefined() {
@@ -776,6 +857,11 @@ export function JobsMarketplaceRefined() {
   const [reportTarget, setReportTarget] = useState<DiscoveryJob | null>(null);
   const [page, setPage]       = useState(1);
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
+  const [openFilter, setOpenFilter] = useState<string | null>(null);
+
+  const toggleFilter = useCallback((id: string) => {
+    setOpenFilter(prev => prev === id ? null : id);
+  }, []);
 
   useEffect(() => {
     const stored = localStorage.getItem("grc_preferred_currency") as SupportedCurrency | null;
@@ -973,148 +1059,170 @@ export function JobsMarketplaceRefined() {
           </div>
         </div>
 
-        {/*  Filters + Jobs  */}
-        <div className="grid grid-cols-1 gap-8 px-6 py-8 md:px-8 md:py-9 xl:grid-cols-[220px_minmax(0,1fr)] xl:gap-8">
+        {/* ── Filter bar ── */}
+        {(() => {
+          const activeFilters =
+            (selectedCategory ? 1 : 0) +
+            (selectedWorkMode ? 1 : 0) +
+            (selectedExperience ? 1 : 0) +
+            (salaryMinInput || salaryMaxInput ? 1 : 0);
 
-          {/* Filter sidebar */}
-          <div className="space-y-7">
-            <aside className="rounded-[18px] border px-5 py-6" style={{ background: "var(--db-surface)", borderColor: BORDER }}>
-              <div className="space-y-8">
+          return (
+            <div
+              className="border-b px-6 py-3 md:px-8"
+              style={{ borderColor: BORDER }}
+            >
+              <div className="flex flex-wrap items-center gap-2">
 
-                <section>
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-[0.82rem] uppercase tracking-[0.24em]" style={{ color: PRIMARY, fontWeight: 700, ...MONO }}>Category</h3>
-                    <span className="material-symbols-outlined" style={{ color: TEXT_SECONDARY, fontSize: 18 }}>expand_more</span>
-                  </div>
-                  <div className="mt-5 space-y-3.5">
+                {/* Category */}
+                <FilterDropdown
+                  id="category" label="Category"
+                  activeCount={selectedCategory ? 1 : 0}
+                  openId={openFilter} onToggle={toggleFilter}
+                >
+                  <div className="px-2 py-2">
+                    <p className="px-3 pb-2 pt-1 text-[0.68rem] font-bold uppercase tracking-[0.2em]" style={{ color: PRIMARY, ...MONO }}>Category</p>
                     {derivedCategories.map((cat) => (
                       <button key={cat} type="button"
-                        onClick={() => setSelectedCategory(c => c === cat ? "" : cat)}
-                        className="flex w-full items-center gap-3 text-left">
+                        onClick={() => { setSelectedCategory(c => c === cat ? "" : cat); toggleFilter("category"); }}
+                        className="flex w-full items-center gap-3 rounded-[10px] px-3 py-2.5 text-left text-[0.88rem] transition-colors hover:bg-[var(--db-primary-10)]"
+                        style={{ color: selectedCategory === cat ? PRIMARY : TEXT_PRIMARY, fontWeight: selectedCategory === cat ? 700 : 400 }}
+                      >
                         <DotToggle active={selectedCategory === cat} />
-                        <span className="text-[0.97rem]" style={{ color: TEXT_PRIMARY }}>{titleCaseCategory(cat)}</span>
+                        {titleCaseCategory(cat)}
                       </button>
                     ))}
-                    {derivedCategories.length === 0 && (
-                      <p className="text-[0.8rem] italic" style={{ color: "var(--db-text-muted)" }}>No categories yet</p>
-                    )}
                   </div>
-                </section>
+                </FilterDropdown>
 
-                <section>
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-[0.82rem] uppercase tracking-[0.24em]" style={{ color: PRIMARY, fontWeight: 700, ...MONO }}>Work Mode</h3>
-                    <span className="material-symbols-outlined" style={{ color: TEXT_SECONDARY, fontSize: 18 }}>expand_more</span>
+                {/* Work Mode */}
+                <FilterDropdown
+                  id="workmode" label="Work Mode"
+                  activeCount={selectedWorkMode ? 1 : 0}
+                  openId={openFilter} onToggle={toggleFilter}
+                >
+                  <div className="px-2 py-2">
+                    <p className="px-3 pb-2 pt-1 text-[0.68rem] font-bold uppercase tracking-[0.2em]" style={{ color: PRIMARY, ...MONO }}>Work Mode</p>
+                    <div className="flex flex-wrap gap-2 px-3 pb-3 pt-1">
+                      {derivedWorkModes.map((mode) => {
+                        const active = selectedWorkMode === mode;
+                        return (
+                          <button key={mode} type="button"
+                            onClick={() => { setSelectedWorkMode(c => c === mode ? "" : mode); toggleFilter("workmode"); }}
+                            className="rounded-full px-4 py-2 text-[0.8rem] font-semibold transition-all"
+                            style={{ background: active ? PRIMARY : "var(--db-bg)", color: active ? "var(--db-primary-text)" : TEXT_PRIMARY, border: active ? "none" : `1px solid ${BORDER}` }}
+                          >
+                            {mode}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
-                  <div className="mt-5 flex flex-wrap gap-2">
-                    {derivedWorkModes.map((mode) => {
-                      const active = selectedWorkMode === mode;
-                      return (
-                        <button key={mode} type="button" onClick={() => setSelectedWorkMode(c => c === mode ? "" : mode)}
-                          className="rounded-full px-4 py-2 text-[0.77rem]"
-                          style={{ background: active ? PRIMARY : "var(--db-surface)", color: active ? "var(--db-primary-text)" : TEXT_PRIMARY, border: active ? "none" : `1px solid ${BORDER}`, fontWeight: 700 }}>
-                          {mode}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </section>
+                </FilterDropdown>
 
-                <section>
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-[0.82rem] uppercase tracking-[0.24em]" style={{ color: PRIMARY, fontWeight: 700, ...MONO }}>Expected Salary</h3>
-                    <span className="material-symbols-outlined" style={{ color: TEXT_SECONDARY, fontSize: 18 }}>expand_more</span>
-                  </div>
-                  <div className="mt-5 space-y-3">
-                    <select
-                      value={selectedCurrency}
-                      onChange={(e) => setSelectedCurrency(e.target.value as SupportedCurrency)}
-                      className="w-full rounded-[10px] border px-3 py-2 text-[0.82rem] font-bold outline-none"
-                      style={{ background: "var(--db-bg)", borderColor: BORDER, color: TEXT_PRIMARY, ...MONO }}
-                    >
-                      {(Object.keys(CURRENCY_RATES) as SupportedCurrency[]).map((curr) => (
-                        <option key={curr} value={curr}>{curr}</option>
-                      ))}
-                    </select>
+                {/* Expected Salary */}
+                <FilterDropdown
+                  id="salary" label="Expected Salary"
+                  activeCount={salaryMinInput || salaryMaxInput ? 1 : 0}
+                  openId={openFilter} onToggle={toggleFilter}
+                >
+                  <div className="px-4 py-3 w-[240px]">
+                    <p className="pb-2 pt-1 text-[0.68rem] font-bold uppercase tracking-[0.2em]" style={{ color: PRIMARY, ...MONO }}>Expected Salary</p>
+                    <div className="mb-3">
+                      <p className="mb-1 text-[0.65rem] uppercase tracking-[0.16em] font-bold" style={{ color: "var(--db-text-muted)", ...MONO }}>Currency</p>
+                      <select
+                        value={selectedCurrency}
+                        onChange={(e) => setSelectedCurrency(e.target.value as SupportedCurrency)}
+                        className="w-full rounded-[10px] border px-3 py-2 text-[0.82rem] font-bold outline-none"
+                        style={{ background: "var(--db-bg)", borderColor: BORDER, color: TEXT_PRIMARY, ...MONO }}
+                      >
+                        {(Object.keys(CURRENCY_RATES) as SupportedCurrency[]).map((curr) => (
+                          <option key={curr} value={curr}>{curr}</option>
+                        ))}
+                      </select>
+                    </div>
                     <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <div className="mb-1 text-[0.62rem] uppercase tracking-[0.18em] font-bold" style={{ color: "var(--db-text-muted)", ...MONO }}>Min</div>
-                        <input
-                          type="number"
-                          min={0}
-                          placeholder="0"
-                          value={salaryMinInput}
-                          onChange={(e) => setSalaryMinInput(e.target.value)}
+                        <p className="mb-1 text-[0.65rem] uppercase tracking-[0.16em] font-bold" style={{ color: "var(--db-text-muted)", ...MONO }}>Min</p>
+                        <input type="number" min={0} placeholder="0"
+                          value={salaryMinInput} onChange={(e) => setSalaryMinInput(e.target.value)}
                           className="w-full rounded-[10px] border px-3 py-2 text-[0.82rem] outline-none"
                           style={{ background: "var(--db-bg)", borderColor: BORDER, color: TEXT_PRIMARY, ...MONO }}
                         />
                       </div>
                       <div>
-                        <div className="mb-1 text-[0.62rem] uppercase tracking-[0.18em] font-bold" style={{ color: "var(--db-text-muted)", ...MONO }}>Max</div>
-                        <input
-                          type="number"
-                          min={0}
-                          placeholder="Any"
-                          value={salaryMaxInput}
-                          onChange={(e) => setSalaryMaxInput(e.target.value)}
+                        <p className="mb-1 text-[0.65rem] uppercase tracking-[0.16em] font-bold" style={{ color: "var(--db-text-muted)", ...MONO }}>Max</p>
+                        <input type="number" min={0} placeholder="Any"
+                          value={salaryMaxInput} onChange={(e) => setSalaryMaxInput(e.target.value)}
                           className="w-full rounded-[10px] border px-3 py-2 text-[0.82rem] outline-none"
                           style={{ background: "var(--db-bg)", borderColor: BORDER, color: TEXT_PRIMARY, ...MONO }}
                         />
                       </div>
                     </div>
+                    <button type="button" onClick={() => toggleFilter("salary")}
+                      className="mt-3 w-full rounded-full py-2 text-[0.8rem] font-bold transition-all hover:opacity-90"
+                      style={{ background: PRIMARY, color: "var(--db-primary-text)" }}>
+                      Apply
+                    </button>
                   </div>
-                </section>
+                </FilterDropdown>
 
-                <section>
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-[0.82rem] uppercase tracking-[0.24em]" style={{ color: PRIMARY, fontWeight: 700, ...MONO }}>Experience Level</h3>
-                    <span className="material-symbols-outlined" style={{ color: TEXT_SECONDARY, fontSize: 18 }}>expand_more</span>
-                  </div>
-                  <div className="mt-5 space-y-3.5">
+                {/* Experience Level */}
+                <FilterDropdown
+                  id="experience" label="Experience Level"
+                  activeCount={selectedExperience ? 1 : 0}
+                  openId={openFilter} onToggle={toggleFilter}
+                >
+                  <div className="px-2 py-2">
+                    <p className="px-3 pb-2 pt-1 text-[0.68rem] font-bold uppercase tracking-[0.2em]" style={{ color: PRIMARY, ...MONO }}>Experience Level</p>
                     {derivedExperienceLevels.map((level) => (
                       <button key={level} type="button"
-                        onClick={() => setSelectedExperience(c => c === level ? "" : level)}
-                        className="flex w-full items-center gap-3 text-left">
+                        onClick={() => { setSelectedExperience(c => c === level ? "" : level); toggleFilter("experience"); }}
+                        className="flex w-full items-center gap-3 rounded-[10px] px-3 py-2.5 text-left text-[0.88rem] transition-colors hover:bg-[var(--db-primary-10)]"
+                        style={{ color: selectedExperience === level ? PRIMARY : TEXT_PRIMARY, fontWeight: selectedExperience === level ? 700 : 400 }}
+                      >
                         <DotToggle active={selectedExperience === level} />
-                        <span className="text-[0.97rem]" style={{ color: TEXT_PRIMARY }}>{titleCaseExperience(level)}</span>
+                        {titleCaseExperience(level)}
                       </button>
                     ))}
-                    {derivedExperienceLevels.length === 0 && (
-                      <p className="text-[0.8rem] italic" style={{ color: "var(--db-text-muted)" }}>No levels yet</p>
-                    )}
                   </div>
-                </section>
+                </FilterDropdown>
+
+                {/* Divider + Clear */}
+                {activeFilters > 0 && (
+                  <>
+                    <div className="h-6 w-px mx-1" style={{ background: BORDER }} />
+                    <button type="button" onClick={clearFilters}
+                      className="inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-[0.82rem] font-semibold transition-all hover:opacity-80"
+                      style={{ background: "rgba(239,68,68,0.08)", color: "#ef4444", border: "1px solid rgba(239,68,68,0.25)" }}
+                    >
+                      <span className="material-symbols-outlined" style={{ fontSize: 14 }}>close</span>
+                      Clear filters
+                      <span className="inline-flex h-5 w-5 items-center justify-center rounded-full text-[0.62rem] font-black"
+                        style={{ background: "#ef4444", color: "#fff" }}>
+                        {activeFilters}
+                      </span>
+                    </button>
+                  </>
+                )}
               </div>
-            </aside>
+            </div>
+          );
+        })()}
 
-            <button type="button" onClick={clearFilters}
-              className="group flex w-full items-center justify-center gap-3 rounded-full px-7 py-3.5 text-[0.8rem] uppercase tracking-[0.2em] transition-all hover:scale-[1.05] active:scale-95 db-btn-primary"
-              style={{ background: PRIMARY, color: "var(--db-primary-text)", fontWeight: 800, boxShadow: "0 12px 24px var(--db-primary-20)", ...MONO }}>
-              <span className="material-symbols-outlined text-[22px] transition-transform group-hover:rotate-180">restart_alt</span>
-              CLEAR ALL FILTERS
-            </button>
-          </div>
-
-          {/* Job list */}
-          <div className="min-w-0 space-y-6">
+        {/* ── Jobs ── */}
+        <div className="px-6 py-8 md:px-8 md:py-9">
+          <div className="space-y-6">
             {saveError && (
-              <div
-                className="rounded-[20px] border px-6 py-5 flex items-center justify-between gap-4"
-                style={{ background: "rgba(245,158,11,0.10)", borderColor: "rgba(245,158,11,0.35)" }}
-              >
+              <div className="rounded-[20px] border px-6 py-5 flex items-center justify-between gap-4"
+                style={{ background: "rgba(245,158,11,0.10)", borderColor: "rgba(245,158,11,0.35)" }}>
                 <div className="flex items-center gap-3 min-w-0">
                   <span className="material-symbols-outlined shrink-0" style={{ fontSize: 20, color: AMBER }}>warning</span>
-                  <span className="truncate" style={{ fontSize: "0.9rem", color: TEXT_SECONDARY }}>
-                    Could not update saved jobs — {saveError}
-                  </span>
+                  <span className="truncate" style={{ fontSize: "0.9rem", color: TEXT_SECONDARY }}>Could not update saved jobs — {saveError}</span>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setSaveError(null)}
+                <button type="button" onClick={() => setSaveError(null)}
                   className="inline-flex h-9 w-9 items-center justify-center rounded-full border"
-                  style={{ borderColor: "rgba(245,158,11,0.35)", color: AMBER, background: "transparent" }}
-                  aria-label="Dismiss save error"
-                >
+                  style={{ borderColor: "rgba(245,158,11,0.35)", color: AMBER, background: "transparent" }} aria-label="Dismiss">
                   <span className="material-symbols-outlined" style={{ fontSize: 18 }}>close</span>
                 </button>
               </div>
@@ -1124,9 +1232,7 @@ export function JobsMarketplaceRefined() {
                 style={{ background: "rgba(239,68,68,0.06)", borderColor: "rgba(239,68,68,0.25)" }}>
                 <div className="flex items-center gap-3 min-w-0">
                   <span className="material-symbols-outlined shrink-0" style={{ fontSize: 20, color: "#f87171" }}>error</span>
-                  <span className="truncate" style={{ fontSize: "0.9rem", color: "#f87171" }}>
-                    Could not withdraw application — {withdrawError}
-                  </span>
+                  <span className="truncate" style={{ fontSize: "0.9rem", color: "#f87171" }}>Could not withdraw application — {withdrawError}</span>
                 </div>
                 <button type="button" onClick={() => setWithdrawError(null)}
                   className="inline-flex h-9 w-9 items-center justify-center rounded-full border"
@@ -1151,8 +1257,7 @@ export function JobsMarketplaceRefined() {
               viewMode === "list" ? (
                 <div className="space-y-6">
                   {paginatedJobs.map((job) => (
-                    <JobCard
-                      key={job.id}
+                    <JobCard key={job.id}
                       job={{ ...job, isSaved: savedIds.has(job.id) }}
                       selectedCurrency={selectedCurrency}
                       isApplied={appliedIds.has(job.id)}
@@ -1165,10 +1270,9 @@ export function JobsMarketplaceRefined() {
                   ))}
                 </div>
               ) : (
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
                   {paginatedJobs.map((job) => (
-                    <JobGridCard
-                      key={job.id}
+                    <JobGridCard key={job.id}
                       job={{ ...job, isSaved: savedIds.has(job.id) }}
                       selectedCurrency={selectedCurrency}
                       isApplied={appliedIds.has(job.id)}
