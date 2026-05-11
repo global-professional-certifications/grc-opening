@@ -3,8 +3,9 @@ import Head from "next/head";
 import Link from "next/link";
 import { ResumeAnalyser } from "../modules/resume-analyser/ResumeAnalyser";
 import { ResumeChecker } from "../modules/resume-analyser/ResumeChecker";
+import { ResumeJDLibrary } from "../modules/resume-analyser/ResumeJDLibrary";
 
-type HomeTool = "checker" | "enhancer";
+type HomeTool = "checker" | "enhancer" | "jdlibrary";
 
 export default function LandingPage() {
   const [activeTool, setActiveTool] = useState<HomeTool>("enhancer");
@@ -161,9 +162,9 @@ export default function LandingPage() {
           <div className="absolute top-10 left-1/4 w-[600px] h-[600px] rounded-full blur-[140px] pointer-events-none opacity-20 transform -translate-x-1/2" style={{ background: "var(--db-primary)" }} />
           <div className="absolute bottom-10 right-1/4 w-[500px] h-[500px] rounded-full blur-[120px] pointer-events-none opacity-15 transform translate-x-1/3" style={{ background: "#7c3aed" }} />
 
-          <div className="max-w-5xl mx-auto relative z-10">
+          <div className="max-w-7xl mx-auto relative z-10">
             {/* Section Header */}
-            <div className="text-center mb-12">
+            <div className="text-center mb-14">
               <span
                 className="inline-flex items-center gap-2 px-5 py-2 rounded-full text-xs font-black uppercase tracking-[0.15em] shadow-sm backdrop-blur-md mb-3"
                 style={{ background: "var(--db-primary-10)", color: "var(--db-primary)", border: "1px solid var(--db-primary-20)" }}
@@ -180,52 +181,140 @@ export default function LandingPage() {
               </p>
             </div>
 
-            {/* Tab switcher */}
-            <div className="flex items-center justify-center gap-3 mb-8">
+            {/* ── Premium Tool Selector Cards ── */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-10">
               {([
-                { id: "checker" as HomeTool,  icon: "fact_check",    label: "AI Resume Checker",  badge: "Basic"        },
-                { id: "enhancer" as HomeTool, icon: "auto_awesome",  label: "AI Resume Enhancer", badge: "Intermediate" },
-              ]).map((tab) => {
-                const isActive = activeTool === tab.id;
+                {
+                  id: "checker" as HomeTool,
+                  icon: "fact_check",
+                  title: "AI Resume Checker",
+                  badge: "Basic",
+                  description: "Instant quality scan — catch typos, broken links, and formatting issues in seconds.",
+                },
+                {
+                  id: "enhancer" as HomeTool,
+                  icon: "auto_awesome",
+                  title: "AI Resume Enhancer",
+                  badge: "Intermediate",
+                  description: "Paste a JD and our AI rewrites your resume for maximum ATS impact and keyword coverage.",
+                },
+                {
+                  id: "jdlibrary" as HomeTool,
+                  icon: "library_books",
+                  title: "JD Library Enhancer",
+                  badge: "Advanced",
+                  description: "Pick a GRC role from our curated library — AI auto-fills the JD and optimizes your resume.",
+                },
+              ]).map((card) => {
+                const isActive = activeTool === card.id;
                 return (
                   <button
-                    key={tab.id}
+                    key={card.id}
                     type="button"
-                    onClick={() => setActiveTool(tab.id)}
-                    className="flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold transition-all duration-200 focus:outline-none focus:ring-2"
+                    onClick={() => setActiveTool(card.id)}
+                    className="ra-tool-card group relative text-left rounded-2xl p-5 flex flex-col gap-3 transition-all duration-300 focus:outline-none"
                     style={{
-                      background: isActive ? "var(--db-primary)" : "var(--db-primary-10)",
-                      color: isActive ? "#ffffff" : "var(--db-primary)",
-                      border: `1px solid ${isActive ? "var(--db-primary)" : "var(--db-primary-20)"}`,
-                      boxShadow: isActive ? "0 4px 14px rgba(58,18,146,0.25)" : "none",
+                      background: isActive
+                        ? "rgba(255,255,255,0.95)"
+                        : "rgba(255,255,255,0.55)",
+                      border: isActive
+                        ? "1.5px solid var(--db-primary)"
+                        : "1.5px solid rgba(255,255,255,0.6)",
+                      boxShadow: isActive
+                        ? "0 8px 32px rgba(58,18,146,0.18), 0 0 0 3px var(--db-primary-10)"
+                        : "0 2px 12px rgba(0,0,0,0.04)",
+                      backdropFilter: "blur(16px)",
                     }}
                     aria-pressed={isActive}
                   >
-                    <span className="material-symbols-outlined" style={{ fontSize: 16 }} aria-hidden="true">{tab.icon}</span>
-                    {tab.label}
-                    <span
-                      className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full"
-                      style={{
-                        fontFamily: "'JetBrains Mono', monospace",
-                        background: isActive ? "rgba(255,255,255,0.2)" : "var(--db-primary-20)",
-                        color: isActive ? "#fff" : "var(--db-primary)",
-                      }}
+                    {/* Active indicator bar */}
+                    {isActive && (
+                      <div
+                        className="absolute top-0 left-0 right-0 h-[3px] rounded-t-2xl"
+                        style={{ background: "linear-gradient(90deg, var(--db-primary), #7c3aed)" }}
+                      />
+                    )}
+
+                    {/* Top row: icon + badge + dot */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div
+                          className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-all duration-300"
+                          style={{
+                            background: isActive ? "var(--db-primary)" : "var(--db-primary-10)",
+                          }}
+                        >
+                          <span
+                            className="material-symbols-outlined transition-colors duration-300"
+                            style={{ fontSize: 20, color: isActive ? "#fff" : "var(--db-primary)" }}
+                            aria-hidden="true"
+                          >
+                            {card.icon}
+                          </span>
+                        </div>
+                        <span
+                          className="text-[9px] font-black uppercase tracking-[0.12em] px-2.5 py-1 rounded-full"
+                          style={{
+                            fontFamily: "'JetBrains Mono', monospace",
+                            background: isActive ? "var(--db-primary)" : "var(--db-primary-10)",
+                            color: isActive ? "#fff" : "var(--db-primary)",
+                          }}
+                        >
+                          {card.badge}
+                        </span>
+                      </div>
+
+                      {/* Selection dot indicator */}
+                      <div
+                        className="w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 transition-all duration-300"
+                        style={{
+                          borderColor: isActive ? "var(--db-primary)" : "var(--db-border)",
+                        }}
+                      >
+                        <div
+                          className="rounded-full transition-all duration-300"
+                          style={{
+                            width: isActive ? 8 : 0,
+                            height: isActive ? 8 : 0,
+                            background: isActive ? "var(--db-primary)" : "transparent",
+                          }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Title */}
+                    <h3
+                      className="text-base font-bold leading-snug transition-colors duration-200"
+                      style={{ color: isActive ? "var(--db-primary)" : "var(--db-text)" }}
                     >
-                      {tab.badge}
-                    </span>
+                      {card.title}
+                    </h3>
+
+                    {/* Description */}
+                    <p
+                      className="text-[13px] leading-relaxed"
+                      style={{ color: "var(--db-text-muted)" }}
+                    >
+                      {card.description}
+                    </p>
                   </button>
                 );
               })}
             </div>
 
-            {/* Tool Container */}
-            <div className="ra-home-wrapper relative rounded-[32px] p-1 overflow-hidden shadow-[0_30px_80px_rgba(58,18,146,0.12)]">
+            {/* Tool Container — wider */}
+            <div className="ra-home-wrapper relative rounded-[28px] p-[2px] overflow-hidden shadow-[0_30px_80px_rgba(58,18,146,0.10)]">
               {/* Animated Gradient Border Layer */}
-              <div className="absolute inset-0 bg-gradient-to-br from-[var(--db-primary)] via-transparent to-[#7c3aed] opacity-30" />
+              <div
+                className="absolute inset-0 rounded-[28px] opacity-40"
+                style={{ background: "linear-gradient(135deg, var(--db-primary), transparent 40%, transparent 60%, #7c3aed)" }}
+              />
 
-              <div className="relative rounded-[30px] p-8 md:p-12 backdrop-blur-xl" style={{ background: "rgba(255, 255, 255, 0.7)", border: "1px solid rgba(255, 255, 255, 0.8)" }}>
+              <div className="relative rounded-[26px] px-6 py-8 md:px-10 md:py-10 backdrop-blur-xl" style={{ background: "rgba(255, 255, 255, 0.75)", border: "1px solid rgba(255, 255, 255, 0.85)" }}>
                 {activeTool === "checker" ? (
                   <ResumeChecker isPublic={true} />
+                ) : activeTool === "jdlibrary" ? (
+                  <ResumeJDLibrary isPublic={true} compact={true} />
                 ) : (
                   <ResumeAnalyser isPublic={true} compact={true} />
                 )}

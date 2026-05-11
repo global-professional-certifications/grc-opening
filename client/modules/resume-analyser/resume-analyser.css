@@ -2,12 +2,25 @@
 
 .ra-container {
   width: 100%;
-  max-w: 800px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
   gap: 24px;
   font-family: 'Inter', 'Manrope', sans-serif;
+}
+
+/* ── Home Page Tool Selector Cards ── */
+.ra-tool-card {
+  cursor: pointer;
+}
+
+.ra-tool-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(58, 18, 146, 0.14), 0 0 0 2px var(--db-primary-20) !important;
+}
+
+.ra-tool-card:active {
+  transform: translateY(0);
 }
 
 /* ── Header ── */
@@ -603,4 +616,216 @@
   color: #10b981;
   font-size: 18px;
   margin-top: 2px;
+}
+
+/* ── JD Library Enhancer Styles ─────────────────────────────── */
+
+/* Fade-in animation for dynamically revealed sections */
+.jdl-fade-in {
+  animation: jdlFadeIn 0.35s ease-out both;
+}
+
+@keyframes jdlFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── Dropdown Selects ── */
+.jdl-select-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+@media (max-width: 640px) {
+  .jdl-select-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.jdl-select-wrapper {
+  position: relative;
+}
+
+.jdl-select {
+  width: 100%;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background: var(--db-surface);
+  border: 1.5px solid var(--db-border);
+  border-radius: 12px;
+  padding: 12px 40px 12px 16px;
+  color: var(--db-text);
+  font-size: 0.875rem;
+  font-weight: 600;
+  font-family: 'Inter', 'Manrope', sans-serif;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.jdl-select:hover {
+  border-color: var(--db-primary-40);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.jdl-select:focus {
+  border-color: var(--db-primary);
+  box-shadow: 0 0 0 3px var(--db-primary-10);
+}
+
+.jdl-select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: var(--db-surface);
+}
+
+.jdl-select option {
+  font-weight: 500;
+  padding: 8px;
+}
+
+.jdl-select-icon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 20px;
+  color: var(--db-text-muted);
+  pointer-events: none;
+  transition: color 0.2s ease;
+}
+
+.jdl-select:focus ~ .jdl-select-icon {
+  color: var(--db-primary);
+}
+
+/* ── JD Preview Card ── */
+.jdl-preview-card {
+  background: var(--db-card);
+  border: 1px solid var(--db-border);
+  border-radius: 16px;
+  overflow: hidden;
+  transition: box-shadow 0.3s ease;
+}
+
+.jdl-preview-card:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
+}
+
+.jdl-preview-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--db-border);
+  background: rgba(16, 185, 129, 0.04);
+}
+
+.jdl-preview-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.jdl-preview-badge {
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #10b981;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.jdl-preview-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.jdl-preview-meta-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  background: var(--db-primary-10);
+  color: var(--db-primary);
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.jdl-preview-title-row {
+  padding: 16px 20px 0 20px;
+}
+
+.jdl-preview-role {
+  font-family: 'Syne', sans-serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--db-text);
+  margin: 0;
+}
+
+.jdl-preview-body {
+  padding: 12px 20px 16px 20px;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.jdl-preview-body::-webkit-scrollbar {
+  width: 4px;
+}
+
+.jdl-preview-body::-webkit-scrollbar-thumb {
+  background: var(--db-border);
+  border-radius: 2px;
+}
+
+.jdl-preview-section-header {
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--db-primary);
+  margin: 16px 0 6px 0;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.jdl-preview-section-header:first-child {
+  margin-top: 0;
+}
+
+.jdl-preview-line {
+  font-size: 0.825rem;
+  line-height: 1.6;
+  color: var(--db-text-secondary);
+  margin: 0 0 4px 0;
+}
+
+.jdl-preview-footer {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 20px;
+  border-top: 1px solid var(--db-border);
+  background: var(--db-surface);
+}
+
+.jdl-preview-footer-text {
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: var(--db-text-muted);
 }
