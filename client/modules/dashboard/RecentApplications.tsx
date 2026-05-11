@@ -60,7 +60,7 @@ export function RecentApplications() {
           <thead>
             <tr style={{ background: "var(--db-table-head)" }}>
               {["Job Title","Company","Date Applied","Status","Action"].map(h => (
-                <th key={h} className="px-6 py-4 text-[10px] uppercase font-bold tracking-widest"
+                <th key={h} scope="col" className="px-6 py-4 text-[10px] uppercase font-bold tracking-widest"
                   style={{ color: "var(--db-text-muted)" }}>{h}</th>
               ))}
             </tr>
@@ -101,8 +101,12 @@ export function RecentApplications() {
                     </span>
                   </td>
                   <td className="px-6 py-4">
-                    <button style={{ color: "var(--db-text-muted)" }}>
-                      <span className="material-symbols-outlined text-lg">more_horiz</span>
+                    <button
+                      aria-label={`More options for ${app.job.title}`}
+                      className="p-1 rounded hover:bg-black/5 transition-colors focus:outline-none focus:ring-2 focus:ring-(--db-primary) focus:ring-offset-1"
+                      style={{ color: "var(--db-text-muted)" }}
+                    >
+                      <span className="material-symbols-outlined text-lg" aria-hidden="true">more_horiz</span>
                     </button>
                   </td>
                 </tr>

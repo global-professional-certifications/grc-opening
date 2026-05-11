@@ -54,7 +54,7 @@ const defaultData: JobPostingData = {
   salaryMin: '',
   salaryMax: '',
   currency: 'USD',
-  undisclosedSalary: false,
+  undisclosedSalary: true,
   description: '',
   jdRole: '',
   responsibilities: '',

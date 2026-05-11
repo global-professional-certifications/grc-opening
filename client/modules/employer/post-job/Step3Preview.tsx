@@ -417,7 +417,7 @@ export function Step3Preview() {
           onClick={handlePublish}
           disabled={isPublishing}
           className="w-full flex items-center justify-center gap-2.5 py-3.5 rounded-xl font-bold text-base transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
-          style={{ background: 'var(--db-primary)', color: '#0a0a0a', ...MONO }}
+          style={{ background: 'var(--db-primary)', color: '#ffffff', ...MONO }}
         >
           {isPublishing ? (
             <>

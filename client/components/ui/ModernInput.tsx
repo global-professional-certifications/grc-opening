@@ -10,6 +10,7 @@ interface ModernInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
 
 export function ModernInput({ label, icon, error, hint, id, rightElement, ...props }: ModernInputProps) {
   const [focused, setFocused] = React.useState(false);
+  const errorId = id ? `${id}-error` : undefined;
 
   return (
     <div className="flex flex-col gap-2 w-full group">
@@ -23,7 +24,7 @@ export function ModernInput({ label, icon, error, hint, id, rightElement, ...pro
         {label}
       </label>
       
-      <div className="relative group-hover:transform group-hover:translate-y-[-1px] transition-transform duration-300">
+      <div className="relative group-hover:-translate-y-px transition-transform duration-300">
         {icon && (
           <span
             className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[20px] pointer-events-none transition-colors duration-300"
@@ -37,6 +38,8 @@ export function ModernInput({ label, icon, error, hint, id, rightElement, ...pro
           id={id}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
+          aria-describedby={error && errorId ? errorId : undefined}
+          aria-invalid={!!error}
           className={`
             w-full transition-all duration-300 outline-none
             text-[14.5px] font-medium leading-relaxed text-gray-900 placeholder:text-gray-400
@@ -60,7 +63,7 @@ export function ModernInput({ label, icon, error, hint, id, rightElement, ...pro
       </div>
 
       {error ? (
-        <span className="text-[12px] font-medium text-red-500 mt-0.5 ml-1 animate-in fade-in slide-in-from-top-1" style={{ fontFamily: "'Poppins', sans-serif" }}>
+        <span id={errorId} role="alert" aria-live="polite" className="text-[12px] font-medium text-red-500 mt-0.5 ml-1 animate-in fade-in slide-in-from-top-1" style={{ fontFamily: "'Poppins', sans-serif" }}>
           {error}
         </span>
       ) : hint ? (

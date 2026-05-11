@@ -207,7 +207,7 @@ export default function NotificationsPage() {
             </div>
           ) : notifications.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-center">
-              <span className="material-symbols-outlined text-6xl mb-4" style={{ color: "var(--db-text-muted)", opacity: 0.3 }}>notifications_off</span>
+              <span className="material-symbols-outlined text-6xl mb-4" style={{ color: "var(--db-text-muted)", opacity: 0.5 }}>notifications_off</span>
               <h3 className="text-lg font-bold" style={{ color: "var(--db-text)" }}>No notifications</h3>
               <p className="mt-2 text-sm" style={{ color: "var(--db-text-muted)" }}>
                 You don't have any notifications here yet.
@@ -278,7 +278,7 @@ export default function NotificationsPage() {
               <button
                 disabled={page === 1}
                 onClick={() => setPage(p => p - 1)}
-                className="px-4 py-2 rounded-xl border text-sm font-bold disabled:opacity-40 transition-all hover:bg-black/5 dark:hover:bg-white/5"
+                className="px-4 py-2 rounded-xl border text-sm font-bold disabled:opacity-40 disabled:cursor-not-allowed transition-all hover:bg-black/5 dark:hover:bg-white/5"
                 style={{ borderColor: "var(--db-border)", color: "var(--db-text)" }}
               >
                 Previous
@@ -286,7 +286,7 @@ export default function NotificationsPage() {
               <button
                 disabled={page === totalPages}
                 onClick={() => setPage(p => p + 1)}
-                className="px-4 py-2 rounded-xl border text-sm font-bold disabled:opacity-40 transition-all hover:bg-black/5 dark:hover:bg-white/5"
+                className="px-4 py-2 rounded-xl border text-sm font-bold disabled:opacity-40 disabled:cursor-not-allowed transition-all hover:bg-black/5 dark:hover:bg-white/5"
                 style={{ borderColor: "var(--db-border)", color: "var(--db-text)" }}
               >
                 Next

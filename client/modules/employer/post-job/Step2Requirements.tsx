@@ -269,13 +269,13 @@ export function Step2Requirements() {
             type="button"
             onClick={handleSaveDraft}
             disabled={draftState === 'saving'}
-            className="flex items-center gap-1.5 text-sm font-medium transition-all hover:opacity-80 disabled:opacity-40"
-            style={{ ...MONO, color: draftColor() }}
+            className="flex items-center gap-1.5 px-4 py-2.5 rounded-lg border text-sm font-semibold transition-all hover:opacity-90 active:scale-[0.97] disabled:opacity-40 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-(--db-primary) focus:ring-offset-1"
+            style={{ ...MONO, color: draftColor(), borderColor: draftState === 'saved' ? 'var(--db-primary)' : draftState === 'error' ? '#f87171' : 'var(--db-border)', background: 'var(--db-card)' }}
           >
             {draftState === 'saving' ? (
-              <span className="w-3.5 h-3.5 rounded-full border-2 border-current border-t-transparent animate-spin inline-block" />
+              <span className="w-3.5 h-3.5 rounded-full border-2 border-current border-t-transparent animate-spin inline-block" aria-hidden="true" />
             ) : (
-              <span className="material-symbols-outlined" style={{ fontSize: 15 }}>
+              <span className="material-symbols-outlined" style={{ fontSize: 15 }} aria-hidden="true">
                 {draftState === 'saved' ? 'check_circle' : draftState === 'error' ? 'error' : 'save'}
               </span>
             )}
@@ -287,7 +287,7 @@ export function Step2Requirements() {
             type="button"
             onClick={handleNext}
             className="flex items-center gap-2 px-6 py-2.5 rounded-lg font-bold text-sm transition-all hover:opacity-90 active:scale-[0.98]"
-            style={{ background: 'var(--db-primary)', color: '#0a0a0a', ...MONO }}
+            style={{ background: 'var(--db-primary)', color: '#ffffff', ...MONO }}
           >
             Next: Preview
             <span className="material-symbols-outlined" style={{ fontSize: 18 }}>arrow_forward</span>
