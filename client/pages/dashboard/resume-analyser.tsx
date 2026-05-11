@@ -38,7 +38,7 @@ const TOOLS = [
 ];
 
 export default function ResumeToolsPage() {
-  const [activeTool, setActiveTool] = useState<Tool>(null);
+  const [activeTool, setActiveTool] = useState<Tool>("checker");
 
   useEffect(() => {
     const toggle = document.querySelector<HTMLElement>(".theme-toggle");
@@ -101,16 +101,6 @@ export default function ResumeToolsPage() {
                     {tool.icon}
                   </span>
                 </div>
-                <span
-                  className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full mt-0.5"
-                  style={{
-                    fontFamily: "'JetBrains Mono', monospace",
-                    background: isActive ? "var(--db-primary)" : "var(--db-primary-10)",
-                    color: isActive ? "#fff" : "var(--db-primary)",
-                  }}
-                >
-                  {tool.badge}
-                </span>
               </div>
 
               {/* Title + description */}

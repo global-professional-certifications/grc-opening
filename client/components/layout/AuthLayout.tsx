@@ -71,7 +71,7 @@ function MarketingPanel({
 
 export function AuthLayout({ children, role = "job_seeker" }: AuthLayoutProps) {
   const seekerContent = {
-    title: "The Future of GRC Careers.",
+    title: "Your Future in GRC domain starts here",
     subtitle: "Join the most exclusive community of Risk, Compliance, and Audit professionals globally.",
     stats: [
       { value: "50k+", label: "Professionals" },
@@ -81,7 +81,7 @@ export function AuthLayout({ children, role = "job_seeker" }: AuthLayoutProps) {
   };
 
   const employerContent = {
-    title: "Hire Elite GRC Talent.",
+    title: "Explore best GRC talent for your team",
     subtitle: "Stop sifting through generic resumes. Access a curated database of verified GRC specialists.",
     stats: [
       { value: "12 Days", label: "Avg Hire" },

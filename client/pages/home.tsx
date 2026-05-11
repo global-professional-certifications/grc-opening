@@ -8,7 +8,7 @@ import { ResumeJDLibrary } from "../modules/resume-analyser/ResumeJDLibrary";
 type HomeTool = "checker" | "enhancer" | "jdlibrary";
 
 export default function LandingPage() {
-  const [activeTool, setActiveTool] = useState<HomeTool>("enhancer");
+  const [activeTool, setActiveTool] = useState<HomeTool>("checker");
 
   // Simple scroll reveal observer
   useEffect(() => {
@@ -31,12 +31,12 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen flex flex-col font-sans overflow-x-hidden w-full" style={{ background: "var(--db-bg)", color: "var(--db-text)" }}>
       <Head>
-        <title>GRC Openings | Governance, Risk, and Compliance Careers</title>
+        <title>GRC Openings | Governance, Risk Management, and Control Careers</title>
         <meta
           name="description"
-          content="The premier network for Governance, Risk, and Compliance professionals. Find exclusive cybersecurity, audit, and risk management jobs, or hire certified top-tier GRC talent."
+          content="The premier network for Governance, Risk Management, and Control professionals. Find exclusive cybersecurity, audit, and risk management jobs, or hire certified top-tier GRC talent."
         />
-        <meta name="keywords" content="GRC, Governance Risk Compliance, Cybersecurity Jobs, Audit Careers, Privacy Hiring, CISA, CISSP" />
+        <meta name="keywords" content="GRC, Governance, Risk Management, and Control, Cybersecurity Jobs, Audit Careers, Privacy Hiring, CISA, CISSP" />
       </Head>
 
       {/* ── Navigation (Fixed White Top Bar) ──────────────────────── */}
@@ -106,11 +106,11 @@ export default function LandingPage() {
               </span>
 
               <h1 className="text-5xl lg:text-[4rem] font-black tracking-tight leading-[1.1] drop-shadow-lg reveal-scroll opacity-0 translate-y-8 transition-all duration-1000 delay-100">
-                The Future of <span className="text-transparent bg-clip-text" style={{ backgroundImage: "linear-gradient(to right, #60a5fa, #ffffff)" }}>Compliance</span> Careers
+                The Future of <span className="text-transparent bg-clip-text" style={{ backgroundImage: "linear-gradient(to right, #60a5fa, #ffffff)" }}>GRC</span> Careers
               </h1>
 
               <p className="text-lg lg:text-xl font-medium leading-relaxed opacity-90 text-white/90 reveal-scroll opacity-0 translate-y-8 transition-all duration-1000 delay-200">
-                Connect directly with industry-leading enterprises. Governance, Risk and Complience recruitment perfected through precision matching and verified trust.
+                Connect directly with industry-leading enterprises. Governance, Risk Management, and Control recruitment perfected through precision matching and verified trust.
               </p>
 
               <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-4 reveal-scroll opacity-0 translate-y-8 transition-all duration-1000 delay-300">
@@ -173,11 +173,11 @@ export default function LandingPage() {
                 AI-Powered Tools
               </span>
               <h2 className="text-4xl lg:text-5xl font-black tracking-tight leading-tight" style={{ color: "var(--db-text)" }}>
-                Supercharge Your Resume <br className="hidden md:block" />
-                <span className="text-transparent bg-clip-text" style={{ backgroundImage: "linear-gradient(135deg, var(--db-primary), #7c3aed)" }}>with Intelligent AI</span>
+                Supercharge Your Resume with our<br className="hidden md:block" />
+                <span className="text-transparent bg-clip-text" style={{ backgroundImage: "linear-gradient(135deg, var(--db-primary), #7c3aed)" }}> AI Resume Enhancer</span>
               </h2>
               <p className="text-lg font-medium max-w-2xl mx-auto leading-relaxed mt-4" style={{ color: "var(--db-text-muted)" }}>
-                Check your resume for quality issues or tailor it to a specific job—no account needed.
+                Check your resume for quality issues or tailor it to a specific job.
               </p>
             </div>
 
@@ -187,21 +187,21 @@ export default function LandingPage() {
                 {
                   id: "checker" as HomeTool,
                   icon: "fact_check",
-                  title: "AI Resume Checker",
+                  title: "Basic Resume Checker",
                   badge: "Basic",
                   description: "Instant quality scan — catch typos, broken links, and formatting issues in seconds.",
                 },
                 {
                   id: "enhancer" as HomeTool,
                   icon: "auto_awesome",
-                  title: "AI Resume Enhancer",
+                  title: "Enhance with Job Description",
                   badge: "Intermediate",
                   description: "Paste a JD and our AI rewrites your resume for maximum ATS impact and keyword coverage.",
                 },
                 {
                   id: "jdlibrary" as HomeTool,
                   icon: "library_books",
-                  title: "JD Library Enhancer",
+                  title: "Access our JD Library",
                   badge: "Advanced",
                   description: "Pick a GRC role from our curated library — AI auto-fills the JD and optimizes your resume.",
                 },
@@ -252,16 +252,6 @@ export default function LandingPage() {
                             {card.icon}
                           </span>
                         </div>
-                        <span
-                          className="text-[9px] font-black uppercase tracking-[0.12em] px-2.5 py-1 rounded-full"
-                          style={{
-                            fontFamily: "'JetBrains Mono', monospace",
-                            background: isActive ? "var(--db-primary)" : "var(--db-primary-10)",
-                            color: isActive ? "#fff" : "var(--db-primary)",
-                          }}
-                        >
-                          {card.badge}
-                        </span>
                       </div>
 
                       {/* Selection dot indicator */}
