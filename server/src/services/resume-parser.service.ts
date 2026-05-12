@@ -522,10 +522,9 @@ export async function parseResume(filePath: string): Promise<ParsedResumeData> {
   
   let rawText: string;
   try {
-    // Note: TypeScript types for pdf-parse v2 mark `load()` as private,
-    // but it must be called before getText(). Using `as any` to bypass.
-    const parser = new PDFParse(fileArray) as any;
-    await parser.load();
+    // pdf-parse v2: constructor takes a LoadParameters object ({ data: ... }),
+    // NOT a raw Uint8Array. getText() loads the document internally — load() is private.
+    const parser = new PDFParse({ data: fileArray });
     const result = await parser.getText();
     rawText = result.text;
   } catch (err: any) {

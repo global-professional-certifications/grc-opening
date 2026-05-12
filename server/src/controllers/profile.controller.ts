@@ -36,7 +36,11 @@ export const getSeekerProfile = async (req: Request, res: Response): Promise<voi
 export const updateSeekerProfile = async (req: Request, res: Response): Promise<void> => {
   try {
     const userId = req.user!.id;
-    const { firstName, lastName, headline, bio, location, linkedInUrl, avatarUrl, country, phone, skills, workExperiences, educations, certifications } = req.body;
+    const {
+      firstName, lastName, headline, bio, location, linkedInUrl, avatarUrl, country, phone,
+      openToShareCriticalInfo, ctcCurrency, currentCtc, expectedCtc, noticePeriod, buybackOption,
+      skills, workExperiences, educations, certifications
+    } = req.body;
 
     const profile = await prisma.seekerProfile.findUnique({ where: { userId } });
     if (!profile) {
@@ -57,6 +61,12 @@ export const updateSeekerProfile = async (req: Request, res: Response): Promise<
           ...(avatarUrl !== undefined && { avatarUrl }),
           ...(country !== undefined && { country }),
           ...(phone !== undefined && { phone }),
+          ...(openToShareCriticalInfo !== undefined && { openToShareCriticalInfo }),
+          ...(ctcCurrency !== undefined && { ctcCurrency }),
+          ...(currentCtc !== undefined && { currentCtc }),
+          ...(expectedCtc !== undefined && { expectedCtc }),
+          ...(noticePeriod !== undefined && { noticePeriod }),
+          ...(buybackOption !== undefined && { buybackOption }),
         } as any,
       });
 

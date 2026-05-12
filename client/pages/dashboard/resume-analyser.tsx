@@ -81,7 +81,8 @@ export default function ResumeToolsPage() {
                 borderColor: isActive ? "var(--db-primary)" : "var(--db-border)",
                 boxShadow: isActive ? "0 0 0 1px var(--db-primary-20)" : undefined,
 
-                // @ts-expect-error
+
+                // @ts-expect-error - Custom CSS variable for Tailwind
                 "--tw-ring-color": "var(--db-primary-40)",
               }}
               aria-pressed={isActive}
