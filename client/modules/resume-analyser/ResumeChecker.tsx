@@ -1,6 +1,7 @@
 import React, { useState, useRef, useCallback } from "react";
 import { CheckerResults } from "./CheckerResults";
 import type { CheckerResult } from "./CheckerResults";
+import type { EnhancedResume } from "./ResumeAnalyser";
 
 interface ResumeCheckerProps {
   isPublic?: boolean;
@@ -19,6 +20,7 @@ export function ResumeChecker({ isPublic = false }: ResumeCheckerProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [isChecking, setIsChecking] = useState(false);
   const [result, setResult]       = useState<CheckerResult | null>(null);
+  const [enhancedData, setEnhancedData] = useState<EnhancedResume | null>(null);
   const [error, setError]         = useState<string | null>(null);
   const [progress, setProgress]   = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -110,6 +112,7 @@ export function ResumeChecker({ isPublic = false }: ResumeCheckerProps) {
       setProgress(100);
       await new Promise(r => setTimeout(r, 400));
       setResult(data.data);
+      if (data.enhanced) setEnhancedData(data.enhanced);
     } catch (err: any) {
       clearInterval(progressInterval);
       setError(err.message || "Something went wrong. Please try again.");
@@ -121,6 +124,7 @@ export function ResumeChecker({ isPublic = false }: ResumeCheckerProps) {
   const handleReset = () => {
     setFile(null);
     setResult(null);
+    setEnhancedData(null);
     setError(null);
     setProgress(0);
     if (fileInputRef.current) fileInputRef.current.value = "";
@@ -130,7 +134,7 @@ export function ResumeChecker({ isPublic = false }: ResumeCheckerProps) {
   if (result) {
     return (
       <div className="ra-container">
-        <CheckerResults data={result} onReset={handleReset} />
+        <CheckerResults data={result} onReset={handleReset} enhancedData={enhancedData} />
       </div>
     );
   }
