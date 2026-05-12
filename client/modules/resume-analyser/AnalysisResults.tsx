@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import type { EnhancedResume } from "./ResumeAnalyser";
+import { ResumePreview } from "./ResumePreview";
 
 interface AnalysisResultsProps {
   data: EnhancedResume;
@@ -35,6 +36,7 @@ function SectionCard({ title, icon, children, accentClass }: {
 }
 
 export function AnalysisResults({ data, onReset, compact }: AnalysisResultsProps) {
+  const [showPreview, setShowPreview] = useState(false);
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
     new Set(["summary", "skills", "keywords"])
   );
@@ -58,6 +60,12 @@ export function AnalysisResults({ data, onReset, compact }: AnalysisResultsProps
   const groupedSkills: Record<string, string[]> | null =
     !Array.isArray(data.skills) && data.skills ? data.skills : null;
 
+  // ── Preview Mode ─────────────────────────────────────────────
+  if (showPreview) {
+    return <ResumePreview data={data} onBack={() => setShowPreview(false)} />;
+  }
+
+  // ── Results Mode (existing) ──────────────────────────────────
   return (
     <div className="ra-results">
       {/* Header */}
@@ -247,6 +255,25 @@ export function AnalysisResults({ data, onReset, compact }: AnalysisResultsProps
             <p>{data.enhancement_notes}</p>
           </div>
         )}
+      </div>
+
+      {/* ── Preview & Export CTA ── */}
+      <div className="ra-preview-cta">
+        <div className="ra-preview-cta-text">
+          <span className="material-symbols-outlined" style={{ fontSize: 24, color: "var(--db-primary)" }}>draft</span>
+          <div>
+            <h4>Ready to download your enhanced resume?</h4>
+            <p>Preview how it will look as a formatted document, then export as PDF or DOCX.</p>
+          </div>
+        </div>
+        <button
+          className="ra-preview-btn"
+          onClick={() => setShowPreview(true)}
+          type="button"
+        >
+          <span className="material-symbols-outlined" style={{ fontSize: 20 }}>visibility</span>
+          Preview & Export Resume
+        </button>
       </div>
     </div>
   );

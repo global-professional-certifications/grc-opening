@@ -89,7 +89,7 @@ export function EmployerProfileModal({ employer, onClose }: Props) {
 
   return (
     <div
-      className="fixed inset-0 z-[300] flex items-center justify-center p-4 sm:p-6"
+      className="fixed inset-0 z-[800] flex items-center justify-center p-4 sm:p-6"
       style={{
         background:      visible ? 'rgba(0,0,0,0.6)' : 'rgba(0,0,0,0)',
         backdropFilter:  visible ? 'blur(8px)' : 'blur(0px)',
