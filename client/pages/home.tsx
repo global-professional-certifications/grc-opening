@@ -14,7 +14,7 @@ const GRC_CATEGORIES = [
   { icon: "manage_accounts", label: "Identity & Access"    },
   { icon: "privacy_tip",     label: "Data Privacy"         },
   { icon: "verified_user",   label: "IT Governance"        },
-  { icon: "shield_lock",     label: "Third-Party Risk"     },
+  { icon: "hub",             label: "Third-Party Risk"     },
 ];
 
 const POPULAR_SEARCHES = ["Risk Analyst", "Compliance Manager", "GRC Consultant", "Internal Auditor", "Governance Specialist", "SOC Analyst"];
@@ -118,10 +118,18 @@ export default function LandingPage() {
 
           {/* Fade-to-edge hero image */}
           <div
-            className="hidden lg:block absolute top-0 right-0 w-[50%] h-full z-0 pointer-events-none select-none"
-            style={{ maskImage: "linear-gradient(to right, transparent 0%, black 22%, black 100%)", WebkitMaskImage: "linear-gradient(to right, transparent 0%, black 22%, black 100%)" }}
+            className="hidden lg:block absolute top-0 right-0 w-[55%] h-full z-0 pointer-events-none select-none"
+            style={{
+              maskImage: "linear-gradient(to right, transparent 0%, black 18%, black 85%, transparent 100%)",
+              WebkitMaskImage: "linear-gradient(to right, transparent 0%, black 18%, black 85%, transparent 100%)"
+            }}
           >
-            <img src="/images/grc-hero.webp" alt="GRC professionals — woman and man in business formal" className="w-full h-full object-cover object-[40%_30%]" style={{ filter: "brightness(1.0) contrast(1.05)" }} />
+            <img
+              src="/images/grc-hero.png"
+              alt="GRC professionals — woman and man in business formal attire"
+              className="w-full h-full object-cover"
+              style={{ objectPosition: "50% 20%", filter: "brightness(1.0) contrast(1.05)" }}
+            />
           </div>
 
           <div className="relative z-10 max-w-[1400px] mx-auto w-full px-6">
@@ -558,7 +566,7 @@ export default function LandingPage() {
                   Post a Job
                 </Link>
                 <Link href="/auth/register?role=employer" className="flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl text-sm font-bold transition-all duration-300 hover:bg-white/20 hover:-translate-y-1" style={{ background: "rgba(255,255,255,0.1)", border: "1.5px solid rgba(255,255,255,0.3)", color: "#fff" }}>
-                  <span className="material-symbols-outlined" style={{ fontSize: 18 }}>people_search</span>
+                  <span className="material-symbols-outlined" style={{ fontSize: 18 }}>manage_search</span>
                   Browse Candidates
                 </Link>
               </div>
@@ -613,7 +621,7 @@ export default function LandingPage() {
                   className="flex items-center justify-center gap-2 w-full sm:w-auto px-8 py-4 rounded-xl text-base font-bold transition-all duration-300 hover:-translate-y-[2px]"
                   style={{ background: "var(--db-card)", border: "1.5px solid var(--db-border)", color: "var(--db-text)" }}
                 >
-                  <span className="material-symbols-outlined" style={{ fontSize: 18 }}>work_outline</span>
+                  <span className="material-symbols-outlined" style={{ fontSize: 18 }}>work</span>
                   Browse Jobs
                 </Link>
               </div>

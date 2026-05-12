@@ -157,7 +157,8 @@ body {
 .auth-layout {
   min-height: 100vh;
   display: grid;
-  grid-template-columns: 3fr 2fr; /* 60% Left, 40% Right */
+  grid-template-columns: 3fr 2fr;
+  /* 60% Left, 40% Right */
   background: white;
   overflow-y: auto;
 }
@@ -227,9 +228,11 @@ body {
     scrollbar-width: auto;
     -ms-overflow-style: auto;
   }
+
   .left-panel::-webkit-scrollbar {
     display: revert;
   }
+
   .left-panel::before,
   .left-panel::after {
     display: none;
@@ -303,9 +306,17 @@ body {
   cursor: default;
 }
 
-.badge-card:nth-child(1) { animation-delay: 0s; }
-.badge-card:nth-child(2) { animation-delay: 2.5s; }
-.badge-card:nth-child(3) { animation-delay: 5s; }
+.badge-card:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.badge-card:nth-child(2) {
+  animation-delay: 2.5s;
+}
+
+.badge-card:nth-child(3) {
+  animation-delay: 5s;
+}
 
 .badge-card:hover {
   transform: translateY(-3px);
@@ -394,13 +405,27 @@ body {
 
 /* ─── FORM ROLE TRANSITION ──────────────────────────────── */
 @keyframes formEnter {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0);   }
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes formExit {
-  from { opacity: 1; transform: translateY(0);   }
-  to   { opacity: 0; transform: translateY(-8px); }
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
 }
 
 /* Entry — plays when new form mounts */
@@ -411,7 +436,8 @@ body {
 /* Exit — applied via JS for the 160ms before content swaps */
 .form-role-exit {
   animation: formExit 0.16s ease-in both;
-  pointer-events: none; /* block clicks during exit */
+  pointer-events: none;
+  /* block clicks during exit */
 }
 
 /* ─── MARKETING PANEL TRANSITION ────────────────────────── */
@@ -419,6 +445,7 @@ body {
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -436,13 +463,27 @@ body {
 
 /* ─── HEADING TRANSITION ─────────────────────────────────── */
 @keyframes headingEnter {
-  from { opacity: 0; transform: translateY(6px);  }
-  to   { opacity: 1; transform: translateY(0);    }
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes headingExit {
-  from { opacity: 1; transform: translateY(0);    }
-  to   { opacity: 0; transform: translateY(-6px); }
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
 }
 
 .heading-animate {
@@ -454,34 +495,153 @@ body {
   pointer-events: none;
 }
 
+/* Auth Marketing title shimmer + platform pill glow */
+.auth-running-title {
+  color: #ffffff;
+  text-shadow: 0 0 14px rgba(255, 255, 255, 0.08);
+}
+
+@supports ((-webkit-background-clip: text) or (background-clip: text)) {
+  .auth-running-title {
+    background-image: linear-gradient(95deg,
+        rgba(255, 255, 255, 0.66) 0%,
+        #ffffff 24%,
+        rgba(255, 255, 255, 0.72) 46%,
+        #ffffff 68%,
+        rgba(255, 255, 255, 0.66) 100%);
+    background-size: 220% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+    animation: authTitleShimmer 4.6s linear infinite;
+  }
+}
+
+.auth-platform-pill {
+  position: relative;
+  overflow: hidden;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.08) inset,
+    0 0 14px rgba(255, 255, 255, 0.16),
+    0 0 28px rgba(180, 144, 255, 0.2);
+  animation: authPillGlow 3s ease-in-out infinite;
+}
+
+.auth-platform-pill::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background: linear-gradient(110deg, transparent 0%, rgba(255, 255, 255, 0.28) 42%, transparent 76%);
+  transform: translateX(-130%);
+  animation: authPillShine 4.8s linear infinite;
+  pointer-events: none;
+}
+
+.auth-platform-pill-label {
+  position: relative;
+  z-index: 1;
+}
+
+@keyframes authTitleShimmer {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -30% 0;
+  }
+}
+
+@keyframes authPillGlow {
+
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.08) inset,
+      0 0 14px rgba(255, 255, 255, 0.16),
+      0 0 28px rgba(180, 144, 255, 0.2);
+  }
+
+  50% {
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.14) inset,
+      0 0 18px rgba(255, 255, 255, 0.24),
+      0 0 36px rgba(196, 162, 255, 0.32);
+  }
+}
+
+@keyframes authPillShine {
+  0% {
+    transform: translateX(-130%);
+  }
+
+  100% {
+    transform: translateX(140%);
+  }
+}
+
 /* ═══════════════════════════════════════════════════════════════
    AI RESUME ANALYSER
    ═══════════════════════════════════════════════════════════════ */
 
 /* ── Animations ─────────────────────────────────────────────── */
 @keyframes ra-shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
 }
 
 @keyframes ra-pulse-ring {
-  0% { transform: scale(1); opacity: 0.3; }
-  50% { transform: scale(1.15); opacity: 0.1; }
-  100% { transform: scale(1); opacity: 0.3; }
+  0% {
+    transform: scale(1);
+    opacity: 0.3;
+  }
+
+  50% {
+    transform: scale(1.15);
+    opacity: 0.1;
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 0.3;
+  }
 }
 
 @keyframes ra-spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes ra-fade-in {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes ra-slide-up {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* ── Container ──────────────────────────────────────────────── */
@@ -1212,9 +1372,17 @@ body {
   background: var(--db-card);
 }
 
-.ra-insight--success { border-color: rgba(34, 197, 94, 0.2); }
-.ra-insight--info { border-color: rgba(59, 130, 246, 0.2); }
-.ra-insight--warning { border-color: rgba(234, 179, 8, 0.2); }
+.ra-insight--success {
+  border-color: rgba(34, 197, 94, 0.2);
+}
+
+.ra-insight--info {
+  border-color: rgba(59, 130, 246, 0.2);
+}
+
+.ra-insight--warning {
+  border-color: rgba(234, 179, 8, 0.2);
+}
 
 .ra-insight-label {
   font-size: 0.7rem;
@@ -1313,6 +1481,7 @@ body {
 
 /* ─── REDUCED MOTION ─────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
+
   *,
   *::before,
   *::after {
