@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import type { EnhancedResume } from "./ResumeAnalyser";
+import { ResumePreview } from "./ResumePreview";
 
 // ── Exact types from /openapi.json ────────────────────────────
 
@@ -50,6 +52,7 @@ export interface CheckerResult {
 interface CheckerResultsProps {
   data: CheckerResult;
   onReset: () => void;
+  enhancedData?: EnhancedResume | null;
 }
 
 const CATEGORY_KEYS: (keyof CheckerResult)[] = [
@@ -138,10 +141,16 @@ function HyperlinkBadge({ status }: { status: HyperlinkStatus }) {
   );
 }
 
-export function CheckerResults({ data, onReset }: CheckerResultsProps) {
+export function CheckerResults({ data, onReset, enhancedData }: CheckerResultsProps) {
   const [openIdx, setOpenIdx] = useState<number | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
 
   const categories = CATEGORY_KEYS.map(k => data[k] as CategoryResult);
+
+  // ── Preview Mode ─────────────────────────────────────────────
+  if (showPreview && enhancedData) {
+    return <ResumePreview data={enhancedData} onBack={() => setShowPreview(false)} />;
+  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -384,6 +393,28 @@ export function CheckerResults({ data, onReset }: CheckerResultsProps) {
               </li>
             ))}
           </ol>
+        </div>
+      )}
+
+
+      {/* ── Enhanced Resume Preview & Export CTA ── */}
+      {enhancedData && (
+        <div className="ra-preview-cta">
+          <div className="ra-preview-cta-text">
+            <span className="material-symbols-outlined" style={{ fontSize: 24, color: "var(--db-primary)" }}>draft</span>
+            <div>
+              <h4>Your AI-enhanced resume is ready!</h4>
+              <p>We've improved your resume based on the analysis. Preview it and export as PDF or DOCX.</p>
+            </div>
+          </div>
+          <button
+            className="ra-preview-btn"
+            onClick={() => setShowPreview(true)}
+            type="button"
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: 20 }}>visibility</span>
+            Preview & Export Resume
+          </button>
         </div>
       )}
     </div>
