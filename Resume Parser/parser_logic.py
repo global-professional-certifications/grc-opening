@@ -1,101 +1,110 @@
 import os
+import fitz  # PyMuPDF
 from typing import List, Optional
 from dotenv import load_dotenv
 from pydantic import BaseModel, Field
 from langchain_openai import ChatOpenAI
-from langchain_community.document_loaders import PyPDFLoader, Docx2txtLoader, TextLoader
 from langchain_core.prompts import ChatPromptTemplate
-
 
 load_dotenv()
 
 
 
 class Experience(BaseModel, extra="forbid"):
-    company: str = Field(description="Name of the company")
-    role: str = Field(description="Job title")
-    duration: str = Field(description="Dates worked, e.g., Jan 2020 - Present")
-    description: List[str] = Field(description="Verbatim bullet points of responsibilities")
+    organization: str = Field(description="Name of the audit firm or company")
+    designation: str = Field(description="Official role title (e.g., Assistant Manager - Risk)")
+    duration: str = Field(description="Tenure dates")
+    work_location: Optional[str] = Field(None, description="City/State where this job was located")
+    responsibilities: List[str] = Field(description="Verbatim, concise list of audit/GRC tasks")
+
+class Certification(BaseModel, extra="forbid"):
+    name: str = Field(description="Certification acronym like CISA, CIA, or CRMA")
+    issuing_body: str = Field(description="The organization that granted the cert (ISACA, IIA, etc.)")
 
 class Education(BaseModel, extra="forbid"):
     school: str = Field(description="Name of the university or school")
     degree: str = Field(description="Degree obtained")
-    year: str = Field(description="Year of graduation")
-
-class Project(BaseModel, extra="forbid"):
-    title: str = Field(description="Title of the project")
-    description: str = Field(description="Exhaustive description of the project")
+    year: str = Field(description="Year of graduation or expected graduation")
+    location: Optional[str] = Field(None, description="City/State of the institution")
 
 class ResumeSchema(BaseModel, extra="forbid"):
     full_name: str = Field(description="Candidate's full name")
-    email: str = Field(description="Email address")
-    phone: str = Field(description="Phone number")
-    linkedin: Optional[str] = Field(None, description="LinkedIn URL")
-    summary: str = Field(description="Professional summary or profile")
-    skills: List[str] = Field(description="List of all technical and soft skills")
-    experience: List[Experience] = Field(description="List of every work experience entry")
-    education: List[Education] = Field(description="List of all educational qualifications")
-    projects: List[Project] = Field(description="List of all projects mentioned")
+    current_designation: Optional[str] = Field(None, description="The professional title found in the header")
+    location: Optional[str] = Field(None, description="Candidate's current residential City and State")
+    email: str
+    phone: str
+    linkedin: Optional[str] = Field(None, description="Full LinkedIn URL (extracted from text or metadata links)")
+    summary: str = Field(description="GRC profile summary (strictly max 300 characters)")
+    certifications: List[Certification] = Field(description="List of formal professional credentials")
+    frameworks: List[str] = Field(description="Compliance standards like ISO 27001, NIST, GDPR, SOC2")
+    experience: List[Experience]
+    education: List[Education] = Field(description="Academic history including school, degree, and year")
 
-# --- 2. The Multi-Format Parser Logic ---
-def parse_resume(file_path: str):
-    # Determine the file extension
-    ext = file_path.lower().split('.')[-1]
-    
-    # Select the appropriate loader
+
+
+def parse_resume(file_content: bytes, filename: str):
+    ext = filename.lower().split('.')[-1]
+    full_text = ""
+    metadata_links = []
+
     if ext == "pdf":
-        loader = PyPDFLoader(file_path)
+        doc = fitz.open(stream=file_content, filetype="pdf")
+        for page in doc:
+            full_text += page.get_text()
+            for link in page.get_links():
+                if "uri" in link:
+                    metadata_links.append(link["uri"])
+        doc.close()
     elif ext == "docx":
-        loader = Docx2txtLoader(file_path)
-    elif ext == "txt":
-        loader = TextLoader(file_path)
+        import io
+        from docx import Document  # type: ignore
+        doc_stream = io.BytesIO(file_content)
+        doc = Document(doc_stream)
+        full_text = "\n".join([para.text for para in doc.paragraphs])
     else:
-        raise ValueError(f"Unsupported file extension: .{ext}")
+        full_text = file_content.decode("utf-8")
 
-    pages = loader.load()
-    full_text = " ".join([p.page_content for p in pages])
+    # --- THE FIX FOR HYPERLINKS ---
+    # We must append the metadata links to the text so the LLM can "see" them
+    if metadata_links:
+        unique_links = list(set(metadata_links))
+        full_text += "\n\n--- EXTRACTED METADATA LINKS ---\n" + "\n".join(unique_links)
+    # -----------------------------
 
-    
-    api_key = os.getenv("OPENROUTER_API_KEY")
-    model_name = os.getenv("OPENROUTER_MODEL", "openai/gpt-4o-mini")
-
-    if not api_key:
-        raise ValueError("OPENROUTER_API_KEY is missing from the .env file")
-
-    
+    # --- LLM Setup ---
     llm = ChatOpenAI(
-        model=model_name,
-        openai_api_key=api_key,
+        model=os.getenv("OPENROUTER_MODEL", "openai/gpt-4o-mini"),
+        openai_api_key=os.getenv("OPENROUTER_API_KEY"),
         base_url="https://openrouter.ai/api/v1",
-        temperature=0,
-        default_headers={
-            "HTTP-Referer": "http://localhost:8000",
-            "X-Title": "Resume Parser App"
-        }
+        temperature=0
     )
     
-    # Using method="json_schema" is the safest way to ensure the AI follows the Pydantic model
     structured_llm = llm.with_structured_output(ResumeSchema, method="json_schema")
 
-    
+    # --- 3. The "Pure Parsing" GRC Prompt ---
     prompt = ChatPromptTemplate.from_template(
         """
-        You are a professional Data Extraction Engine. Your task is to perform an 
-        exhaustive and verbatim extraction of all professional information from the text.
+        You are a Specialized GRC Data Extraction Engine. 
+    
+    INSTRUCTIONS:
+    1. CURRENT DESIGNATION: Look for a title immediately under the name in the header. 
+       IF NOT FOUND, look at the most recent 'Experience' or current 'Education' degree 
+       (e.g., 'B.Tech Student' or 'Information Technology Student') and use that.
+    
+    2. HEADER EXTRACTION: Identify the Name and Resident Location (City/State).
+    
+    3. HYPERLINK MAPPING: Look in 'EXTRACTED METADATA LINKS' for a LinkedIn URI. (Done - working!)
+    
+    4. DEDUPLICATION: Standards like ISO 27001 belong in 'frameworks'. 
+       Audit roles belong in 'experience'.
+    
+    5. NULLS: Only use null if absolutely no title or education level is found.
 
-        INSTRUCTIONS:
-        1. EXTRACT ALL DETAILS: For every section (Experience, Education, Projects), 
-           capture every single sub-detail and bullet point. Do not summarize or skip content.
-        2. STRUCTURE: Map the text headlines to the provided JSON schema accurately.
-        3. GRANULARITY: In the 'description' fields, maintain the original detail. 
-           Every bullet point in the resume should be a separate string in the description list.
-        4. VERBATIM: Use the exact wording from the resume where possible.
-
-        Resume Text:
+    Resume Text:
+    
         {text}
         """
     )
 
-    # Run the chain
     chain = prompt | structured_llm
     return chain.invoke({"text": full_text})
