@@ -64,54 +64,66 @@ export default function LandingPage() {
       </Head>
 
       {/* ── Navigation ──────────────────────────────────────────────────────── */}
-      <header className="fixed top-0 w-full z-50 px-6 py-3.5 flex items-center justify-between shadow-sm" style={{ background: "rgba(255,255,255,0.97)", backdropFilter: "blur(12px)", borderBottom: "1px solid var(--db-border)" }}>
-        {/* Brand */}
-        <div className="flex items-center gap-2 shrink-0">
-          <span className="material-symbols-outlined text-2xl" style={{ color: "var(--db-primary)" }}>shield_locked</span>
-          <span className="text-lg font-bold tracking-tight" style={{ color: "var(--db-text)" }}>GRC Openings</span>
-        </div>
+      {/* ── Navigation ──────────────────────────────────────────────────────── */}
+      <header className="fixed top-0 w-full z-50 transition-all duration-300 border-b border-white/10" 
+        style={{ 
+          background: "rgba(255,255,255,0.8)", 
+          backdropFilter: "blur(16px) saturate(180%)",
+          WebkitBackdropFilter: "blur(16px) saturate(180%)",
+          boxShadow: "0 4px 30px rgba(0, 0, 0, 0.03)"
+        }}>
+        <div className="max-w-[1440px] mx-auto w-full px-6 lg:px-12 py-3.5 lg:py-4 flex items-center justify-between">
+          {/* Brand */}
+          <Link href="/" className="flex items-center gap-2.5 shrink-0 group">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#3a1292] to-[#7c3aed] flex items-center justify-center shadow-lg shadow-[#3a12921a] group-hover:scale-105 transition-transform duration-300">
+              <span className="material-symbols-outlined text-xl text-white">shield_locked</span>
+            </div>
+            <span className="text-xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600">
+              GRC Openings
+            </span>
+          </Link>
 
-        {/* Centre links */}
-        <nav className="hidden lg:flex items-center gap-1">
-          {[
-            { label: "Find Jobs",         href: "/auth/register"                },
-            { label: "For Employers",     href: "/auth/register?role=employer"  },
-            { label: "Resume Tools",      href: "#ai-resume-tools"              },
-            { label: "Career Resources",  href: "/auth/register"                },
-            { label: "Pricing",           href: "/auth/register"                },
-          ].map(({ label, href }) => (
-            <Link
-              key={label}
-              href={href}
-              className="px-3.5 py-2 rounded-lg text-sm font-semibold transition-colors duration-150 hover:bg-[#3a12921a] hover:text-[#3a1292]"
-              style={{ color: "var(--db-text-muted)" }}
-            >
-              {label}
+          {/* Centre links */}
+          <nav className="hidden lg:flex items-center gap-1.5">
+            {[
+              { label: "Find Jobs",         href: "/auth/register"                },
+              { label: "For Employers",     href: "/auth/register?role=employer"  },
+              { label: "Resume Tools",      href: "#ai-resume-tools"              },
+              { label: "Career Resources",  href: "/auth/register"                },
+              { label: "Pricing",           href: "/auth/register"                },
+            ].map(({ label, href }) => (
+              <Link
+                key={label}
+                href={href}
+                className="px-4 py-2 rounded-full text-[13.5px] font-bold transition-all duration-200 hover:bg-gray-100/80 hover:text-gray-900"
+                style={{ color: "var(--db-text-secondary)" }}
+              >
+                {label}
+              </Link>
+            ))}
+          </nav>
+
+          {/* Auth */}
+          <div className="flex items-center gap-4 shrink-0">
+            <Link href="/auth/login" className="hidden sm:block px-4 py-2 text-sm font-bold transition-colors duration-200 hover:text-[#3a1292]" style={{ color: "var(--db-text-secondary)" }}>
+              Login
             </Link>
-          ))}
-        </nav>
-
-        {/* Auth */}
-        <div className="flex items-center gap-2 shrink-0">
-          <Link href="/auth/login" className="px-4 py-2 rounded-lg text-sm font-bold transition-colors duration-150 hover:bg-[#3a12921a] hover:text-[#3a1292]" style={{ color: "var(--db-text-muted)" }}>
-            Login
-          </Link>
-          <Link
-            href="/auth/register"
-            className="group px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-1.5 transition-all duration-300 hover:shadow-[0_6px_20px_rgba(58,18,146,0.35)] hover:-translate-y-[1px] relative overflow-hidden"
-            style={{ background: "var(--db-primary)", color: "#fff", boxShadow: "0 3px 10px rgba(58,18,146,0.2)" }}
-          >
-            <div className="absolute inset-0 bg-white/0 group-hover:bg-white/10 transition-colors duration-300 pointer-events-none" />
-            Get Started
-            <span className="material-symbols-outlined group-hover:translate-x-0.5 transition-transform duration-300" style={{ fontSize: 16 }}>arrow_forward</span>
-          </Link>
+            <Link
+              href="/auth/register"
+              className="group px-6 py-2.5 rounded-full text-sm font-bold flex items-center gap-2 transition-all duration-300 hover:shadow-xl hover:shadow-[#3a129233] hover:-translate-y-0.5 relative overflow-hidden"
+              style={{ background: "linear-gradient(135deg, #3a1292, #5b21b6)", color: "#fff" }}
+            >
+              Get Started
+              <span className="material-symbols-outlined group-hover:translate-x-0.5 transition-transform duration-300" style={{ fontSize: 16 }}>arrow_forward</span>
+            </Link>
+          </div>
         </div>
       </header>
 
-      <main className="flex-1 flex flex-col">
+      <main className="flex-1 flex flex-col pt-[60px]">
 
         {/* ── Hero ────────────────────────────────────────────────────────────── */}
-        <section className="relative pt-28 pb-28 lg:pt-[160px] lg:pb-36 flex flex-col items-center justify-center overflow-hidden" style={{ background: "var(--db-primary)" }}>
+        <section className="relative pt-36 pb-28 lg:pt-[190px] lg:pb-36 flex flex-col items-center justify-center overflow-hidden" style={{ background: "var(--db-primary)" }}>
           {/* Ambient glows */}
           <div className="absolute top-0 right-0 w-[700px] h-[700px] bg-white/10 rounded-full blur-[100px] pointer-events-none transform translate-x-1/3 -translate-y-1/3" />
           <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-[#2a0e69] rounded-full blur-[80px] pointer-events-none transform -translate-x-1/3 translate-y-1/3" />
@@ -152,7 +164,7 @@ export default function LandingPage() {
 
               {/* Subheading */}
               <p className="text-lg font-medium leading-relaxed text-white/85 reveal-scroll opacity-0 translate-y-8 transition-all duration-1000 delay-200 max-w-lg">
-                Connect with top organizations. Get discovered for verified roles. Build a career in Governance, Risk &amp; Compliance.
+                Connect with top organizations. Get discovered for verified roles. Build a career in Governance, Risk Management, and Control.
               </p>
 
               {/* CTA buttons */}
@@ -334,7 +346,7 @@ export default function LandingPage() {
               </span>
               <h2 className="text-4xl lg:text-5xl font-black tracking-tight leading-tight" style={{ color: "var(--db-text)" }}>
                 Supercharge Your Resume with our<br className="hidden md:block" />
-                <span className="text-transparent bg-clip-text" style={{ backgroundImage: "linear-gradient(135deg, var(--db-primary), #7c3aed)" }}> AI Resume Enhancer</span>
+                <span className="text-transparent bg-clip-text" style={{ backgroundImage: "linear-gradient(135deg, var(--db-primary), #7c3aed)" }}> Free AI Resume Enhancer</span>
               </h2>
               <p className="text-lg font-medium max-w-2xl mx-auto leading-relaxed mt-4" style={{ color: "var(--db-text-muted)" }}>
                 Check your resume for quality issues or tailor it to a specific GRC role — all in one place.
@@ -363,7 +375,7 @@ export default function LandingPage() {
                     }}
                     aria-pressed={isActive}
                   >
-                    {isActive && <div className="absolute top-0 left-0 right-0 h-[3px] rounded-t-2xl" style={{ background: "linear-gradient(90deg, var(--db-primary), #7c3aed)" }} />}
+
                     <div className="flex items-center justify-between">
                       <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-all duration-300" style={{ background: isActive ? "var(--db-primary)" : "var(--db-primary-10)" }}>
                         <span className="material-symbols-outlined transition-colors duration-300" style={{ fontSize: 20, color: isActive ? "#fff" : "var(--db-primary)" }} aria-hidden="true">{card.icon}</span>
@@ -603,7 +615,7 @@ export default function LandingPage() {
                 Ready to secure your next <span style={{ color: "var(--db-primary)" }}>role?</span>
               </h2>
               <p className="text-lg font-medium leading-relaxed" style={{ color: "var(--db-text-muted)" }}>
-                Join the definitive professional network constructed exclusively for Governance, Risk, and Compliance experts. Secure top-tier cybersecurity listings, audit opportunities, and elite risk management roles.
+                Join the definitive professional network constructed exclusively for Governance, Risk Management, and Control experts. Secure top-tier cybersecurity listings, audit opportunities, and elite risk management roles.
               </p>
 
               <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-2">
@@ -652,7 +664,7 @@ export default function LandingPage() {
                 <span className="material-symbols-outlined text-2xl" style={{ color: "var(--db-primary)" }}>shield_locked</span>
                 <span className="text-lg font-black tracking-tight" style={{ color: "var(--db-text)" }}>GRC Openings</span>
               </div>
-              <p className="text-sm font-medium leading-relaxed max-w-xs" style={{ color: "var(--db-text-muted)" }}>The premier network for Governance, Risk, and Compliance professionals. Precision matching for the security sector.</p>
+              <p className="text-sm font-medium leading-relaxed max-w-xs" style={{ color: "var(--db-text-muted)" }}>The premier network for Governance, Risk Management, and Control professionals. Precision matching for the security sector.</p>
               <div className="flex items-center gap-2 pt-1">
                 {[["language","Website"],["link","LinkedIn"]].map(([icon, label]) => (
                   <span key={label} className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "var(--db-primary-10)", color: "var(--db-primary)" }} title={label}>
