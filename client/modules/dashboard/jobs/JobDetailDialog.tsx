@@ -210,10 +210,10 @@ export function JobDetailDialog({
 
   return (
     <div
-      className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-0 sm:p-5"
+      className="fixed inset-0 z-[600] flex items-end sm:items-center justify-center p-0 sm:p-5"
       style={{
-        background: visible ? "rgba(0,0,0,0.54)" : "rgba(0,0,0,0)",
-        backdropFilter: visible ? "blur(6px)" : "blur(0px)",
+        background: visible ? "rgba(0,0,0,0.75)" : "rgba(0,0,0,0)",
+        backdropFilter: visible ? "blur(8px)" : "blur(0px)",
         transition: "background 0.22s ease, backdrop-filter 0.22s ease",
       }}
       onClick={handleClose}
@@ -340,111 +340,113 @@ export function JobDetailDialog({
         </div>
 
         {/* ── Scrollable Body ─────────────────────────────────────────────── */}
-        <div ref={scrollRef} className="flex-1 overflow-y-auto overscroll-contain" style={{ minHeight: 0 }}>
-          <div className="grid grid-cols-1 sm:grid-cols-[1fr_230px]">
+        {/* flex row: left scrolls, right is pinned at its natural height */}
+        <div className="flex-1 flex overflow-hidden" style={{ minHeight: 0 }}>
 
-            {/* Left — JD content */}
-            <div
-              className="px-6 py-7 sm:px-8 space-y-8 border-r"
-              style={{ borderColor: BORDER }}
-            >
-              <div>
-                <SectionLabel text="About the Role" />
-                <ContentBlock text={job.description} />
-              </div>
-
-              <div>
-                <SectionLabel text="Responsibilities" />
-                <ContentBlock text={job.responsibilities} />
-              </div>
-
-              <div>
-                <SectionLabel text="Qualifications" />
-                <ContentBlock text={job.qualifications} />
-              </div>
-
-              <div>
-                <SectionLabel text="Nice to Have" />
-                <ContentBlock text={job.niceToHave} />
-              </div>
+          {/* Left — independently scrollable JD content */}
+          <div
+            className="flex-1 overflow-y-auto overscroll-contain px-6 py-7 sm:px-8 space-y-8 border-r"
+            style={{ borderColor: BORDER }}
+          >
+            <div>
+              <SectionLabel text="About the Role" />
+              <ContentBlock text={job.description} />
             </div>
 
-            {/* Right — sidebar */}
-            <div className="px-5 py-7 space-y-7" style={{ background: "var(--db-bg)" }}>
-              {/* Salary */}
+            <div>
+              <SectionLabel text="Responsibilities" />
+              <ContentBlock text={job.responsibilities} />
+            </div>
+
+            <div>
+              <SectionLabel text="Qualifications" />
+              <ContentBlock text={job.qualifications} />
+            </div>
+
+            <div>
+              <SectionLabel text="Nice to Have" />
+              <ContentBlock text={job.niceToHave} />
+            </div>
+          </div>
+
+          {/* Right — fixed-width sidebar, does not scroll with left */}
+          <div
+            className="w-[230px] shrink-0 px-5 py-7 space-y-7 overflow-y-auto"
+            style={{ background: "var(--db-bg)" }}
+          >
+            {/* Salary */}
+            <div>
+              <p
+                className="text-[0.65rem] uppercase tracking-[0.24em] font-bold mb-2"
+                style={{ color: "var(--db-text-muted)", ...MONO }}
+              >
+                Salary
+              </p>
+              <p className="text-[1.45rem] font-bold leading-tight" style={{ color: TEXT_PRIMARY, ...POPPINS }}>
+                {salary}
+              </p>
+              {!job.undisclosedSalary && salary !== "Competitive" && (
+                <p className="text-[0.72rem] mt-0.5" style={{ color: "var(--db-text-muted)" }}>
+                  {selectedCurrency} · per year
+                </p>
+              )}
+            </div>
+
+            {/* Details */}
+            {detailRows.length > 0 && (
               <div>
                 <p
-                  className="text-[0.65rem] uppercase tracking-[0.24em] font-bold mb-2"
+                  className="text-[0.65rem] uppercase tracking-[0.24em] font-bold mb-4"
                   style={{ color: "var(--db-text-muted)", ...MONO }}
                 >
-                  Salary
+                  Details
                 </p>
-                <p className="text-[1.45rem] font-bold leading-tight" style={{ color: TEXT_PRIMARY, ...POPPINS }}>
-                  {salary}
-                </p>
-                {!job.undisclosedSalary && salary !== "Competitive" && (
-                  <p className="text-[0.72rem] mt-0.5" style={{ color: "var(--db-text-muted)" }}>
-                    {selectedCurrency} · per year
-                  </p>
-                )}
-              </div>
-
-              {/* Details */}
-              {detailRows.length > 0 && (
-                <div>
-                  <p
-                    className="text-[0.65rem] uppercase tracking-[0.24em] font-bold mb-4"
-                    style={{ color: "var(--db-text-muted)", ...MONO }}
-                  >
-                    Details
-                  </p>
-                  <dl className="space-y-4">
-                    {detailRows.map((row) => (
-                      <div key={row.label} className="flex items-start gap-3">
-                        <span
-                          className="material-symbols-outlined mt-0.5 shrink-0"
-                          style={{ fontSize: 15, color: PRIMARY }}
+                <dl className="space-y-4">
+                  {detailRows.map((row) => (
+                    <div key={row.label} className="flex items-start gap-3">
+                      <span
+                        className="material-symbols-outlined mt-0.5 shrink-0"
+                        style={{ fontSize: 15, color: PRIMARY }}
+                      >
+                        {row.icon}
+                      </span>
+                      <div>
+                        <dt
+                          className="text-[0.62rem] uppercase tracking-wider font-bold"
+                          style={{ color: "var(--db-text-muted)", ...MONO }}
                         >
-                          {row.icon}
-                        </span>
-                        <div>
-                          <dt
-                            className="text-[0.62rem] uppercase tracking-wider font-bold"
-                            style={{ color: "var(--db-text-muted)", ...MONO }}
-                          >
-                            {row.label}
-                          </dt>
-                          <dd
-                            className="text-[0.88rem] font-semibold mt-0.5"
-                            style={{ color: TEXT_PRIMARY }}
-                          >
-                            {row.value}
-                          </dd>
-                        </div>
+                          {row.label}
+                        </dt>
+                        <dd
+                          className="text-[0.88rem] font-semibold mt-0.5"
+                          style={{ color: TEXT_PRIMARY }}
+                        >
+                          {row.value}
+                        </dd>
                       </div>
-                    ))}
-                  </dl>
-                </div>
-              )}
-
-              {/* Application window */}
-              <div
-                className="rounded-xl px-4 py-3.5"
-                style={{
-                  background: "var(--db-primary-10)",
-                  border: "1px solid var(--db-primary-20)",
-                }}
-              >
-                <p
-                  className="text-[0.62rem] uppercase tracking-wider font-bold mb-1"
-                  style={{ color: PRIMARY, ...MONO }}
-                >
-                  Application Window
-                </p>
-                <p className="text-[0.85rem] font-semibold" style={{ color: PRIMARY }}>
-                  {job.applicationWindowLabel}
-                </p>
+                    </div>
+                  ))}
+                </dl>
               </div>
+            )}
+
+            {/* Application window */}
+            <div
+              className="rounded-xl px-4 py-3.5"
+              style={{
+                background: "var(--db-primary-10)",
+                border: "1px solid var(--db-primary-20)",
+              }}
+            >
+              <p
+                className="text-[0.62rem] uppercase tracking-wider font-bold mb-1"
+                style={{ color: PRIMARY, ...MONO }}
+              >
+                Application Window
+              </p>
+              <p className="text-[0.85rem] font-semibold" style={{ color: PRIMARY }}>
+                {job.applicationWindowLabel}
+              </p>
             </div>
           </div>
         </div>

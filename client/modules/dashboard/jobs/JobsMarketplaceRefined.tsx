@@ -261,7 +261,7 @@ export function ApplyModal({
 
   return (
     <div
-      className="fixed inset-0 z-[300] flex items-end sm:items-center justify-center p-0 sm:p-5"
+      className="fixed inset-0 z-[700] flex items-end sm:items-center justify-center p-0 sm:p-5"
       style={{
         background: visible ? "rgba(0,0,0,0.6)" : "rgba(0,0,0,0)",
         backdropFilter: visible ? "blur(8px)" : "blur(0px)",
@@ -371,7 +371,7 @@ export function ApplySuccessToast({ jobTitle, onDismiss }: { jobTitle: string; o
 
   return (
     <div
-      className="fixed bottom-8 right-8 z-[400] flex items-center gap-3 rounded-[18px] border px-5 py-4 shadow-xl"
+      className="fixed bottom-8 right-8 z-[700] flex items-center gap-3 rounded-[18px] border px-5 py-4 shadow-xl"
       style={{
         background: "var(--db-card)",
         borderColor: "rgba(16,185,129,0.4)",
@@ -436,7 +436,7 @@ export function ReportModal({ jobId, jobTitle, onClose }: { jobId: string; jobTi
 
   return (
     <div
-      className="fixed inset-0 z-[300] flex items-center justify-center p-4"
+      className="fixed inset-0 z-[700] flex items-center justify-center p-4"
       style={{ background: visible ? "rgba(0,0,0,0.5)" : "rgba(0,0,0,0)", backdropFilter: visible ? "blur(6px)" : "none", transition: "background 0.2s ease, backdrop-filter 0.2s ease" }}
       onClick={handleClose}
     >
