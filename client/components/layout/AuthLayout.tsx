@@ -41,13 +41,13 @@ function MarketingPanel({
  
       {/* Hero Content */}
       <div className="relative z-10 flex flex-col gap-6 max-w-[540px]">
-        <div className="px-5 py-2 rounded-full bg-white/10 border border-white/10 backdrop-blur-md self-start">
-          <span className="text-[11px] font-bold tracking-[0.15em] uppercase opacity-90" style={{ fontFamily: "'Poppins', sans-serif" }}>
+        <div className="auth-platform-pill px-5 py-2 rounded-full bg-white/10 border border-white/10 backdrop-blur-md self-start">
+          <span className="auth-platform-pill-label text-[11px] font-bold tracking-[0.15em] uppercase opacity-90" style={{ fontFamily: "'Poppins', sans-serif" }}>
             {role.replace("_", " ")} PLATFORM
           </span>
         </div>
         
-        <h1 className="text-[40px] lg:text-[46px] xl:text-[54px] font-bold leading-[1.15] tracking-tight" style={{ fontFamily: "'Poppins', sans-serif" }}>
+        <h1 className="auth-running-title text-[40px] lg:text-[46px] xl:text-[54px] font-bold leading-[1.15] tracking-tight" style={{ fontFamily: "'Poppins', sans-serif" }}>
           {title}
         </h1>
         
