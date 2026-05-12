@@ -111,7 +111,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen overflow-x-hidden">
       <div className="flex min-h-screen">
 
-        {/* ── Sidebar ────────────────────────────────────────────── */}
+        {/* Sidebar */}
         <aside
           className="fixed left-0 top-0 h-full w-[260px] flex flex-col z-50"
           style={{ background: "var(--db-sidebar-bg)", borderRight: "1px solid var(--db-sidebar-border)" }}
@@ -137,13 +137,13 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
                 Nav Groups
               </p>
               <div className="space-y-1">
-                <NavItem href="/dashboard"              icon="dashboard"   label="Dashboard" />
-                <NavItem href="/dashboard/jobs"         icon="work"        label="Jobs" />
-                <NavItem href="/dashboard/saved-jobs"   icon="bookmark"    label="Saved Jobs" />
+                <NavItem href="/dashboard" icon="dashboard" label="Dashboard" />
+                <NavItem href="/dashboard/jobs" icon="work" label="Jobs" />
+                <NavItem href="/dashboard/saved-jobs" icon="bookmark" label="Saved Jobs" />
                 <NavItem href="/dashboard/notifications" icon="notifications" label="Notifications" />
                 {/* <NavItem href="/dashboard/applications" icon="description" label="Applications" /> */}
                 {/* <NavItem href="/dashboard/messages"     icon="mail"        label="Messages" /> */}
-                <NavItem href="/dashboard/profile"      icon="person"      label="Profile" />
+                <NavItem href="/dashboard/profile" icon="person" label="Profile" />
               </div>
             </div>
             <div>
@@ -152,7 +152,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
                 Discovery
               </p>
               <div className="space-y-1">
-                <NavItem href="/dashboard/search"   icon="search"    label="Search Certs" />
+                <NavItem href="/dashboard/search" icon="search" label="Search Certs" />
                 <NavItem href="/dashboard/insights" icon="analytics" label="Market Insights" />
               </div>
             </div>
@@ -168,10 +168,10 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
           </nav>
 
           {/* User block */}
-          <div className="p-4" style={{ 
-            borderTop: "1px solid var(--db-sidebar-border)", 
-            background: "var(--db-primary-10)", 
-            position: "relative" 
+          <div className="p-4" style={{
+            borderTop: "1px solid var(--db-sidebar-border)",
+            background: "var(--db-primary-10)",
+            position: "relative"
           }} ref={menuRef}>
             {/* Logout popup — appears above the user block */}
             {menuOpen && (
@@ -234,7 +234,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
           </div>
         </aside>
 
-        {/* ── Main content ────────────────────────────────────────── */}
+        {/* Main content */}
         <main
           className="ml-[260px] flex-1 p-8 space-y-8"
           style={{ background: "var(--db-bg)", color: "var(--db-text)", minHeight: "100vh", minWidth: 0 }}
