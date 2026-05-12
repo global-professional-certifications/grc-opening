@@ -80,7 +80,7 @@ export default function ResumeToolsPage() {
                 background: isActive ? "var(--db-primary-10)" : "var(--db-card)",
                 borderColor: isActive ? "var(--db-primary)" : "var(--db-border)",
                 boxShadow: isActive ? "0 0 0 1px var(--db-primary-20)" : undefined,
-                // @ts-ignore
+                // @ts-expect-error
                 "--tw-ring-color": "var(--db-primary-40)",
               }}
               aria-pressed={isActive}
