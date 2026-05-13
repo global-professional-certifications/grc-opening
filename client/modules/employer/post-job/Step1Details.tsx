@@ -89,7 +89,9 @@ function ErrLine({ msg }: { msg?: string }) {
 
 function validate(data: ReturnType<typeof useJobPosting>['data']) {
   const errors: Record<string, string> = {};
-  if (!data.title.trim())             errors.title       = 'Job title is required';
+  if (!data.title.trim()) {
+    errors.title = data.jdRole === 'Custom Role' ? 'Job title is required' : 'Please select a job role template';
+  }
   if (!data.category)                 errors.category    = 'Please select a category';
   if (!data.workMode)                 errors.workMode    = 'Please select a work mode';
   if (!data.deadline)                 errors.deadline    = 'Please select an application deadline';
@@ -136,7 +138,7 @@ export function Step1Details() {
     if (!matchedTemplate) return;
     updateData({
       description: formatJDToHTML(matchedTemplate.description),
-      title: data.title || matchedTemplate.role,
+      title: matchedTemplate.role,
     });
     setJdApplied(true);
     setTimeout(() => setJdApplied(false), 3000);
@@ -148,7 +150,10 @@ export function Step1Details() {
   }, [updateData]);
 
   const handleRoleChange = useCallback((val: string) => {
-    updateData({ jdRole: val });
+    updateData({ 
+      jdRole: val,
+      title: val === 'Custom Role' || val === '' ? '' : val 
+    });
     setJdApplied(false);
   }, [updateData]);
 
@@ -227,22 +232,168 @@ export function Step1Details() {
             />
             <ErrLine msg={errors.category} />
           </div>
+        </div>
+      </SectionCard>
 
-          {/* Job Title */}
-          <div id="field-title">
+      {/* ── Section 2: Seniority & Role (JD Auto-fill) ── */}
+      <SectionCard>
+        <SectionTitle>Seniority &amp; Role Template</SectionTitle>
+        <p className="text-xs leading-relaxed -mt-2" style={{ color: 'var(--db-text-muted)' }}>
+          Select a seniority level and role to auto-populate a professional job description.
+        </p>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          {/* Seniority */}
+          <Select
+            id="seniority-step1"
+            label="SENIORITY LEVEL"
+            options={SENIORITY_OPTIONS}
+            value={data.seniority}
+            onChange={(e) => handleSeniorityChange(e.target.value)}
+          />
+
+          {/* Role (dynamic based on seniority) */}
+          <div className="flex flex-col gap-1">
+            <span
+              className="block mb-1.5 text-[10px] font-bold tracking-widest uppercase"
+              style={{ ...MONO, color: 'var(--db-text-muted)' }}
+            >
+              JOB ROLE TEMPLATE
+            </span>
+            <div className="relative">
+              <select
+                id="jd-role-select"
+                className="w-full pl-3 pr-8 py-2.5 rounded-lg border text-sm appearance-none outline-none transition-all focus:ring-1 focus:ring-[var(--db-primary)] focus:border-[var(--db-primary)]"
+                style={{
+                  ...MONO,
+                  borderColor: 'var(--db-border)',
+                  backgroundColor: 'transparent',
+                  color: 'var(--db-text)',
+                  cursor: data.seniority ? 'pointer' : 'not-allowed',
+                  opacity: data.seniority ? 1 : 0.5,
+                }}
+                value={data.jdRole}
+                onChange={(e) => handleRoleChange(e.target.value)}
+                disabled={!data.seniority}
+              >
+                <option value="" style={{ background: 'var(--db-card)', color: 'var(--db-text)' }}>
+                  {data.seniority ? 'Select a role…' : 'Select seniority first'}
+                </option>
+                {availableRoles.map((role) => (
+                  <option key={role} value={role} style={{ background: 'var(--db-card)', color: 'var(--db-text)' }}>
+                    {role}
+                  </option>
+                ))}
+                {data.seniority && (
+                  <option value="Custom Role" style={{ background: 'var(--db-card)', color: 'var(--db-text)' }}>
+                    Custom Role...
+                  </option>
+                )}
+              </select>
+              <div
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none"
+                style={{ color: 'var(--db-text-muted)' }}
+              >
+                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
+              </div>
+            </div>
+            {data.jdRole !== 'Custom Role' && <ErrLine msg={errors.title} />}
+          </div>
+        </div>
+
+        {/* Custom Job Title Input */}
+        {data.jdRole === 'Custom Role' && (
+          <div id="field-title" className="mt-2">
             <Input
-              id="job-title"
-              label="JOB TITLE"
-              placeholder="e.g. Senior Compliance Officer"
+              id="job-title-custom"
+              label="CUSTOM JOB TITLE"
+              placeholder="e.g. specialized Risk Analyst"
               value={data.title}
               onChange={(e) => updateData({ title: e.target.value })}
               error={errors.title}
             />
           </div>
+        )}
+
+        {/* Auto-fill prompt */}
+        {matchedTemplate && !jdApplied && (
+          <div
+            className="flex items-center gap-3 p-3.5 rounded-lg border transition-all"
+            style={{
+              borderColor: 'rgba(4,255,180,0.3)',
+              backgroundColor: 'rgba(4,255,180,0.05)',
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: 20, color: 'var(--db-primary)' }}>auto_awesome</span>
+            <div className="flex-1">
+              <p className="text-sm font-semibold" style={{ color: 'var(--db-text)' }}>
+                JD template available for <span style={{ color: 'var(--db-primary)' }}>{matchedTemplate.role}</span>
+              </p>
+              <p className="text-xs mt-0.5" style={{ color: 'var(--db-text-muted)' }}>
+                {hasUserDescription
+                  ? 'This will replace your current description. You can edit it afterward.'
+                  : 'Click to populate the job description below. You can edit it afterward.'}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={handleApplyTemplate}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-lg font-bold text-xs transition-all hover:opacity-90 active:scale-[0.97] whitespace-nowrap"
+              style={{ background: 'var(--db-primary)', color: '#ffffff', ...MONO }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: 15 }}>edit_note</span>
+              {hasUserDescription ? 'Replace JD' : 'Auto-fill JD'}
+            </button>
+          </div>
+        )}
+
+        {/* Applied confirmation */}
+        {jdApplied && (
+          <div
+            className="flex items-center gap-2 p-3 rounded-lg border"
+            style={{
+              borderColor: 'rgba(4,255,180,0.3)',
+              backgroundColor: 'rgba(4,255,180,0.08)',
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: 18, color: 'var(--db-primary)' }}>check_circle</span>
+            <span className="text-xs font-semibold" style={{ ...MONO, color: 'var(--db-primary)' }}>JD template applied — edit below as needed</span>
+          </div>
+        )}
+      </SectionCard>
+
+      {/* ── Section 3: Job Description ── */}
+      <SectionCard>
+        <SectionTitle>Job Description</SectionTitle>
+
+        <div id="field-description" className="flex flex-col gap-1">
+          <RichTextarea
+            label=""
+            placeholder="Describe the responsibilities, expectations, and day-to-day for this role…"
+            value={data.description}
+            onChangeValue={(val) => updateData({ description: val })}
+            error={errors.description}
+            minRows={9}
+          />
+          <div className="flex items-center justify-end gap-2 mt-1.5">
+            {descTextLen > 5000 && (
+              <span className="text-[10px]" style={{ ...MONO, color: '#f87171' }}>
+                Exceeds recommended length
+              </span>
+            )}
+            <span
+              className="text-[10px] tabular-nums"
+              style={{ ...MONO, color: descTextLen > 5000 ? '#f87171' : 'var(--db-text-muted)' }}
+            >
+              {descTextLen.toLocaleString()} chars
+            </span>
+          </div>
         </div>
       </SectionCard>
 
-      {/* ── Section 2: Work Mode + Job Type ── */}
+      {/* ── Section 4: Work Mode + Job Type ── */}
       <SectionCard>
         <SectionTitle>Work Arrangement</SectionTitle>
 
@@ -300,7 +451,7 @@ export function Step1Details() {
         )}
       </SectionCard>
 
-      {/* ── Section 3: Salary ── */}
+      {/* ── Section 5: Salary ── */}
       <SectionCard>
         <div className="flex items-center justify-between">
           <SectionTitle>Budgeted Salary and Compensation</SectionTitle>
@@ -472,145 +623,10 @@ export function Step1Details() {
         </div>
       </SectionCard>
 
-      {/* ── Section 4: Seniority & Role (JD Auto-fill) ── */}
+      {/* ── Section 6: Application Deadline ── */}
       <SectionCard>
-        <SectionTitle>Seniority &amp; Role Template</SectionTitle>
-        <p className="text-xs leading-relaxed -mt-2" style={{ color: 'var(--db-text-muted)' }}>
-          Select a seniority level and role to auto-populate a professional job description.
-        </p>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          {/* Seniority */}
-          <Select
-            id="seniority-step1"
-            label="SENIORITY LEVEL"
-            options={SENIORITY_OPTIONS}
-            value={data.seniority}
-            onChange={(e) => handleSeniorityChange(e.target.value)}
-          />
-
-          {/* Role (dynamic based on seniority) */}
-          <div className="flex flex-col gap-1">
-            <span
-              className="block mb-1.5 text-[10px] font-bold tracking-widest uppercase"
-              style={{ ...MONO, color: 'var(--db-text-muted)' }}
-            >
-              JOB ROLE TEMPLATE
-            </span>
-            <div className="relative">
-              <select
-                id="jd-role-select"
-                className="w-full pl-3 pr-8 py-2.5 rounded-lg border text-sm appearance-none outline-none transition-all focus:ring-1 focus:ring-[var(--db-primary)] focus:border-[var(--db-primary)]"
-                style={{
-                  ...MONO,
-                  borderColor: 'var(--db-border)',
-                  backgroundColor: 'transparent',
-                  color: 'var(--db-text)',
-                  cursor: data.seniority ? 'pointer' : 'not-allowed',
-                  opacity: data.seniority ? 1 : 0.5,
-                }}
-                value={data.jdRole}
-                onChange={(e) => handleRoleChange(e.target.value)}
-                disabled={!data.seniority}
-              >
-                <option value="" style={{ background: 'var(--db-card)', color: 'var(--db-text)' }}>
-                  {data.seniority ? 'Select a role…' : 'Select seniority first'}
-                </option>
-                {availableRoles.map((role) => (
-                  <option key={role} value={role} style={{ background: 'var(--db-card)', color: 'var(--db-text)' }}>
-                    {role}
-                  </option>
-                ))}
-              </select>
-              <div
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none"
-                style={{ color: 'var(--db-text-muted)' }}
-              >
-                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="m6 9 6 6 6-6" />
-                </svg>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Auto-fill prompt */}
-        {matchedTemplate && !jdApplied && (
-          <div
-            className="flex items-center gap-3 p-3.5 rounded-lg border transition-all"
-            style={{
-              borderColor: 'rgba(4,255,180,0.3)',
-              backgroundColor: 'rgba(4,255,180,0.05)',
-            }}
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: 20, color: 'var(--db-primary)' }}>auto_awesome</span>
-            <div className="flex-1">
-              <p className="text-sm font-semibold" style={{ color: 'var(--db-text)' }}>
-                JD template available for <span style={{ color: 'var(--db-primary)' }}>{matchedTemplate.role}</span>
-              </p>
-              <p className="text-xs mt-0.5" style={{ color: 'var(--db-text-muted)' }}>
-                {hasUserDescription
-                  ? 'This will replace your current description. You can edit it afterward.'
-                  : 'Click to populate the job description below. You can edit it afterward.'}
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={handleApplyTemplate}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-lg font-bold text-xs transition-all hover:opacity-90 active:scale-[0.97] whitespace-nowrap"
-              style={{ background: 'var(--db-primary)', color: '#ffffff', ...MONO }}
-            >
-              <span className="material-symbols-outlined" style={{ fontSize: 15 }}>edit_note</span>
-              {hasUserDescription ? 'Replace JD' : 'Auto-fill JD'}
-            </button>
-          </div>
-        )}
-
-        {/* Applied confirmation */}
-        {jdApplied && (
-          <div
-            className="flex items-center gap-2 p-3 rounded-lg border"
-            style={{
-              borderColor: 'rgba(4,255,180,0.3)',
-              backgroundColor: 'rgba(4,255,180,0.08)',
-            }}
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: 18, color: 'var(--db-primary)' }}>check_circle</span>
-            <span className="text-xs font-semibold" style={{ ...MONO, color: 'var(--db-primary)' }}>JD template applied — edit below as needed</span>
-          </div>
-        )}
-      </SectionCard>
-
-      {/* ── Section 5: Job Description ── */}
-      <SectionCard>
-        <SectionTitle>Job Description</SectionTitle>
-
-        <div id="field-description" className="flex flex-col gap-1">
-          <RichTextarea
-            label=""
-            placeholder="Describe the responsibilities, expectations, and day-to-day for this role…"
-            value={data.description}
-            onChangeValue={(val) => updateData({ description: val })}
-            error={errors.description}
-            minRows={9}
-          />
-          <div className="flex items-center justify-end gap-2 mt-1.5">
-            {descTextLen > 5000 && (
-              <span className="text-[10px]" style={{ ...MONO, color: '#f87171' }}>
-                Exceeds recommended length
-              </span>
-            )}
-            <span
-              className="text-[10px] tabular-nums"
-              style={{ ...MONO, color: descTextLen > 5000 ? '#f87171' : 'var(--db-text-muted)' }}
-            >
-              {descTextLen.toLocaleString()} chars
-            </span>
-          </div>
-        </div>
-
-        {/* Deadline — placed after description so the flow reads: write the role, then set when it closes */}
-        <div id="field-deadline" className="flex flex-col gap-2 pt-2" style={{ borderTop: '1px solid var(--db-border)' }}>
+        <SectionTitle>Timeline</SectionTitle>
+        <div id="field-deadline" className="flex flex-col gap-2">
           <FieldLabel>APPLICATION DEADLINE</FieldLabel>
           <input
             type="date"
@@ -635,7 +651,7 @@ export function Step1Details() {
           type="button"
           onClick={handleSaveDraft}
           disabled={draftState === 'saving'}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-lg border text-sm font-semibold transition-all hover:opacity-90 active:scale-[0.97] disabled:opacity-40 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-(--db-primary) focus:ring-offset-1"
+          className="flex items-center gap-2 px-4 py-2.5 rounded-lg border text-sm font-semibold transition-all hover:opacity-90 active:scale-[0.97] disabled:opacity-40 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-[var(--db-primary)] focus:ring-offset-1"
           style={{ ...MONO, color: draftColor(), borderColor: draftState === 'saved' ? 'var(--db-primary)' : draftState === 'error' ? '#f87171' : 'var(--db-border)', background: 'var(--db-card)' }}
         >
           {draftState === 'saving' ? (
