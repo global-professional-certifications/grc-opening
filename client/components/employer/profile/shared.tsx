@@ -8,7 +8,7 @@ export const BASE_INPUT: React.CSSProperties = {
   background: "var(--db-surface)",
   border: "1.5px solid var(--db-border)",
   borderRadius: 8,
-  padding: "10px 14px",
+  padding: "8px 12px",
   color: "var(--db-text)",
   fontSize: "0.875rem",
   outline: "none",
@@ -39,7 +39,7 @@ export function SectionCard({
 }) {
   return (
     <div
-      className="db-card db-card-hover rounded-2xl p-6 space-y-5"
+      className="db-card rounded-2xl p-6 space-y-5"
       style={{ background: "var(--db-card)", border: "1px solid var(--db-border)" }}
     >
       <div className="flex items-center gap-2">
@@ -156,41 +156,46 @@ export function SelectField({
         {label}
         {required && <span style={{ color: "#ef4444", marginLeft: 2 }}>*</span>}
       </label>
-      <select
-        id={id}
-        value={value}
-        disabled={disabled}
-        onChange={(e) => onChange(e.target.value)}
-        onFocus={() => setFocused(true)}
-        onBlur={() => setFocused(false)}
-        style={{
-          ...BASE_INPUT,
-          borderColor: error ? "#ef4444" : focused ? "var(--db-primary)" : "var(--db-border)",
-          boxShadow: focused ? (error ? "0 0 0 3px rgba(239, 68, 68, 0.1)" : "0 0 0 3px var(--db-primary-10)") : "none",
-          cursor: disabled ? "not-allowed" : "pointer",
-          appearance: "none",
-          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
-          backgroundRepeat: "no-repeat",
-          backgroundPosition: "right 14px center",
-          paddingRight: 36,
-          opacity: disabled ? 0.6 : 1,
-        }}
-      >
-        {placeholder && (
-          <option value="" disabled>
-            {placeholder}
-          </option>
-        )}
-        {options.map((o) => {
-          const val = typeof o === "string" ? o : o.value;
-          const lbl = typeof o === "string" ? o : o.label;
-          return (
-            <option key={val} value={val}>
-              {lbl}
+      <div className="relative">
+        <select
+          id={id}
+          value={value}
+          disabled={disabled}
+          onChange={(e) => onChange(e.target.value)}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+          style={{
+            ...BASE_INPUT,
+            borderColor: error ? "#ef4444" : focused ? "var(--db-primary)" : "var(--db-border)",
+            boxShadow: focused ? (error ? "0 0 0 3px rgba(239, 68, 68, 0.1)" : "0 0 0 3px var(--db-primary-10)") : "none",
+            cursor: disabled ? "not-allowed" : "pointer",
+            appearance: "none",
+            paddingRight: 36,
+            opacity: disabled ? 0.6 : 1,
+          }}
+        >
+          {placeholder && (
+            <option value="" disabled>
+              {placeholder}
             </option>
-          );
-        })}
-      </select>
+          )}
+          {options.map((o) => {
+            const val = typeof o === "string" ? o : o.value;
+            const lbl = typeof o === "string" ? o : o.label;
+            return (
+              <option key={val} value={val}>
+                {lbl}
+              </option>
+            );
+          })}
+        </select>
+        <span 
+          className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-[20px] text-gray-400 pointer-events-none"
+          style={{ zIndex: 10 }}
+        >
+          expand_more
+        </span>
+      </div>
       {error && (
         <p className="text-[10px] mt-1.5" style={{ ...MONO, color: "#ef4444" }}>
           {error}
@@ -305,7 +310,13 @@ export function ComboboxField({
   }, [value]);
 
   const allOptions = options.map((o) => (typeof o === "string" ? { label: o, value: o } : o));
-  const filteredOptions = searchTerm
+  
+  // Logic: If focused and the search term matches the currently selected label, show all options.
+  // This allows users to see the full list without deleting their current selection.
+  const selectedLabel = allOptions.find(o => o.value === value)?.label || "";
+  const isDefaultTerm = searchTerm === selectedLabel;
+
+  const filteredOptions = (searchTerm && !isDefaultTerm)
     ? allOptions.filter((o) => o.label.toLowerCase().includes(searchTerm.toLowerCase()))
     : allOptions;
 
@@ -348,6 +359,7 @@ export function ComboboxField({
           onChange={(e) => handleInputChange(e.target.value)}
           style={{
             ...BASE_INPUT,
+            paddingRight: 36,
             borderColor: error ? "#ef4444" : focused ? "var(--db-primary)" : "var(--db-border)",
             boxShadow: focused ? (error ? "0 0 0 3px rgba(239, 68, 68, 0.1)" : "0 0 0 3px var(--db-primary-10)") : "none",
             opacity: disabled ? 0.6 : 1,
@@ -356,23 +368,26 @@ export function ComboboxField({
         />
         
         <span 
-          className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-[18px] text-gray-400 pointer-events-none transition-transform duration-200"
-          style={{ transform: `translateY(-50%) rotate(${isOpen ? '180deg' : '0deg'})` }}
+          className="material-symbols-outlined absolute right-3 top-1/2 text-[20px] text-gray-400 pointer-events-none transition-transform duration-200"
+          style={{ 
+            transform: `translateY(-50%) rotate(${isOpen ? '180deg' : '0deg'})`,
+            zIndex: 10
+          }}
         >
           expand_more
         </span>
 
         {isOpen && !disabled && (filteredOptions.length > 0) && (
           <div 
-            className="absolute left-0 right-0 mt-1.5 bg-white border border-gray-200 rounded-xl shadow-[0_10px_25px_-5px_rgba(0,0,0,0.1),0_8px_10px_-6px_rgba(0,0,0,0.1)] z-[100] max-h-[220px] overflow-y-auto overflow-x-hidden p-1.5 animate-in fade-in slide-in-from-top-2 duration-200"
+            className="absolute left-0 right-0 mt-1.5 bg-white border border-gray-200 rounded-xl shadow-[0_20px_50px_-12px_rgba(0,0,0,0.25)] z-[9999] max-h-[140px] overflow-y-auto overflow-x-hidden p-1.5 animate-in fade-in slide-in-from-top-2 duration-200"
           >
             {filteredOptions.map((opt) => (
               <div
                 key={opt.value}
                 onClick={() => handleSelect(opt.value)}
                 className={`
-                  px-3 py-2 text-[13.5px] font-medium rounded-lg cursor-pointer transition-colors
-                  ${value === opt.value ? "bg-[#3a1292] text-white" : "text-gray-700 hover:bg-gray-50"}
+                  px-3 py-1.5 text-[13.5px] font-medium rounded-lg cursor-pointer transition-colors
+                  ${value === opt.value ? "bg-[#3a1292] text-white" : "text-gray-700"}
                 `}
               >
                 {opt.label}

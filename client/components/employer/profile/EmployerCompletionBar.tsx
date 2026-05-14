@@ -182,7 +182,7 @@ export function EmployerCompletionBar({ profile }: { profile: EmployerProfileDat
 
   return (
     <div
-      className="db-card db-card-hover rounded-2xl"
+      className="db-card rounded-2xl"
       style={{ background: "var(--db-card)", border: "1px solid var(--db-border)" }}
     >
       {/* Header strip */}
