@@ -1,7 +1,7 @@
 import { useRouter } from "next/router";
 import { DashboardLayout } from "../../components/layout/DashboardLayout";
 
-const SYNE = { fontFamily: "'Syne', sans-serif" };
+const SYNE = { fontFamily: "'Poppins', sans-serif" };
 const MONO = { fontFamily: "'JetBrains Mono', monospace" };
 
 /** Returns true only for files the browser can natively render in an iframe. */

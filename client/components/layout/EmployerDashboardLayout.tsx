@@ -6,9 +6,8 @@ import { EmployerJobsProvider } from "../../contexts/EmployerJobsContext";
 import { EmployerProfileProvider, useEmployerProfile } from "../../contexts/EmployerProfileContext";
 import { NotificationsBell } from "../../modules/dashboard/NotificationsBell";
 
-const SYNE    = { fontFamily: "'Syne', sans-serif" };
+const POPPINS = { fontFamily: "'Poppins', sans-serif" };
 const MONO    = { fontFamily: "'JetBrains Mono', monospace" };
-const MANROPE = { fontFamily: "'Manrope', sans-serif" };
 
 function NavItem({ href, icon, label }: { href: string; icon: string; label: string }) {
   const router = useRouter();
@@ -84,7 +83,7 @@ function EmployerDashboardLayoutInner({ children }: { children: React.ReactNode 
   }
 
   return (
-    <div className="min-h-screen overflow-x-hidden" style={MANROPE}>
+    <div className="min-h-screen overflow-x-hidden" style={POPPINS}>
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div
@@ -119,7 +118,7 @@ function EmployerDashboardLayoutInner({ children }: { children: React.ReactNode 
             <div>
               <h1
                 className="text-base tracking-tight uppercase font-semibold leading-tight"
-                style={{ ...SYNE, color: "var(--db-sidebar-logo-text)" }}
+                style={{ ...POPPINS, color: "var(--db-sidebar-logo-text)" }}
               >
                 GRC <span style={{ color: "var(--db-primary)" }}>Openings</span>
               </h1>
@@ -263,7 +262,7 @@ function EmployerDashboardLayoutInner({ children }: { children: React.ReactNode 
           </button>
           <span
             className="text-sm font-semibold uppercase tracking-tight"
-            style={{ ...SYNE, color: "var(--db-text)" }}
+            style={{ ...POPPINS, color: "var(--db-text)" }}
           >
             GRC <span style={{ color: "var(--db-primary)" }}>Openings</span>
           </span>

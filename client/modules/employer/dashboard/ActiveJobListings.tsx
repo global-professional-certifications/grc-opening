@@ -88,7 +88,7 @@ function EmployerJobDetailDialog({ job, onClose }: { job: EmployerJob; onClose: 
               <span className="text-[0.68rem] uppercase tracking-[0.22em] font-bold" style={{ color: "var(--db-primary)", ...MONO }}>Job Detail</span>
               <span className="rounded-full px-2.5 py-0.5 text-[0.6rem] uppercase tracking-wider font-bold" style={{ background: s.bg, color: s.color, ...MONO }}>{s.label}</span>
             </div>
-            <h2 className="text-xl sm:text-2xl font-bold leading-tight" style={{ color: "var(--db-text)", fontFamily: "'Syne', sans-serif" }}>{job.title}</h2>
+            <h2 className="text-xl sm:text-2xl font-bold leading-tight" style={{ color: "var(--db-text)", fontFamily: "'Poppins', sans-serif" }}>{job.title}</h2>
             <div className="flex flex-wrap gap-3 mt-2 text-xs" style={{ color: "var(--db-text-muted)", ...MONO }}>
               {job.workMode && <span>{job.workMode}</span>}
               {job.seniority && <span>· {job.seniority}</span>}

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 
 export const MONO = { fontFamily: "'JetBrains Mono', monospace" };
-export const SYNE = { fontFamily: "'Syne', sans-serif" };
+export const SYNE = { fontFamily: "'Poppins', sans-serif" };
 
 export const BASE_INPUT: React.CSSProperties = {
   width: "100%",
@@ -13,7 +13,7 @@ export const BASE_INPUT: React.CSSProperties = {
   fontSize: "0.875rem",
   outline: "none",
   transition: "border-color 0.2s ease, box-shadow 0.2s ease",
-  fontFamily: "'Manrope', sans-serif",
+  fontFamily: "'Poppins', sans-serif",
 };
 
 export const LABEL_STYLE: React.CSSProperties = {

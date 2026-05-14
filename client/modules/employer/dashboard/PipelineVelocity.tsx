@@ -1,7 +1,7 @@
 ﻿import React from "react";
 
 const MONO = { fontFamily: "'JetBrains Mono', monospace" };
-const SYNE = { fontFamily: "'Syne', sans-serif" };
+const SYNE = { fontFamily: "'Poppins', sans-serif" };
 
 interface MetricRowProps {
   label: string;

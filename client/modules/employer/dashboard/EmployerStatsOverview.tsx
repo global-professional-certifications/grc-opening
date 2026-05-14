@@ -3,7 +3,7 @@ import { apiFetch } from "@/lib/api";
 import { useEmployerJobs } from "../../../contexts/EmployerJobsContext";
 
 const MONO = { fontFamily: "'JetBrains Mono', monospace" };
-const SYNE = { fontFamily: "'Syne', sans-serif" };
+const SYNE = { fontFamily: "'Poppins', sans-serif" };
 
 
 interface StatCardProps {

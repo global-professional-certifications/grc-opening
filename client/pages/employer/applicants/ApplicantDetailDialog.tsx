@@ -3,7 +3,7 @@ import { apiFetch } from "@/lib/api";
 
 const POPPINS = { fontFamily: "'Poppins', sans-serif" };
 const MONO    = { fontFamily: "'JetBrains Mono', monospace" };
-const SYNE    = { fontFamily: "'Syne', sans-serif" };
+const SYNE    = { fontFamily: "'Poppins', sans-serif" };
 
 const PRIMARY        = "var(--db-primary)";
 const BORDER         = "var(--db-border)";
