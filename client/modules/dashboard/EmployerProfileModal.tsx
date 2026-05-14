@@ -89,16 +89,16 @@ export function EmployerProfileModal({ employer, onClose }: Props) {
 
   return (
     <div
-      className="fixed inset-0 z-[800] flex items-center justify-center p-4 sm:p-6"
+      className="fixed inset-0 z-[1000] flex items-center justify-center p-4 sm:p-6"
       style={{
         background:      visible ? 'rgba(0,0,0,0.6)' : 'rgba(0,0,0,0)',
-        backdropFilter:  visible ? 'blur(8px)' : 'blur(0px)',
+        backdropFilter:  visible ? 'blur(12px)' : 'blur(0px)',
         transition:      'background 0.2s ease, backdrop-filter 0.2s ease',
       }}
       onClick={handleClose}
     >
       <div
-        className="relative w-full max-w-lg rounded-[28px] overflow-hidden flex flex-col max-h-[90vh]"
+        className="relative w-full max-w-4xl rounded-[28px] overflow-hidden flex flex-col max-h-[90vh]"
         style={{
           background:  'var(--db-card)',
           border:      '1px solid var(--db-border)',
