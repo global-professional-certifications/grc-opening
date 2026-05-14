@@ -4,8 +4,8 @@ import { EmployerForm } from "./components/EmployerForm";
 
 type Role = "job_seeker" | "employer";
 
-export function RegistrationForm({ onRoleChange }: { onRoleChange?: (role: Role) => void }) {
-  const [role, setRole] = useState<Role>("job_seeker");
+export function RegistrationForm({ onRoleChange, initialRole = "job_seeker" }: { onRoleChange?: (role: Role) => void; initialRole?: Role }) {
+  const [role, setRole] = useState<Role>(initialRole);
 
   function handleRoleSwitch(r: Role) {
     setRole(r);
@@ -49,7 +49,7 @@ export function RegistrationForm({ onRoleChange }: { onRoleChange?: (role: Role)
 
       {/* Forms Section */}
       <div className="animate-in slide-in-from-bottom-3 duration-500">
-        {role === "job_seeker" ? <CandidateForm /> : <EmployerForm />}
+        {role === "job_seeker" ? <CandidateForm currentRole={role} /> : <EmployerForm currentRole={role} />}
       </div>
     </div>
   );

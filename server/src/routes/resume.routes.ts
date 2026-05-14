@@ -1,8 +1,9 @@
 import { Router } from 'express';
 import { authenticateLocal, requireRole } from '../middleware/auth-local.middleware';
-import { uploadResumeLocal } from '../middleware/upload.middleware';
+import { uploadResumeForParser, uploadResumeLocal } from '../middleware/upload.middleware';
 import {
   uploadResume,
+  parseResumePreview,
   getResumeStatus,
   listResumes,
   getParsedData,
@@ -21,6 +22,9 @@ router.use(requireRole(['JOB_SEEKER']));
 
 // Upload a resume (PDF only, max 5MB)
 router.post('/upload', uploadResumeLocal.single('resume'), uploadResume);
+
+// Parse resume immediately for profile preview auto-fill
+router.post('/parse-preview', uploadResumeForParser.single('resume'), parseResumePreview);
 
 // List all resumes for the authenticated user
 router.get('/', listResumes);

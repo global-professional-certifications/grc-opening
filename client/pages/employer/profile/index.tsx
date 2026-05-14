@@ -16,7 +16,7 @@ import { MONO, SYNE } from "../../../components/employer/profile/shared";
 
 const STORAGE_KEY = "grc_employer_profile";
 
-// ΓöÇΓöÇ Skeleton ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+// Skeleton
 function SkeletonBlock({ className }: { className: string }) {
   return (
     <div
@@ -75,7 +75,7 @@ function ProfileSkeleton() {
 
 
 
-// ΓöÇΓöÇ Profile Header Card ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+// Profile Header Card
 function ProfileHeaderCard({
   profile,
   logoImage,
@@ -144,7 +144,7 @@ function ProfileHeaderCard({
         <div className="flex flex-wrap items-end justify-between gap-4 -mt-12 mb-4">
           {/* Logo */}
           <div
-            className="relative cursor-pointer group flex-shrink-0"
+            className="cursor-pointer flex-shrink-0"
             onClick={onLogoClick}
             title="Upload company logo"
           >
@@ -163,18 +163,6 @@ function ProfileHeaderCard({
               ) : (
                 initials
               )}
-            </div>
-            {/* Hover overlay */}
-            <div
-              className="absolute inset-0 rounded-2xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-150"
-              style={{ background: "rgba(0,0,0,0.5)" }}
-            >
-              <span
-                className="material-symbols-outlined"
-                style={{ fontSize: 22, color: "#fff" }}
-              >
-                photo_camera
-              </span>
             </div>
             <input
               ref={logoInputRef}
@@ -302,7 +290,7 @@ function ProfileHeaderCard({
   );
 }
 
-// ΓöÇΓöÇ Empty state prompt ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+// Empty state prompt
 function EmptyStateBanner({ onStart }: { onStart: () => void }) {
   return (
     <div
@@ -345,7 +333,7 @@ function EmptyStateBanner({ onStart }: { onStart: () => void }) {
   );
 }
 
-// ΓöÇΓöÇ Unsaved-changes bar ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+// Unsaved-changes bar
 function UnsavedBar({
   saving,
   onSave,
@@ -403,7 +391,7 @@ function UnsavedBar({
   );
 }
 
-// ΓöÇΓöÇ Save toast ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+// Save toast
 function SaveToast({ visible }: { visible: boolean }) {
   return (
     <div
@@ -429,7 +417,7 @@ function SaveToast({ visible }: { visible: boolean }) {
   );
 }
 
-// ΓöÇΓöÇ Page ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+// Page
 export default function EmployerProfilePage() {
   const [formData, setFormData] = useState<EmployerProfileData>(EMPTY_EMPLOYER_PROFILE);
   const [original, setOriginal] = useState<EmployerProfileData>(EMPTY_EMPLOYER_PROFILE);
@@ -642,7 +630,8 @@ export default function EmployerProfilePage() {
       setToastVisible(true);
       setTimeout(() => setToastVisible(false), 3000);
     } catch (err: any) {
-      setErrors({ companyName: err?.message ?? "Failed to save. Please try again." });
+      const msg = err?.data?.details || err?.message || "Failed to save. Please try again.";
+      setErrors({ companyName: msg });
     } finally {
       setSaving(false);
     }
@@ -721,19 +710,18 @@ export default function EmployerProfilePage() {
 
           {/* Form sections */}
           <div ref={firstSectionRef} className="scroll-mt-6 space-y-6">
-            {/* Single column layout */}
-            <div className="max-w-4xl mx-auto space-y-6">
-              <CompanyInfoSection data={formData} onChange={handleChange} errors={errors} />
-              <AboutSection data={formData} onChange={handleChange} errors={errors} />
-              <ContactSection data={formData} onChange={handleChange} errors={errors} />
-              <SocialLinksSection data={formData} onChange={handleChange} errors={errors} />
-            </div>
+            <CompanyInfoSection data={formData} onChange={handleChange} errors={errors} />
+            <AboutSection data={formData} onChange={handleChange} errors={errors} />
+            <ContactSection data={formData} onChange={handleChange} errors={errors} />
+            <SocialLinksSection data={formData} onChange={handleChange} errors={errors} />
           </div>
 
           {/* Spacer so sticky bar doesn't overlap last card */}
           {isDirty && <div className="h-20" />}
         </>
       )}
+
+
 
       {/* Unsaved changes bar */}
       {isDirty && !loading && (

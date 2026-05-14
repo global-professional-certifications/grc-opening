@@ -11,11 +11,20 @@ interface ApiProfilePayload {
     middleName: string | null;
     lastName: string;
     headline: string | null;
+    phone: string | null;
     bio: string | null;
     location: string | null;
     linkedInUrl: string | null;
     avatarUrl: string | null;
     resumeUrl: string | null;
+    openToShareCriticalInfo: boolean;
+    ctcCurrency: string | null;
+    currentCtc: string | null;
+    expectedCtc: string | null;
+    noticePeriod: string | null;
+    buybackOption: string | null;
+    reasonForChange?: string;
+    reasonForChangeOther?: string;
     skills: { id: string; name: string }[];
     workExperiences: {
       id: string;
@@ -50,6 +59,7 @@ function mapApiToForm(api: ApiProfilePayload): ProfileFormData {
     lastName: p.lastName,
     professionalTitle: p.headline ?? "",
     email: p.user.email,
+    phone: p.phone ?? "",
     location: p.location ?? "",
     linkedInUrl: p.linkedInUrl ?? "",
     summary: p.bio ?? "",
@@ -78,10 +88,18 @@ function mapApiToForm(api: ApiProfilePayload): ProfileFormData {
     resumeUrl: p.resumeUrl,
     resumeFileName: p.resumeUrl ? "Resume.pdf" : null,
     avatarUrl: p.avatarUrl,
+    openToShareCriticalInfo: p.openToShareCriticalInfo,
+    ctcCurrency: p.ctcCurrency ?? "INR",
+    currentCtc: p.currentCtc ?? "",
+    expectedCtc: p.expectedCtc ?? "",
+    noticePeriod: p.noticePeriod ?? "",
+    buybackOption: p.buybackOption ?? "",
+    reasonForChange: p.reasonForChange ? (() => { try { return JSON.parse(p.reasonForChange!); } catch { return []; } })() : [],
+    reasonForChangeOther: p.reasonForChangeOther ?? "",
   };
 }
 
-const SYNE = { fontFamily: "'Syne', sans-serif" };
+const SYNE = { fontFamily: "'Poppins', sans-serif" };
 const MONO = { fontFamily: "'JetBrains Mono', monospace" };
 
 const EMPTY: ProfileFormData = {
@@ -90,6 +108,7 @@ const EMPTY: ProfileFormData = {
   lastName: "",
   professionalTitle: "",
   email: "",
+  phone: "",
   location: "",
   linkedInUrl: "",
   summary: "",
@@ -100,6 +119,14 @@ const EMPTY: ProfileFormData = {
   resumeUrl: null,
   resumeFileName: null,
   avatarUrl: null,
+  openToShareCriticalInfo: false,
+  ctcCurrency: "INR",
+  currentCtc: "",
+  expectedCtc: "",
+  noticePeriod: "",
+  buybackOption: "",
+  reasonForChange: [],
+  reasonForChangeOther: "",
 };
 
 export default function DigitalResumePage() {

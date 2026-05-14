@@ -6,11 +6,10 @@ import { JobPostingProvider, useJobPosting, JobPostingData, WorkMode, JobType } 
 import { apiFetch } from '@/lib/api';
 import { PostJobProgress } from '../../../modules/employer/post-job/PostJobProgress';
 import { Step1Details } from '../../../modules/employer/post-job/Step1Details';
-import { Step2Requirements } from '../../../modules/employer/post-job/Step2Requirements';
-import { Step3Preview } from '../../../modules/employer/post-job/Step3Preview';
+import { Step2Preview } from '../../../modules/employer/post-job/Step2Preview';
 
 const MONO = { fontFamily: "'JetBrains Mono', monospace" };
-const SYNE = { fontFamily: "'Syne', sans-serif" };
+const SYNE = { fontFamily: "'Poppins', sans-serif" };
 
 // ─── Inner flow (has access to context) ──────────────────────────────────────
 
@@ -39,8 +38,8 @@ function PostJobFlow() {
     setEditId(qEditId);
     apiFetch<{ job: {
       title: string; description: string; location: string | null; workMode: string;
-      category: string | null; jobType: string | null; seniority: string | null; experience: string | null;
-      responsibilities: string | null; qualifications: string | null; niceToHave: string | null;
+      category: string | null; jobType: string | null; seniority: string | null;
+      niceToHave: string | null;
       currency: string | null; undisclosedSalary: boolean;
       salaryMin: number | null; salaryMax: number | null;
       deadline: string | null;
@@ -60,9 +59,6 @@ function PostJobFlow() {
         currency:           j.currency ?? 'USD',
         undisclosedSalary:  j.undisclosedSalary,
         description:        j.description,
-        responsibilities:   j.responsibilities ?? '',
-        qualifications:     j.qualifications ?? '',
-        experience:         j.experience ?? '',
         seniority:          j.seniority ?? '',
         certifications:     j.certifications.map(c => c.name),
         niceToHave:         j.niceToHave ?? '',
@@ -87,13 +83,13 @@ function PostJobFlow() {
     prevStepRef.current = currentStep;
   }, [currentStep]);
 
-  const showProgress = currentStep < 3;
+  const showProgress = currentStep < 2;
 
   if (isVerified === false) {
     return (
       <div className="w-full">
         <div className="mb-6">
-          <h1 className="text-2xl font-bold" style={{ fontFamily: "'Syne', sans-serif", color: 'var(--db-text)' }}>
+          <h1 className="text-2xl font-bold" style={{ fontFamily: "'Poppins', sans-serif", color: 'var(--db-text)' }}>
             Post a Job
           </h1>
         </div>
@@ -116,33 +112,36 @@ function PostJobFlow() {
   return (
     <div className="w-full relative">
       {/* ── Page title row ── */}
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1
-            className="text-2xl font-bold"
-            style={{ fontFamily: "'Syne', sans-serif", color: 'var(--db-text)' }}
-          >
-            Post a Job
-          </h1>
-          <p className="text-[11px] mt-0.5" style={{ ...MONO, color: 'var(--db-text-muted)' }}>
-            GRC Openings · Employer Portal
-          </p>
-        </div>
+      {/* ── Page title row (only on Step 1 — preview has its own header) ── */}
+      {currentStep === 1 && (
+        <div className="mb-6 flex items-center justify-between">
+          <div>
+            <h1
+              className="text-2xl font-bold"
+              style={{ fontFamily: "'Poppins', sans-serif", color: 'var(--db-text)' }}
+            >
+              Post a Job
+            </h1>
+            <p className="text-[11px] mt-0.5" style={{ ...MONO, color: 'var(--db-text-muted)' }}>
+              GRC Openings · Employer Portal
+            </p>
+          </div>
 
-        {isDirty && currentStep < 3 && (
-          <span
-            className="text-[10px] px-2.5 py-1 rounded-full border animate-pulse"
-            style={{
-              ...MONO,
-              color: '#eab308',
-              borderColor: 'rgba(234,179,8,0.3)',
-              backgroundColor: 'rgba(234,179,8,0.06)',
-            }}
-          >
-            Unsaved changes
-          </span>
-        )}
-      </div>
+          {isDirty && (
+            <span
+              className="text-[10px] px-2.5 py-1 rounded-full border animate-pulse"
+              style={{
+                ...MONO,
+                color: '#eab308',
+                borderColor: 'rgba(234,179,8,0.3)',
+                backgroundColor: 'rgba(234,179,8,0.06)',
+              }}
+            >
+              Unsaved changes
+            </span>
+          )}
+        </div>
+      )}
 
       {/* ── Step progress indicator ── */}
       {showProgress && <PostJobProgress currentStep={currentStep} />}
@@ -153,8 +152,7 @@ function PostJobFlow() {
         style={{ animation: 'stepFadeIn 0.25s ease-out both' }}
       >
         {currentStep === 1 && <Step1Details />}
-        {currentStep === 2 && <Step2Requirements />}
-        {currentStep === 3 && <Step3Preview />}
+        {currentStep === 2 && <Step2Preview />}
       </div>
 
       {/* ── Watermark ── */}

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useRouter } from "next/router";
+import Link from "next/link";
 import { ModernInput } from "../../../components/ui/ModernInput";
 import { PasswordStrength } from "./PasswordStrength";
 import { setToken, setStoredUser } from "../../../lib/auth";
@@ -35,7 +36,7 @@ function validate(data: Fields): Partial<Fields> {
   return errs;
 }
 
-export function CandidateForm() {
+export function CandidateForm({ currentRole = "job_seeker" }: { currentRole?: "job_seeker" | "employer" }) {
   const router = useRouter();
   const { setUser } = useUser();
   const [fields, setFields] = useState<Fields>(EMPTY);
@@ -80,7 +81,8 @@ export function CandidateForm() {
       setStoredUser({ ...dbUser, fullName: fields.fullName, phone: fields.phone } as any);
       import("../../../lib/userRole").then(lib => lib.saveRole("job_seeker" as UserRole));
 
-      router.push("/dashboard");
+      // New account → send to profile to complete their setup
+      router.push("/dashboard/profile");
     } catch (err: any) {
       const msg = err instanceof Error ? err.message : "Registration failed.";
       setErrors(prev => ({ ...prev, email: msg }));
@@ -143,7 +145,7 @@ export function CandidateForm() {
 
       <p className="text-center text-[14px] text-gray-500 font-medium mt-1">
         Already have an account?{" "}
-        <a href="/auth/login" className="text-[#3a1292] font-bold hover:underline">Sign In</a>
+        <Link href={`/auth/login${currentRole === "employer" ? "?role=employer" : ""}`} className="text-[#3a1292] font-bold hover:underline">Sign In</Link>
       </p>
     </form>
   );

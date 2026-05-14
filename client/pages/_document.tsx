@@ -20,17 +20,17 @@ export default function Document() {
             --db-bg:             #F8FAFC;
             --db-surface:        #ffffff;
             --db-dialog-bg:      var(--db-surface);
-            --db-card:           rgba(255, 255, 255, 0.7);
+            --db-card:           #ffffff;
             --db-card-shadow:    0 4px 20px rgba(58, 18, 146, 0.05), inset 0 0 0 1px rgba(255,255,255,0.4);
             --db-section-shadow: 0 4px 12px rgba(58, 18, 146, 0.04);
-            --db-sidebar-bg:          rgba(255, 255, 255, 0.85);
+            --db-sidebar-bg:          #ffffff;
             --db-sidebar-border:      rgba(58, 18, 146, 0.08);
             --db-sidebar-logo-text:   #111827;
             --db-sidebar-section:     #9CA3AF;
             --db-sidebar-nav-text:    #374151;
             --db-sidebar-nav-hover:   rgba(58, 18, 146, 0.04);
             --db-sidebar-nav-hover-text: #111827;
-            --db-sidebar-user-bg:     rgba(249, 250, 251, 0.8);
+            --db-sidebar-user-bg:     #f9fafb;
             --db-sidebar-user-text:   #111827;
             --db-sidebar-user-sub:    #6B7280;
             --db-sidebar-progress:    #E5E7EB;
@@ -67,7 +67,7 @@ export default function Document() {
           }
  
           /* ── CARD ELEVATION ────────────────────────────────────── */
-          .db-card { background:var(--db-card); border:1px solid var(--db-border); border-radius:12px; box-shadow:var(--db-card-shadow); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+          .db-card { background:var(--db-card); border:1px solid var(--db-border); border-radius:12px; box-shadow:var(--db-card-shadow); }
  
           /* ── CARD HOVER ─────────────────────────────────────────── */
           .db-card-hover {

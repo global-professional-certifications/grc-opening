@@ -42,4 +42,12 @@ export interface ProfileFormData {
   resumeUrl: string | null;
   resumeFileName: string | null;
   avatarUrl: string | null;
+  openToShareCriticalInfo: boolean;
+  ctcCurrency: string;
+  currentCtc: string;
+  expectedCtc: string;
+  noticePeriod: string;
+  buybackOption: string;
+  reasonForChange: string[];
+  reasonForChangeOther: string;
 }

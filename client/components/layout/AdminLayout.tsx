@@ -126,16 +126,19 @@ export function AdminLayout({ children, title = "Admin" }: { children: React.Rea
         <aside className="w-[240px] bg-[#0f172a] flex flex-col shrink-0 fixed top-0 left-0 h-full z-30">
           {/* Logo */}
           <div className="px-5 pt-6 pb-5 border-b border-white/5">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-[#3a1292] flex items-center justify-center shrink-0">
-                <span className="material-symbols-outlined text-white" style={{ fontSize: 17 }}>shield</span>
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-col">
+                <h1 className="text-[14px] font-black tracking-tight leading-none whitespace-nowrap">
+                  <span className="text-[#3a1292]">GRC</span>
+                  <span className="text-white ml-1">Openings</span>
+                </h1>
+                <p className="text-[8px] font-medium text-slate-400 mt-1 uppercase tracking-widest leading-none whitespace-nowrap">
+                  By Global Professional Certifications
+                </p>
               </div>
-              <div>
-                <p className="text-[13px] font-bold text-white leading-none">GRC Openings</p>
-                <span className="mt-1 inline-block text-[9px] font-bold tracking-widest px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30">
-                  ADMIN
-                </span>
-              </div>
+              <span className="inline-block self-start text-[9px] font-bold tracking-widest px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                ADMIN
+              </span>
             </div>
           </div>
 

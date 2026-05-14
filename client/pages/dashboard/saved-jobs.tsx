@@ -1,30 +1,92 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import { apiFetch } from '../../lib/api';
 import Link from 'next/link';
+import { JobDetailDialog, type SupportedCurrency } from '../../modules/dashboard/jobs/JobDetailDialog';
+import { EmployerProfileModal, type EmployerForModal } from '../../modules/dashboard/EmployerProfileModal';
 
 // Matches the DiscoveryJob shape returned by GET /jobs/saved
 interface SavedJob {
   id: string;
   title: string;
   companyName: string;
+  companyLogoText: string;
+  category: string;
   workMode: string; // "Remote" | "Hybrid" | "On-site"
+  jobType: string;
+  seniority: string;
+  experienceLevel: string;
+  postedAtLabel: string;
   salaryMin: number;
   salaryMax: number;
   salaryCurrency: string;
   undisclosedSalary: boolean;
   location: string;
   deadline: string | null;
+  applicationWindowLabel: string;
+  description: string;
+  responsibilities: string;
+  qualifications: string;
+  niceToHave: string;
+  verified: boolean;
   isSaved: boolean;
   isApplied: boolean;
   applicationId: string | null;
   tags: string[];
 }
 
+type EmployerPayload = {
+  companyName?: string | null;
+  industry?: string | null;
+  companySize?: string | null;
+  description?: string | null;
+  tagline?: string | null;
+  foundedYear?: string | null;
+  website?: string | null;
+  address?: string | null;
+  city?: string | null;
+  state?: string | null;
+  country?: string | null;
+};
+
+type JobDetailWithEmployerResponse = {
+  job?: {
+    employer?: EmployerPayload | null;
+  } | null;
+};
+
+function normalizeOptionalText(value: unknown): string | null {
+  return typeof value === 'string' && value.trim() ? value.trim() : null;
+}
+
+function toEmployerForModal(employer: EmployerPayload | null | undefined, fallbackName: string): EmployerForModal {
+  return {
+    companyName: normalizeOptionalText(employer?.companyName) ?? fallbackName,
+    industry: normalizeOptionalText(employer?.industry),
+    companySize: normalizeOptionalText(employer?.companySize),
+    description: normalizeOptionalText(employer?.description),
+    tagline: normalizeOptionalText(employer?.tagline),
+    foundedYear: normalizeOptionalText(employer?.foundedYear),
+    website: normalizeOptionalText(employer?.website),
+    address: normalizeOptionalText(employer?.address),
+    city: normalizeOptionalText(employer?.city),
+    state: normalizeOptionalText(employer?.state),
+    country: normalizeOptionalText(employer?.country),
+  };
+}
+
+function getErrorMessage(error: unknown, fallback: string): string {
+  return error instanceof Error && error.message ? error.message : fallback;
+}
+
 export default function SavedJobsPage() {
   const [jobs, setJobs] = useState<SavedJob[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [selectedJob, setSelectedJob] = useState<SavedJob | null>(null);
+  const [selectedEmployer, setSelectedEmployer] = useState<EmployerForModal | null>(null);
+  const [employerError, setEmployerError] = useState<string | null>(null);
+  const [currency, setCurrency] = useState<SupportedCurrency>('USD');
 
   const [search, setSearch] = useState('');
   const [workModeFilter, setWorkModeFilter] = useState('');
@@ -35,13 +97,25 @@ export default function SavedJobsPage() {
     fetchSavedJobs();
   }, []);
 
+  useEffect(() => {
+    const stored = localStorage.getItem('grc_preferred_currency') as SupportedCurrency | null;
+    if (stored) setCurrency(stored);
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === 'grc_preferred_currency' && e.newValue) {
+        setCurrency(e.newValue as SupportedCurrency);
+      }
+    };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, []);
+
   const fetchSavedJobs = async () => {
     setLoading(true);
     try {
       const data = await apiFetch<{ jobs: SavedJob[] }>('/jobs/saved');
       setJobs(data.jobs || []);
-    } catch (e: any) {
-      setError(e.message || 'Failed to load saved jobs');
+    } catch (e: unknown) {
+      setError(getErrorMessage(e, 'Failed to load saved jobs'));
     } finally {
       setLoading(false);
     }
@@ -49,9 +123,10 @@ export default function SavedJobsPage() {
 
   const handleUnsave = async (jobId: string) => {
     setJobs(prev => prev.filter(j => j.id !== jobId));
+    setSelectedJob(prev => (prev?.id === jobId ? null : prev));
     try {
       await apiFetch(`/jobs/${jobId}/save`, { method: 'DELETE' });
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error('Failed to unsave job:', e);
       fetchSavedJobs();
     }
@@ -75,6 +150,36 @@ export default function SavedJobsPage() {
 
   // Normalize workMode for filter comparison: "Remote" → "REMOTE" etc.
   const normalizeMode = (mode: string) => mode.toUpperCase().replace('-', '_').replace(' ', '_');
+
+  const handleOpenEmployerProfile = useCallback(async (job: Pick<SavedJob, 'id' | 'companyName'>) => {
+    setEmployerError(null);
+    try {
+      const response = await apiFetch<JobDetailWithEmployerResponse>(`/jobs/${job.id}`);
+      setSelectedEmployer(toEmployerForModal(response.job?.employer, job.companyName));
+    } catch (e: unknown) {
+      setEmployerError(e instanceof Error ? e.message : 'Failed to load employer details');
+    }
+  }, []);
+
+  const handleApplyFromModal = useCallback(async (job: SavedJob) => {
+    try {
+      await apiFetch(`/jobs/${job.id}/apply`, { method: 'POST', body: JSON.stringify({ notes: '' }) });
+      setJobs(prev => prev.map(j => (j.id === job.id ? { ...j, isApplied: true } : j)));
+      setSelectedJob(prev => (prev && prev.id === job.id ? { ...prev, isApplied: true } : prev));
+    } catch (e: unknown) {
+      setError(getErrorMessage(e, 'Failed to apply for this job'));
+    }
+  }, []);
+
+  const handleWithdrawFromModal = useCallback(async (job: SavedJob) => {
+    try {
+      await apiFetch(`/jobs/${job.id}/withdraw`, { method: 'PATCH' });
+      setJobs(prev => prev.map(j => (j.id === job.id ? { ...j, isApplied: false } : j)));
+      setSelectedJob(prev => (prev && prev.id === job.id ? { ...prev, isApplied: false } : prev));
+    } catch (e: unknown) {
+      setError(getErrorMessage(e, 'Failed to withdraw application'));
+    }
+  }, []);
 
   const filteredJobs = jobs.filter(j => {
     const term = search.toLowerCase();
@@ -107,6 +212,13 @@ export default function SavedJobsPage() {
           <div className="p-4 rounded-xl bg-red-50 text-red-600 border border-red-200 text-sm flex items-center justify-between">
             {error}
             <button onClick={() => setError('')} className="font-bold">✕</button>
+          </div>
+        )}
+
+        {employerError && (
+          <div className="p-4 rounded-xl bg-red-50 text-red-600 border border-red-200 text-sm flex items-center justify-between">
+            Could not load employer details - {employerError}
+            <button onClick={() => setEmployerError(null)} className="font-bold">x</button>
           </div>
         )}
 
@@ -174,7 +286,20 @@ export default function SavedJobsPage() {
               const closed = isJobClosed(job);
 
               return (
-                <div key={job.id} className="group relative flex flex-col rounded-2xl transition-all shadow-sm hover:shadow-lg overflow-hidden" style={{ background: 'var(--db-card)', border: '1px solid var(--db-border)' }}>
+                <div
+                  key={job.id}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => setSelectedJob(job)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      setSelectedJob(job);
+                    }
+                  }}
+                  className="group relative flex flex-col rounded-2xl transition-all shadow-sm hover:-translate-y-0.5 hover:shadow-lg overflow-hidden cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--db-primary)]"
+                  style={{ background: 'var(--db-card)', border: '1px solid var(--db-border)' }}
+                >
 
                   {/* Closed Banner */}
                   {closed && (
@@ -196,7 +321,18 @@ export default function SavedJobsPage() {
                       <span className="material-symbols-outlined text-2xl" style={{ color: 'var(--db-primary)' }}>corporate_fare</span>
                     </div>
                     <div className="min-w-0 flex-1 pt-0.5">
-                      <p className="text-[11px] font-bold uppercase tracking-wider mb-1 truncate" style={{ color: 'var(--db-primary)' }}>{job.companyName}</p>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          void handleOpenEmployerProfile(job);
+                        }}
+                        className="text-[11px] font-bold uppercase tracking-wider mb-1 truncate transition-opacity hover:opacity-80 focus:outline-none"
+                        style={{ color: 'var(--db-primary)' }}
+                        aria-label={`View ${job.companyName} profile`}
+                      >
+                        {job.companyName}
+                      </button>
                       <h3 className="text-[16px] font-bold leading-tight line-clamp-2" style={{ color: 'var(--db-text)' }} title={job.title}>
                         {job.title}
                       </h3>
@@ -204,7 +340,10 @@ export default function SavedJobsPage() {
 
                     {/* Unsave button */}
                     <button
-                      onClick={() => handleUnsave(job.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        void handleUnsave(job.id);
+                      }}
                       className="absolute top-4 right-4 p-2 rounded-full opacity-0 group-hover:opacity-100 transition-all hover:bg-red-50 text-red-500"
                       title="Remove from saved"
                     >
@@ -240,11 +379,13 @@ export default function SavedJobsPage() {
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Link href={`/dashboard/job/${job.id}`} className="p-2 rounded-lg transition-colors hover:bg-black/5 dark:hover:bg-white/5" style={{ color: 'var(--db-text-secondary)' }}>
-                        <span className="material-symbols-outlined text-[20px] block">visibility</span>
-                      </Link>
                       {!closed && !job.isApplied && (
-                        <Link href={`/dashboard/job/${job.id}`} className="px-4 py-2 rounded-lg font-bold text-[12px] transition-all shadow-sm hover:shadow-md hover:scale-[1.02]" style={{ background: 'var(--db-primary)', color: 'var(--db-primary-text)' }}>
+                        <Link
+                          href={`/dashboard/job/${job.id}`}
+                          onClick={(e) => e.stopPropagation()}
+                          className="px-4 py-2 rounded-lg font-bold text-[12px] transition-all shadow-sm hover:shadow-md hover:scale-[1.02]"
+                          style={{ background: 'var(--db-primary)', color: 'var(--db-primary-text)' }}
+                        >
                           Apply Now
                         </Link>
                       )}
@@ -283,7 +424,26 @@ export default function SavedJobsPage() {
           </div>
         )}
 
+        {selectedJob && (
+          <JobDetailDialog
+            job={selectedJob}
+            selectedCurrency={currency}
+            isApplied={selectedJob.isApplied}
+            onClose={() => setSelectedJob(null)}
+            onRequestApply={() => { void handleApplyFromModal(selectedJob); }}
+            onWithdraw={() => { void handleWithdrawFromModal(selectedJob); }}
+            onToggleSave={() => {
+              void handleUnsave(selectedJob.id);
+              setSelectedJob(null);
+            }}
+          />
+        )}
+        {selectedEmployer && (
+          <EmployerProfileModal employer={selectedEmployer} onClose={() => setSelectedEmployer(null)} />
+        )}
+
       </div>
     </DashboardLayout>
   );
 }
+

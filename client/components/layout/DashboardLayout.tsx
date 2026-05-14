@@ -3,6 +3,7 @@ import { useRouter } from "next/router";
 import { DashboardThemeProvider, useDashboardTheme } from "../../contexts/DashboardThemeContext";
 import { useUser } from "../../contexts/UserContext";
 import { COUNTRY_CODE_TO_CURRENCY, getCurrencyFromLocation } from "../../lib/currencyMap";
+import { LogoutConfirmModal } from "../ui/LogoutConfirmModal";
 
 // Fonts are now handled globally via Poppins in _document.tsx
 
@@ -23,6 +24,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
   const { user, logout } = useUser();
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   // Tracks whether auth/role check passed. While false, we render a neutral
@@ -90,15 +92,14 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
 
   function handleLogout() {
     logout();
-    // replace() so the dashboard is removed from history — back button won't return to it
     router.replace("/auth/login");
   }
 
   if (!roleChecked) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: "var(--db-bg)", color: "var(--db-text-muted)" }}>
-        <div className="flex flex-col items-center gap-3">
-          <span className="h-6 w-6 rounded-full border-2 border-current border-t-transparent animate-spin" />
+        <div role="status" aria-live="polite" className="flex flex-col items-center gap-3">
+          <span className="h-6 w-6 rounded-full border-2 border-current border-t-transparent animate-spin" aria-hidden="true" />
           <p className="text-xs">Verifying access…</p>
         </div>
       </div>
@@ -111,22 +112,20 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen overflow-x-hidden">
       <div className="flex min-h-screen">
 
-        {/* ── Sidebar ────────────────────────────────────────────── */}
+        {/* Sidebar */}
         <aside
-          className="fixed left-0 top-0 h-full w-[260px] flex flex-col z-50 backdrop-blur-xl"
-          style={{ background: "var(--db-sidebar-bg)", borderRight: "1px solid var(--db-sidebar-border)", backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)" }}
+          className="fixed left-0 top-0 h-full w-[260px] flex flex-col z-50"
+          style={{ background: "var(--db-sidebar-bg)", borderRight: "1px solid var(--db-sidebar-border)" }}
         >
           {/* Logo */}
-          <div className="p-6 flex items-center gap-3">
-            <div className="w-8 h-8 rounded flex items-center justify-center flex-shrink-0"
-              style={{ background: "var(--db-primary)" }}>
-              <span className="material-symbols-outlined" style={{ fontSize: 18, color: "var(--db-primary-text)" }}>
-                shield_person
-              </span>
-            </div>
-            <h1 className="text-lg tracking-tight uppercase font-bold" style={{ color: "var(--db-sidebar-logo-text)" }}>
-              GRC <span style={{ color: "var(--db-primary)" }}>Openings</span>
+          <div className="p-6 flex flex-col">
+            <h1 className="text-lg font-black tracking-tight leading-none whitespace-nowrap">
+              <span className="text-[#3a1292]">GRC</span>
+              <span className="text-gray-900 ml-1">Openings</span>
             </h1>
+            <p className="text-[9px] font-medium text-gray-400 mt-1 uppercase tracking-wider leading-none whitespace-nowrap">
+              By Global Professional Certifications
+            </p>
           </div>
 
           {/* Navigation */}
@@ -137,50 +136,53 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
                 Nav Groups
               </p>
               <div className="space-y-1">
-                <NavItem href="/dashboard"              icon="dashboard"   label="Dashboard" />
-                <NavItem href="/dashboard/jobs"         icon="work"        label="Jobs" />
-                <NavItem href="/dashboard/saved-jobs"   icon="bookmark"    label="Saved Jobs" />
+                <NavItem href="/dashboard" icon="dashboard" label="Dashboard" />
+                <NavItem href="/dashboard/profile" icon="person" label="Profile" />
+                <NavItem href="/dashboard/jobs" icon="work" label="Jobs" />
+                <NavItem href="/dashboard/saved-jobs" icon="bookmark" label="Saved Jobs" />
                 <NavItem href="/dashboard/notifications" icon="notifications" label="Notifications" />
                 {/* <NavItem href="/dashboard/applications" icon="description" label="Applications" /> */}
                 {/* <NavItem href="/dashboard/messages"     icon="mail"        label="Messages" /> */}
-                <NavItem href="/dashboard/profile"      icon="person"      label="Profile" />
               </div>
             </div>
+            {/*
             <div>
               <p className="px-4 text-[11px] uppercase tracking-widest mb-4 font-semibold"
                 style={{ color: "var(--db-sidebar-section)" }}>
                 Discovery
               </p>
               <div className="space-y-1">
-                <NavItem href="/dashboard/search"   icon="search"    label="Search Certs" />
+                <NavItem href="/dashboard/search" icon="search" label="Search Certs" />
                 <NavItem href="/dashboard/insights" icon="analytics" label="Market Insights" />
               </div>
             </div>
+            */}
             <div>
               <p className="px-4 text-[11px] uppercase tracking-widest mb-4 font-semibold"
                 style={{ color: "var(--db-sidebar-section)" }}>
                 AI Tools
               </p>
               <div className="space-y-1">
-                <NavItem href="/dashboard/resume-analyser" icon="smart_toy" label="Resume Enhancer" />
+                <NavItem href="/dashboard/resume-analyser" icon="smart_toy" label="Resume Tools" />
               </div>
             </div>
           </nav>
 
           {/* User block */}
-          <div className="p-4" style={{ 
-            borderTop: "1px solid var(--db-sidebar-border)", 
-            background: "var(--db-primary-10)", 
-            position: "relative" 
+          <div className="p-4" style={{
+            borderTop: "1px solid var(--db-sidebar-border)",
+            background: "var(--db-primary-10)",
+            position: "relative"
           }} ref={menuRef}>
             {/* Logout popup — appears above the user block */}
             {menuOpen && (
               <div
+                role="menu"
                 style={{
                   position: "absolute", bottom: "calc(100% + 8px)", left: 16, right: 16,
-                  background: "var(--db-card)", border: "1px solid var(--db-border)",
-                  borderRadius: 12, boxShadow: "0 -8px 24px rgba(0,0,0,0.12)",
-                  overflow: "hidden", zIndex: 100,
+                  background: "#ffffff", border: "1px solid var(--db-border)",
+                  borderRadius: 12, boxShadow: "0 -8px 32px rgba(0,0,0,0.15)",
+                  overflow: "hidden", zIndex: 200,
                 }}
               >
                 <div style={{ padding: "10px 14px 8px", borderBottom: "1px solid var(--db-border)" }}>
@@ -188,7 +190,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
                   <p style={{ fontSize: "0.7rem", color: "var(--db-text-muted)" }}>{user?.email}</p>
                 </div>
                 <button
-                  onClick={handleLogout}
+                  onClick={() => { setMenuOpen(false); setShowLogoutModal(true); }}
                   style={{
                     display: "flex", alignItems: "center", gap: 8,
                     width: "100%", padding: "10px 14px",
@@ -233,14 +235,21 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
           </div>
         </aside>
 
-        {/* ── Main content ────────────────────────────────────────── */}
+        {/* Main content */}
         <main
           className="ml-[260px] flex-1 p-8 space-y-8"
-          style={{ background: "var(--db-bg)", color: "var(--db-text)", minHeight: "100vh", minWidth: 0, overflow: "hidden" }}
+          style={{ background: "var(--db-bg)", color: "var(--db-text)", minHeight: "100vh", minWidth: 0 }}
         >
           {children}
         </main>
       </div>
+
+      {showLogoutModal && (
+        <LogoutConfirmModal
+          onConfirm={handleLogout}
+          onClose={() => setShowLogoutModal(false)}
+        />
+      )}
     </div>
   );
 }

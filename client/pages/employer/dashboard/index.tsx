@@ -5,9 +5,9 @@ import { EmployerStatsOverview } from "../../../modules/employer/dashboard/Emplo
 import { LatestApplicants } from "../../../modules/employer/dashboard/LatestApplicants";
 import { ActiveJobListings } from "../../../modules/employer/dashboard/ActiveJobListings";
 import { useDashboardTheme } from "../../../contexts/DashboardThemeContext";
-import { useUser } from "../../../contexts/UserContext";
+import { useEmployerProfile } from "../../../contexts/EmployerProfileContext";
 
-const SYNE = { fontFamily: "'Syne', sans-serif" };
+const SYNE = { fontFamily: "'Poppins', sans-serif" };
 const MONO = { fontFamily: "'JetBrains Mono', monospace" };
 
 function SunIcon() {
@@ -32,9 +32,8 @@ function MoonIcon() {
 
 function EmployerDashboardHeader() {
   const { theme, toggleTheme } = useDashboardTheme();
-  const { user } = useUser();
+  const { companyName } = useEmployerProfile();
   const router = useRouter();
-  const companyName = user?.firstName || "Your Company";
 
   return (
     <header className="flex flex-wrap items-start justify-between gap-4">
@@ -87,5 +86,5 @@ export default function EmployerDashboardPage() {
     </EmployerDashboardLayout>
   );
 
-  
+
 }

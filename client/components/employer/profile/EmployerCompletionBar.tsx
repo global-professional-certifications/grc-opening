@@ -2,7 +2,7 @@ import React from "react";
 import type { EmployerProfileData } from "./types";
 import { MONO, SYNE } from "./shared";
 
-// ΓöÇΓöÇ Completion logic ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+// Completion logic
 interface CompletionItem {
   label: string;
   done: boolean;
@@ -54,7 +54,7 @@ function getMotivation(pct: number): { text: string; accent: boolean } {
   return { text: "Complete your profile to attract qualified GRC professionals.", accent: false };
 }
 
-// ΓöÇΓöÇ Step node ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+// Step node
 function StepNode({
   item,
   index,
@@ -173,7 +173,7 @@ function StepNode({
   );
 }
 
-// ΓöÇΓöÇ Main export ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+// Main export
 export function EmployerCompletionBar({ profile }: { profile: EmployerProfileData }) {
   const { pct, items } = calcEmployerCompletion(profile);
   const doneCount = items.filter((i) => i.done).length;
@@ -182,7 +182,7 @@ export function EmployerCompletionBar({ profile }: { profile: EmployerProfileDat
 
   return (
     <div
-      className="db-card db-card-hover rounded-2xl"
+      className="db-card rounded-2xl"
       style={{ background: "var(--db-card)", border: "1px solid var(--db-border)" }}
     >
       {/* Header strip */}

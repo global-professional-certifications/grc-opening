@@ -5,22 +5,23 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   fullWidth?: boolean;
 }
 
-export function Button({ children, variant = "primary", fullWidth = false, style = {}, ...props }: ButtonProps) {
+export function Button({ children, variant = "primary", fullWidth = false, style = {}, disabled, ...props }: ButtonProps) {
   const base: React.CSSProperties = {
     display: "inline-flex",
     alignItems: "center",
     justifyContent: "center",
     gap: 8,
-    fontFamily: "'Inter', sans-serif",
+    fontFamily: "'Poppins', sans-serif",
     fontWeight: 600,
     fontSize: "0.9rem",
     borderRadius: 99,
     padding: "11px 24px",
     border: "1.5px solid transparent",
-    cursor: "pointer",
+    cursor: disabled ? "not-allowed" : "pointer",
     transition: "all 0.2s ease",
     width: fullWidth ? "100%" : undefined,
     letterSpacing: "0.01em",
+    opacity: disabled ? 0.5 : 1,
   };
 
   const variants: Record<string, React.CSSProperties> = {
@@ -38,13 +39,16 @@ export function Button({ children, variant = "primary", fullWidth = false, style
 
   return (
     <button
+      disabled={disabled}
       style={{ ...base, ...variants[variant], ...style }}
       onMouseEnter={e => {
+        if (disabled) return;
         const el = e.currentTarget;
         if (variant === "primary") { el.style.filter = "brightness(1.1)"; el.style.transform = "translateY(-1px)"; }
         else { el.style.borderColor = "var(--brand)"; el.style.color = "var(--brand)"; }
       }}
       onMouseLeave={e => {
+        if (disabled) return;
         const el = e.currentTarget;
         el.style.filter = ""; el.style.transform = ""; el.style.borderColor = variants[variant].borderColor as string;
         el.style.color = variants[variant].color as string;

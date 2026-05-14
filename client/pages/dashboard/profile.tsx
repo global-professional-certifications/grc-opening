@@ -10,6 +10,7 @@ import { WorkExperienceSection } from "../../components/profile/WorkExperienceSe
 import { EducationSection } from "../../components/profile/EducationSection";
 import { SkillsSection } from "../../components/profile/SkillsSection";
 import { CertificationsSection } from "../../components/profile/CertificationsSection";
+import { FinancialInfoSection } from "../../components/profile/FinancialInfoSection";
 import type { ProfileFormData } from "../../components/profile/types";
 
 interface ApiProfilePayload {
@@ -47,6 +48,14 @@ interface ApiProfilePayload {
     }[];
     certifications: { id: string; name: string }[];
     user: { email: string };
+    openToShareCriticalInfo?: boolean;
+    ctcCurrency?: string;
+    currentCtc?: string;
+    expectedCtc?: string;
+    noticePeriod?: string;
+    buybackOption?: string;
+    reasonForChange?: string;
+    reasonForChangeOther?: string;
   };
 }
 
@@ -87,6 +96,14 @@ function mapApiToForm(api: ApiProfilePayload): ProfileFormData {
     resumeUrl: p.resumeUrl,
     resumeFileName: p.resumeUrl ? "Resume.pdf" : null,
     avatarUrl: p.avatarUrl,
+    openToShareCriticalInfo: p.openToShareCriticalInfo ?? false,
+    ctcCurrency: p.ctcCurrency ?? "INR",
+    currentCtc: p.currentCtc ?? "",
+    expectedCtc: p.expectedCtc ?? "",
+    noticePeriod: p.noticePeriod ?? "",
+    buybackOption: p.buybackOption ?? "",
+    reasonForChange: p.reasonForChange ? (() => { try { return JSON.parse(p.reasonForChange!); } catch { return []; } })() : [],
+    reasonForChangeOther: p.reasonForChangeOther ?? "",
   };
 }
 
@@ -114,6 +131,14 @@ const EMPTY_PROFILE: ProfileFormData = {
   resumeUrl: null,
   resumeFileName: null,
   avatarUrl: null,
+  openToShareCriticalInfo: false,
+  ctcCurrency: "INR",
+  currentCtc: "",
+  expectedCtc: "",
+  noticePeriod: "",
+  buybackOption: "",
+  reasonForChange: [],
+  reasonForChangeOther: "",
 };
 
 function SkeletonBlock({ className }: { className: string }) {
@@ -286,6 +311,14 @@ export default function ProfilePage() {
           })),
           skills: formData.coreCompetencies,
           certifications: formData.certifications.map((c) => ({ name: c.name })),
+          openToShareCriticalInfo: formData.openToShareCriticalInfo,
+          ctcCurrency: formData.ctcCurrency,
+          currentCtc: formData.currentCtc,
+          expectedCtc: formData.expectedCtc,
+          noticePeriod: formData.noticePeriod,
+          buybackOption: formData.buybackOption,
+          reasonForChange: JSON.stringify(formData.reasonForChange ?? []),
+          reasonForChangeOther: formData.reasonForChangeOther,
         }),
       });
       const saved = mapApiToForm(res);
@@ -313,14 +346,26 @@ export default function ProfilePage() {
   return (
     <DashboardLayout>
       {/* ── Page header ─────────────────────────────────────────── */}
-      <header className="flex items-center justify-between">
+      <header className="flex items-start justify-between gap-4 mb-2">
         <div>
-          <h2
-            className="text-3xl font-bold"
-            style={{ color: "var(--db-text)" }}
-          >
-            My Profile
-          </h2>
+          <div className="flex items-center gap-3">
+            <h2 className="text-3xl font-bold" style={{ color: "var(--db-text)" }}>My Profile</h2>
+            {!loading && (
+              <span
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-widest"
+                style={{
+                  background: completionPct === 100 ? "rgba(16,185,129,0.1)" : "var(--db-primary-10)",
+                  color: completionPct === 100 ? "#10b981" : "var(--db-primary)",
+                  border: `1px solid ${completionPct === 100 ? "rgba(16,185,129,0.25)" : "var(--db-primary-20)"}`,
+                }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: 12 }}>
+                  {completionPct === 100 ? "verified" : "edit"}
+                </span>
+                {completionPct === 100 ? "Complete" : `${completionPct}% done`}
+              </span>
+            )}
+          </div>
           <p className="mt-1 text-sm font-medium" style={{ color: "var(--db-text-muted)" }}>
             Your professional presence on GRC Openings.
           </p>
@@ -331,16 +376,10 @@ export default function ProfilePage() {
             href="/dashboard/digital-resume"
             target="_blank"
             rel="noopener noreferrer"
-            className="db-btn-secondary flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold"
-            style={{
-              background: "var(--db-btn-sec)",
-              color: "var(--db-text-secondary)",
-              border: "1px solid var(--db-border)",
-            }}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all hover:-translate-y-px hover:shadow-md shrink-0"
+            style={{ background: "var(--db-card)", color: "var(--db-text)", border: "1px solid var(--db-border)" }}
           >
-            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
-              visibility
-            </span>
+            <span className="material-symbols-outlined" style={{ fontSize: 16, color: "var(--db-primary)" }}>visibility</span>
             Preview Resume
           </a>
         )}
@@ -367,64 +406,84 @@ export default function ProfilePage() {
       {/* ── Profile form ─────────────────────────────────────────── */}
       {!loading && !error && (
         <>
-          {/* Identity card - Re-themed to Brand Blue like Stat Cards */}
+          {/* Identity card */}
           <div
-            className="db-card rounded-2xl p-8 md:p-12 border-none shadow-xl relative overflow-hidden"
+            className="db-card rounded-2xl p-7 md:p-10 border-none shadow-xl relative overflow-hidden"
             style={{ background: "var(--db-primary)", color: "#ffffff" }}
           >
-            {/* Background decorative elements */}
-            <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-20 -mt-20 blur-3xl pointer-events-none" />
-            <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full -ml-16 -mb-16 blur-2xl pointer-events-none" />
+            {/* Decorative glows */}
+            <div className="absolute top-0 right-0 w-72 h-72 bg-white/5 rounded-full -mr-24 -mt-24 blur-3xl pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-52 h-52 bg-white/5 rounded-full -ml-16 -mb-16 blur-2xl pointer-events-none" />
+            <div className="absolute bottom-0 right-1/3 w-40 h-40 bg-white/3 rounded-full blur-2xl pointer-events-none" />
 
-            <div className="flex flex-col md:flex-row items-center justify-between gap-10 relative z-10">
-              {/* Left Column: Basic Info */}
-              <div className="flex-1 min-w-0 space-y-6 text-center md:text-left">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-8 relative z-10">
+              {/* Left Column */}
+              <div className="flex-1 min-w-0 space-y-5 text-center md:text-left">
+                {/* GRC badge */}
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest bg-white/10 border border-white/20">
+                  <span className="material-symbols-outlined" style={{ fontSize: 12, fontVariationSettings: "'FILL' 1" }}>verified</span>
+                  GRC Professional
+                </span>
+
                 <div>
-                  <h3 className="text-3xl md:text-5xl font-black tracking-tight leading-tight">
+                  <h3 className="text-3xl md:text-4xl font-black tracking-tight leading-tight">
                     {fullName || "Your Name"}
                   </h3>
                   {formData.professionalTitle && (
-                    <p className="text-lg md:text-xl font-bold mt-2 opacity-90 uppercase tracking-widest">
+                    <p className="text-sm md:text-base font-bold mt-1.5 opacity-80 uppercase tracking-widest">
                       {formData.professionalTitle}
                     </p>
                   )}
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-8">
+                {/* Contact chips */}
+                <div className="flex flex-wrap items-center justify-center md:justify-start gap-2">
                   {formData.email && (
-                    <div className="flex items-center justify-center md:justify-start gap-3">
-                      <div className="p-1.5 rounded-lg bg-white/10">
-                        <span className="material-symbols-outlined shrink-0" style={{ fontSize: 18 }}>mail</span>
-                      </div>
-                      <span className="text-sm md:text-base font-semibold truncate">{formData.email}</span>
+                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/10 border border-white/15">
+                      <span className="material-symbols-outlined shrink-0" style={{ fontSize: 14 }}>mail</span>
+                      <span className="text-xs font-semibold truncate max-w-[180px]">{formData.email}</span>
                     </div>
                   )}
                   {formData.phone && (
-                    <div className="flex items-center justify-center md:justify-start gap-3">
-                      <div className="p-1.5 rounded-lg bg-white/10">
-                        <span className="material-symbols-outlined shrink-0" style={{ fontSize: 18 }}>call</span>
-                      </div>
-                      <span className="text-sm md:text-base font-semibold truncate">{formData.phone}</span>
+                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/10 border border-white/15">
+                      <span className="material-symbols-outlined shrink-0" style={{ fontSize: 14 }}>call</span>
+                      <span className="text-xs font-semibold">{formData.phone}</span>
                     </div>
                   )}
                   {formData.location && (
-                    <div className="flex items-center justify-center md:justify-start gap-3">
-                      <div className="p-1.5 rounded-lg bg-white/10">
-                        <span className="material-symbols-outlined shrink-0" style={{ fontSize: 18 }}>location_on</span>
-                      </div>
-                      <span className="text-sm md:text-base font-semibold truncate">{formData.location}</span>
+                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/10 border border-white/15">
+                      <span className="material-symbols-outlined shrink-0" style={{ fontSize: 14 }}>location_on</span>
+                      <span className="text-xs font-semibold">{formData.location}</span>
                     </div>
                   )}
                   {formData.linkedInUrl && (
-                    <div className="flex items-center justify-center md:justify-start gap-3">
-                      <div className="p-1.5 rounded-lg bg-white/10">
-                        <span className="material-symbols-outlined shrink-0" style={{ fontSize: 18 }}>link</span>
-                      </div>
-                      <span className="text-sm md:text-base font-semibold truncate">
+                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/10 border border-white/15">
+                      <span className="material-symbols-outlined shrink-0" style={{ fontSize: 14 }}>link</span>
+                      <span className="text-xs font-semibold truncate max-w-[140px]">
                         {formData.linkedInUrl.replace(/^https?:\/\/(www\.)?/, "")}
                       </span>
                     </div>
                   )}
+                </div>
+
+                {/* Quick stats */}
+                <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 pt-1">
+                  {[
+                    { icon: "psychology",  value: formData.coreCompetencies.length, label: "Skills"    },
+                    { icon: "workspace_premium", value: formData.certifications.length, label: "Certs" },
+                    { icon: "work",        value: formData.workExperience.length,    label: "Roles"     },
+                  ].map(({ icon, value, label }) => (
+                    <div key={label} className="flex items-center gap-2">
+                      <span className="material-symbols-outlined opacity-60" style={{ fontSize: 16 }}>{icon}</span>
+                      <span className="text-lg font-black">{value}</span>
+                      <span className="text-xs font-semibold opacity-60">{label}</span>
+                    </div>
+                  ))}
+                  <div className="flex items-center gap-2">
+                    <span className="material-symbols-outlined opacity-60" style={{ fontSize: 16 }}>donut_large</span>
+                    <span className="text-lg font-black">{completionPct}%</span>
+                    <span className="text-xs font-semibold opacity-60">Complete</span>
+                  </div>
                 </div>
               </div>
 
@@ -527,57 +586,64 @@ export default function ProfilePage() {
             onChange={handleChange}
           />
 
+          {/* Critical Financial Information */}
+          <FinancialInfoSection
+            data={formData}
+            onChange={handleChange}
+          />
+
           {isDirty && <div className="h-20" />}
         </>
       )}
 
       {/* ── Unsaved changes bar ───────────────────────────────────── */}
       {isDirty && !loading && (
-        <div
-          className="fixed bottom-8 right-8 z-50 flex items-center gap-6 px-6 py-4 rounded-2xl"
-          style={{
-            background: "var(--db-surface)",
-            border: "1px solid var(--db-border)",
-            boxShadow: "0 12px 40px rgba(58, 18, 146, 0.15), 0 0 0 1px var(--db-primary-20) inset",
-            backdropFilter: "blur(20px)",
-            WebkitBackdropFilter: "blur(20px)",
-          }}
-        >
-          <div className="flex items-center gap-2">
-            <span
-              className="w-2 h-2 rounded-full shrink-0"
-              style={{ background: "#f59e0b" }}
-            />
-            <span className="text-sm font-medium" style={{ color: "var(--db-text-muted)" }}>
-              Unsaved changes detected
-            </span>
-          </div>
+        <div className="fixed bottom-0 left-0 right-0 z-50 flex justify-center px-4 pb-5 pointer-events-none">
+          <div
+            className="pointer-events-auto flex items-center justify-between gap-6 px-6 py-3.5 rounded-2xl w-full max-w-xl"
+            style={{
+              background: "var(--db-card)",
+              border: "1px solid var(--db-primary-20)",
+              boxShadow: "0 8px 32px rgba(58,18,146,0.18), 0 2px 8px rgba(0,0,0,0.08)",
+              backdropFilter: "blur(20px)",
+              WebkitBackdropFilter: "blur(20px)",
+            }}
+          >
+            <div className="flex items-center gap-2.5">
+              <span className="w-2 h-2 rounded-full shrink-0 animate-pulse" style={{ background: "#f59e0b" }} />
+              <span className="text-sm font-semibold" style={{ color: "var(--db-text)" }}>
+                Unsaved changes
+              </span>
+            </div>
 
-          <div className="flex items-center gap-3">
-            <button
-              onClick={handleCancel}
-              disabled={saving}
-              className="db-btn-secondary px-4 py-2 rounded-lg text-sm font-semibold"
-              style={{
-                background: "var(--db-btn-sec)",
-                color: "var(--db-text-secondary)",
-                border: "1px solid var(--db-border)",
-              }}
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleSave}
-              disabled={saving}
-              className="db-btn-primary px-5 py-2 rounded-lg text-sm font-bold shadow-lg"
-              style={{
-                background: "var(--db-primary)",
-                color: "#ffffff",
-                opacity: saving ? 0.7 : 1,
-              }}
-            >
-              {saving ? "Saving…" : "Save Changes"}
-            </button>
+            <div className="flex items-center gap-2.5">
+              <button
+                onClick={handleCancel}
+                disabled={saving}
+                className="px-4 py-2 rounded-xl text-sm font-semibold transition-all hover:opacity-80"
+                style={{ background: "var(--db-bg)", color: "var(--db-text-muted)", border: "1px solid var(--db-border)" }}
+              >
+                Discard
+              </button>
+              <button
+                onClick={handleSave}
+                disabled={saving}
+                className="flex items-center gap-1.5 px-5 py-2 rounded-xl text-sm font-bold transition-all hover:-translate-y-px hover:shadow-lg"
+                style={{ background: "var(--db-primary)", color: "#fff", opacity: saving ? 0.7 : 1 }}
+              >
+                {saving ? (
+                  <>
+                    <span className="ra-progress-spinner" style={{ width: 14, height: 14 }} aria-hidden="true" />
+                    Saving…
+                  </>
+                ) : (
+                  <>
+                    <span className="material-symbols-outlined" style={{ fontSize: 16 }}>save</span>
+                    Save Changes
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       )}

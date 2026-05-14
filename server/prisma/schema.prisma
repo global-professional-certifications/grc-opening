@@ -150,6 +150,17 @@ model SeekerProfile {
   location    String?
   linkedInUrl String?  @map("linked_in_url")
   avatarUrl   String?  @map("avatar_url")
+
+  // Critical employment info (shared only when candidate opts in)
+  openToShareCriticalInfo Boolean @default(false) @map("open_to_share_critical_info")
+  ctcCurrency             String? @default("INR") @map("ctc_currency")
+  currentCtc              String? @map("current_ctc")
+  expectedCtc             String? @map("expected_ctc")
+  noticePeriod            String? @map("notice_period")
+  buybackOption           String? @map("buyback_option")
+  reasonForChange         String? @map("reason_for_change")
+  reasonForChangeOther    String? @map("reason_for_change_other")
+
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
