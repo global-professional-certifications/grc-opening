@@ -1425,10 +1425,6 @@ export function JobsMarketplaceRefined() {
       <footer className="flex flex-col gap-5 rounded-[26px] border px-6 py-6 lg:flex-row lg:items-center lg:justify-between"
         style={{ background: CARD, borderColor: BORDER }}>
         <div className="flex items-center gap-5">
-          <div className="flex h-12 w-12 items-center justify-center rounded-[14px]"
-            style={{ background: PRIMARY, color: "var(--db-primary-text)" }}>
-            <span className="material-symbols-outlined">shield_person</span>
-          </div>
           <div>
             <div className="text-[1.1rem]" style={{ color: TEXT_PRIMARY, fontWeight: 700, ...POPPINS }}>
               GRC <span style={{ color: PRIMARY }}>Openings</span>

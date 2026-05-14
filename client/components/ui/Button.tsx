@@ -11,7 +11,7 @@ export function Button({ children, variant = "primary", fullWidth = false, style
     alignItems: "center",
     justifyContent: "center",
     gap: 8,
-    fontFamily: "'Inter', sans-serif",
+    fontFamily: "'Poppins', sans-serif",
     fontWeight: 600,
     fontSize: "0.9rem",
     borderRadius: 99,

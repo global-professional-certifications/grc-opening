@@ -10,6 +10,7 @@ import { WorkExperienceSection } from "../../components/profile/WorkExperienceSe
 import { EducationSection } from "../../components/profile/EducationSection";
 import { SkillsSection } from "../../components/profile/SkillsSection";
 import { CertificationsSection } from "../../components/profile/CertificationsSection";
+import { FinancialInfoSection } from "../../components/profile/FinancialInfoSection";
 import type { ProfileFormData } from "../../components/profile/types";
 
 interface ApiProfilePayload {
@@ -47,6 +48,14 @@ interface ApiProfilePayload {
     }[];
     certifications: { id: string; name: string }[];
     user: { email: string };
+    openToShareCriticalInfo?: boolean;
+    ctcCurrency?: string;
+    currentCtc?: string;
+    expectedCtc?: string;
+    noticePeriod?: string;
+    buybackOption?: string;
+    reasonForChange?: string;
+    reasonForChangeOther?: string;
   };
 }
 
@@ -87,6 +96,14 @@ function mapApiToForm(api: ApiProfilePayload): ProfileFormData {
     resumeUrl: p.resumeUrl,
     resumeFileName: p.resumeUrl ? "Resume.pdf" : null,
     avatarUrl: p.avatarUrl,
+    openToShareCriticalInfo: p.openToShareCriticalInfo ?? false,
+    ctcCurrency: p.ctcCurrency ?? "INR",
+    currentCtc: p.currentCtc ?? "",
+    expectedCtc: p.expectedCtc ?? "",
+    noticePeriod: p.noticePeriod ?? "",
+    buybackOption: p.buybackOption ?? "",
+    reasonForChange: p.reasonForChange ? (() => { try { return JSON.parse(p.reasonForChange!); } catch { return []; } })() : [],
+    reasonForChangeOther: p.reasonForChangeOther ?? "",
   };
 }
 
@@ -114,6 +131,14 @@ const EMPTY_PROFILE: ProfileFormData = {
   resumeUrl: null,
   resumeFileName: null,
   avatarUrl: null,
+  openToShareCriticalInfo: false,
+  ctcCurrency: "INR",
+  currentCtc: "",
+  expectedCtc: "",
+  noticePeriod: "",
+  buybackOption: "",
+  reasonForChange: [],
+  reasonForChangeOther: "",
 };
 
 function SkeletonBlock({ className }: { className: string }) {
@@ -286,6 +311,14 @@ export default function ProfilePage() {
           })),
           skills: formData.coreCompetencies,
           certifications: formData.certifications.map((c) => ({ name: c.name })),
+          openToShareCriticalInfo: formData.openToShareCriticalInfo,
+          ctcCurrency: formData.ctcCurrency,
+          currentCtc: formData.currentCtc,
+          expectedCtc: formData.expectedCtc,
+          noticePeriod: formData.noticePeriod,
+          buybackOption: formData.buybackOption,
+          reasonForChange: JSON.stringify(formData.reasonForChange ?? []),
+          reasonForChangeOther: formData.reasonForChangeOther,
         }),
       });
       const saved = mapApiToForm(res);
@@ -550,6 +583,12 @@ export default function ProfilePage() {
           {/* Certifications */}
           <CertificationsSection
             certifications={formData.certifications}
+            onChange={handleChange}
+          />
+
+          {/* Critical Financial Information */}
+          <FinancialInfoSection
+            data={formData}
             onChange={handleChange}
           />
 

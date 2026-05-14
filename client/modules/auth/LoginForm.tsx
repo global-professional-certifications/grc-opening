@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
+import Link from "next/link";
 import { ModernInput } from "../../components/ui/ModernInput";
 import { apiFetch } from "../../lib/api";
 import { setToken, setStoredUser, isFirstLogin, markVisited } from "../../lib/auth";
@@ -21,19 +22,23 @@ interface EmployerProfileResponse {
 }
 
 interface LoginFormProps {
+  initialRole?: "job_seeker" | "employer";
   onRoleChange?: (role: "job_seeker" | "employer") => void;
 }
 
-export function LoginForm({ onRoleChange }: LoginFormProps) {
+export function LoginForm({ initialRole = "job_seeker", onRoleChange }: LoginFormProps) {
   const router = useRouter();
   const { setUser } = useUser();
 
-  const [activeRole, setActiveRole] = useState<"job_seeker" | "employer">("job_seeker");
+  const [activeRole, setActiveRole] = useState<"job_seeker" | "employer">(initialRole);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // Keep local state in sync when the parent updates from URL query
+  useEffect(() => { setActiveRole(initialRole); }, [initialRole]);
 
   function handleRoleSwitch(role: "job_seeker" | "employer") {
     setActiveRole(role);
@@ -95,8 +100,10 @@ export function LoginForm({ onRoleChange }: LoginFormProps) {
         }).catch(() => {});
       }
 
-      // 5. Redirect based on role
-      router.push(dbUser.role === "EMPLOYER" ? "/employer/dashboard" : "/dashboard");
+      // 5. Redirect based on role:
+      //    - Employers  → employer dashboard (management hub)
+      //    - Job Seekers → jobs marketplace (the primary action after login)
+      router.push(dbUser.role === "EMPLOYER" ? "/employer/dashboard" : "/dashboard/jobs");
     } catch (err: any) {
       console.error("[LocalLogin] Error:", err.message);
       setError(err.message || "Invalid credentials.");
@@ -187,10 +194,10 @@ export function LoginForm({ onRoleChange }: LoginFormProps) {
               Stay signed in
             </span>
           </label>
-          <a href="/auth/forgot-password" 
+          <Link href="/auth/forgot-password" 
              className="text-[12px] font-bold text-[#3a1292] hover:opacity-80 transition-opacity uppercase tracking-wider leading-none">
             Forgot Password?
-          </a>
+          </Link>
         </div>
 
         {error && (
@@ -242,9 +249,12 @@ export function LoginForm({ onRoleChange }: LoginFormProps) {
 
         <p className="text-center text-[14px] text-gray-500 font-medium mt-2">
           New to the platform?{" "}
-          <a href="/auth/register" className="text-[#3a1292] font-bold hover:underline">
+          <Link
+            href={`/auth/register${activeRole === "employer" ? "?role=employer" : ""}`}
+            className="text-[#3a1292] font-bold hover:underline"
+          >
             Create account
-          </a>
+          </Link>
         </p>
       </form>
     </div>

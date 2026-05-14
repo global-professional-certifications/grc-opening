@@ -1,18 +1,18 @@
-﻿/**
+/**
  * userRole.ts
  *
  * Single source of truth for user-role storage and retrieval.
  *
  * Two-layer storage:
- *  - sessionStorage  "grc_pending_role"  ΓÇô set during registration, consumed
+ *  - sessionStorage  "grc_pending_role"  - set during registration, consumed
  *                                          once after OTP success, then deleted.
- *  - localStorage    "grc_user_role"     ΓÇô written after any successful auth
+ *  - localStorage    "grc_user_role"     - written after any successful auth
  *                                          (OTP or login), survives page refresh.
  *
  * Call order for registration:
  *   1. setPendingRole(role)          ΓåÉ in EmployerForm / CandidateForm
- *   2. consumePendingRole()          ΓåÉ in EmailVerificationFlow SuccessScreen
- *      ΓåÆ also calls saveRole() internally so localStorage is populated
+ *   2. consumePendingRole()          - in EmailVerificationFlow SuccessScreen
+ *      - also calls saveRole() internally so localStorage is populated
  *
  * Call order for login:
  *   1. saveRole(role)                ΓåÉ in LoginForm after successful auth
@@ -28,7 +28,7 @@ export function getDashboardPath(role: UserRole | null): string {
   return role === "employer" ? "/employer/dashboard" : "/dashboard";
 }
 
-// ΓöÇΓöÇ Session-scoped (registration flow) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+// Session-scoped (registration flow)
 
 /**
  * Store the chosen role in sessionStorage so it survives the
@@ -59,7 +59,7 @@ export function consumePendingRole(): UserRole | null {
   }
 }
 
-// ΓöÇΓöÇ Persistent (login + page refresh) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+// Persistent (login + page refresh)
 
 /** Persist the authenticated role to localStorage. */
 export function saveRole(role: UserRole): void {

@@ -32,12 +32,9 @@ export function buildJobPayload(data: JobPostingData) {
     salaryMax:        (!data.undisclosedSalary && data.salaryMax)  ? Number(data.salaryMax)  : undefined,
     currency:         (!data.undisclosedSalary && data.currency)   ? data.currency           : undefined,
     description:      data.description.trim(),
-    responsibilities: data.responsibilities.trim() || undefined,
-    qualifications:   data.qualifications.trim()   || undefined,
-    experience:       data.experience  || undefined,
     seniority:        data.seniority   || undefined,
     certifications:   data.certifications,
-    niceToHave:       data.niceToHave.trim() || undefined,
+    niceToHave:       (data.niceToHave || '').trim() || undefined,
   };
 }
 

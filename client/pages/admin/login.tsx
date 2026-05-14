@@ -62,10 +62,7 @@ export default function AdminLoginPage() {
           <div className="bg-white rounded-3xl shadow-2xl shadow-black/10 overflow-hidden">
             {/* Header stripe */}
             <div className="bg-[#0f172a] px-8 pt-10 pb-8 text-center">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-white/10 mb-4">
-                <span className="material-symbols-outlined text-white" style={{ fontSize: 32 }}>shield</span>
-              </div>
-              <h1 className="text-[22px] font-bold text-white">Admin Portal</h1>
+              <h1 className="text-[22px] font-bold text-white mb-4">Admin Portal</h1>
               <p className="text-[13px] text-slate-400 mt-1">GRC Openings · Authorized Access Only</p>
               <div className="mt-4 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/30">
                 <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />

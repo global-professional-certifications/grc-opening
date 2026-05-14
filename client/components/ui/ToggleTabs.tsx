@@ -28,7 +28,7 @@ export function ToggleTabs({ options, activeId, onChange }: ToggleTabsProps) {
               padding: "8px 18px",
               fontSize: "0.875rem",
               fontWeight: 600,
-              fontFamily: "'Inter', sans-serif",
+              fontFamily: "'Poppins', sans-serif",
               borderRadius: 99,
               border: "none",
               cursor: "pointer",

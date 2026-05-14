@@ -36,7 +36,11 @@ export const getSeekerProfile = async (req: Request, res: Response): Promise<voi
 export const updateSeekerProfile = async (req: Request, res: Response): Promise<void> => {
   try {
     const userId = req.user!.id;
-    const { firstName, lastName, headline, bio, location, linkedInUrl, avatarUrl, country, phone, skills, workExperiences, educations, certifications } = req.body;
+    const {
+      firstName, lastName, headline, bio, location, linkedInUrl, avatarUrl, country, phone,
+      openToShareCriticalInfo, ctcCurrency, currentCtc, expectedCtc, noticePeriod, buybackOption, reasonForChange, reasonForChangeOther,
+      skills, workExperiences, educations, certifications
+    } = req.body;
 
     const profile = await prisma.seekerProfile.findUnique({ where: { userId } });
     if (!profile) {
@@ -57,6 +61,14 @@ export const updateSeekerProfile = async (req: Request, res: Response): Promise<
           ...(avatarUrl !== undefined && { avatarUrl }),
           ...(country !== undefined && { country }),
           ...(phone !== undefined && { phone }),
+          ...(openToShareCriticalInfo !== undefined && { openToShareCriticalInfo }),
+          ...(ctcCurrency !== undefined && { ctcCurrency }),
+          ...(currentCtc !== undefined && { currentCtc }),
+          ...(expectedCtc !== undefined && { expectedCtc }),
+          ...(noticePeriod !== undefined && { noticePeriod }),
+          ...(buybackOption !== undefined && { buybackOption }),
+          ...(reasonForChange !== undefined && { reasonForChange }),
+          ...(reasonForChangeOther !== undefined && { reasonForChangeOther }),
         } as any,
       });
 
@@ -167,6 +179,22 @@ export const updateSeekerProfile = async (req: Request, res: Response): Promise<
 };
 
 // ==========================================
+// ACCOUNT DELETION
+// ==========================================
+
+export const deleteAccount = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = req.user!.id;
+    // onDelete: Cascade on all relations means this removes everything tied to the user
+    await prisma.user.delete({ where: { id: userId } });
+    res.status(200).json({ message: 'Account deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting account:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+// ==========================================
 // EMPLOYER PROFILES
 // ==========================================
 
@@ -238,6 +266,7 @@ export const updateEmployerProfile = async (req: Request, res: Response): Promis
     res.status(200).json({ message: 'Profile updated successfully', profile: updatedProfile });
   } catch (error) {
     console.error('Error updating employer profile:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    res.status(500).json({ error: 'Internal server error', details: errorMessage });
   }
 };

@@ -4,7 +4,8 @@ import {
   getSeekerProfile,
   updateSeekerProfile,
   getEmployerProfile,
-  updateEmployerProfile
+  updateEmployerProfile,
+  deleteAccount,
 } from '../controllers/profile.controller';
 
 const router: Router = Router();
@@ -17,6 +18,11 @@ router.use(authenticateLocal);
 // ==========================================
 router.get('/seeker', requireRole(['JOB_SEEKER']), getSeekerProfile);
 router.patch('/seeker', requireRole(['JOB_SEEKER']), updateSeekerProfile);
+
+// ==========================================
+// ACCOUNT DELETION (any authenticated role)
+// ==========================================
+router.delete('/me', deleteAccount);
 
 // ==========================================
 // EMPLOYER ROUTES

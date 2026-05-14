@@ -3,6 +3,7 @@ import { useRouter } from "next/router";
 import { DashboardThemeProvider, useDashboardTheme } from "../../contexts/DashboardThemeContext";
 import { useUser } from "../../contexts/UserContext";
 import { COUNTRY_CODE_TO_CURRENCY, getCurrencyFromLocation } from "../../lib/currencyMap";
+import { LogoutConfirmModal } from "../ui/LogoutConfirmModal";
 
 // Fonts are now handled globally via Poppins in _document.tsx
 
@@ -23,6 +24,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
   const { user, logout } = useUser();
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   // Tracks whether auth/role check passed. While false, we render a neutral
@@ -90,7 +92,6 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
 
   function handleLogout() {
     logout();
-    // replace() so the dashboard is removed from history — back button won't return to it
     router.replace("/auth/login");
   }
 
@@ -117,16 +118,14 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
           style={{ background: "var(--db-sidebar-bg)", borderRight: "1px solid var(--db-sidebar-border)" }}
         >
           {/* Logo */}
-          <div className="p-6 flex items-center gap-3">
-            <div className="w-8 h-8 rounded flex items-center justify-center flex-shrink-0"
-              style={{ background: "var(--db-primary)" }}>
-              <span className="material-symbols-outlined" style={{ fontSize: 18, color: "var(--db-primary-text)" }}>
-                shield_person
-              </span>
-            </div>
-            <h1 className="text-lg tracking-tight uppercase font-bold" style={{ color: "var(--db-sidebar-logo-text)" }}>
-              GRC <span style={{ color: "var(--db-primary)" }}>Openings</span>
+          <div className="p-6 flex flex-col">
+            <h1 className="text-lg font-black tracking-tight leading-none whitespace-nowrap">
+              <span className="text-[#3a1292]">GRC</span>
+              <span className="text-gray-900 ml-1">Openings</span>
             </h1>
+            <p className="text-[9px] font-medium text-gray-400 mt-1 uppercase tracking-wider leading-none whitespace-nowrap">
+              By Global Professional Certifications
+            </p>
           </div>
 
           {/* Navigation */}
@@ -138,14 +137,15 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
               </p>
               <div className="space-y-1">
                 <NavItem href="/dashboard" icon="dashboard" label="Dashboard" />
+                <NavItem href="/dashboard/profile" icon="person" label="Profile" />
                 <NavItem href="/dashboard/jobs" icon="work" label="Jobs" />
                 <NavItem href="/dashboard/saved-jobs" icon="bookmark" label="Saved Jobs" />
                 <NavItem href="/dashboard/notifications" icon="notifications" label="Notifications" />
                 {/* <NavItem href="/dashboard/applications" icon="description" label="Applications" /> */}
                 {/* <NavItem href="/dashboard/messages"     icon="mail"        label="Messages" /> */}
-                <NavItem href="/dashboard/profile" icon="person" label="Profile" />
               </div>
             </div>
+            {/*
             <div>
               <p className="px-4 text-[11px] uppercase tracking-widest mb-4 font-semibold"
                 style={{ color: "var(--db-sidebar-section)" }}>
@@ -156,6 +156,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
                 <NavItem href="/dashboard/insights" icon="analytics" label="Market Insights" />
               </div>
             </div>
+            */}
             <div>
               <p className="px-4 text-[11px] uppercase tracking-widest mb-4 font-semibold"
                 style={{ color: "var(--db-sidebar-section)" }}>
@@ -189,7 +190,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
                   <p style={{ fontSize: "0.7rem", color: "var(--db-text-muted)" }}>{user?.email}</p>
                 </div>
                 <button
-                  onClick={handleLogout}
+                  onClick={() => { setMenuOpen(false); setShowLogoutModal(true); }}
                   style={{
                     display: "flex", alignItems: "center", gap: 8,
                     width: "100%", padding: "10px 14px",
@@ -242,6 +243,13 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
           {children}
         </main>
       </div>
+
+      {showLogoutModal && (
+        <LogoutConfirmModal
+          onConfirm={handleLogout}
+          onClose={() => setShowLogoutModal(false)}
+        />
+      )}
     </div>
   );
 }
