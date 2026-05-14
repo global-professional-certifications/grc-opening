@@ -5,7 +5,7 @@ import { useEmployerProfile } from '../../../contexts/EmployerProfileContext';
 import { useEmployerJobs } from '../../../contexts/EmployerJobsContext';
 
 const MONO = { fontFamily: "'JetBrains Mono', monospace" };
-const SYNE = { fontFamily: "'Syne', sans-serif" };
+const SYNE = { fontFamily: "'Poppins', sans-serif" };
 
 const CATEGORY_LABELS: Record<string, string> = {
   audit:      'Internal Audit',

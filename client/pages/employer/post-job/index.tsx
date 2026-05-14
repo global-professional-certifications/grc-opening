@@ -9,7 +9,7 @@ import { Step1Details } from '../../../modules/employer/post-job/Step1Details';
 import { Step2Preview } from '../../../modules/employer/post-job/Step2Preview';
 
 const MONO = { fontFamily: "'JetBrains Mono', monospace" };
-const SYNE = { fontFamily: "'Syne', sans-serif" };
+const SYNE = { fontFamily: "'Poppins', sans-serif" };
 
 // ─── Inner flow (has access to context) ──────────────────────────────────────
 
@@ -89,7 +89,7 @@ function PostJobFlow() {
     return (
       <div className="w-full">
         <div className="mb-6">
-          <h1 className="text-2xl font-bold" style={{ fontFamily: "'Syne', sans-serif", color: 'var(--db-text)' }}>
+          <h1 className="text-2xl font-bold" style={{ fontFamily: "'Poppins', sans-serif", color: 'var(--db-text)' }}>
             Post a Job
           </h1>
         </div>
@@ -118,7 +118,7 @@ function PostJobFlow() {
           <div>
             <h1
               className="text-2xl font-bold"
-              style={{ fontFamily: "'Syne', sans-serif", color: 'var(--db-text)' }}
+              style={{ fontFamily: "'Poppins', sans-serif", color: 'var(--db-text)' }}
             >
               Post a Job
             </h1>

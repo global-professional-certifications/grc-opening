@@ -1,7 +1,7 @@
 import { useJobPosting } from '../../../contexts/JobPostingContext';
 
 const MONO = { fontFamily: "'JetBrains Mono', monospace" };
-const SYNE = { fontFamily: "'Syne', sans-serif" };
+const SYNE = { fontFamily: "'Poppins', sans-serif" };
 
 const STEPS = [
   { num: 1, label: 'Job Details',    sub: 'Title, type & salary' },

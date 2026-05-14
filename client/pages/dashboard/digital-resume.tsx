@@ -95,7 +95,7 @@ function mapApiToForm(api: ApiProfilePayload): ProfileFormData {
   };
 }
 
-const SYNE = { fontFamily: "'Syne', sans-serif" };
+const SYNE = { fontFamily: "'Poppins', sans-serif" };
 const MONO = { fontFamily: "'JetBrains Mono', monospace" };
 
 const EMPTY: ProfileFormData = {

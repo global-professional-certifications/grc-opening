@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 import { apiFetch } from "@/lib/api";
 
 const MONO = { fontFamily: "'JetBrains Mono', monospace" };
-const SYNE = { fontFamily: "'Syne', sans-serif" };
+const SYNE = { fontFamily: "'Poppins', sans-serif" };
 
 const AVATAR_COLORS = [
   "#6366f1", "#8b5cf6", "#0ea5e9", "#f59e0b", "#10b981", "#ef4444",

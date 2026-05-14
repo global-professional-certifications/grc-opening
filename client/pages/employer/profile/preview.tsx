@@ -5,9 +5,8 @@ import { EMPTY_EMPLOYER_PROFILE } from "../../../components/employer/profile/typ
 
 const STORAGE_KEY = "grc_employer_profile";
 
-const SYNE = { fontFamily: "'Syne', sans-serif" };
+const POPPINS = { fontFamily: "'Poppins', sans-serif" };
 const MONO = { fontFamily: "'JetBrains Mono', monospace" };
-const MANROPE = { fontFamily: "'Manrope', sans-serif" };
 
 export default function PublicProfilePreview() {
   const [profile, setProfile] = useState<EmployerProfileData | null>(null);
@@ -41,7 +40,7 @@ export default function PublicProfilePreview() {
     : "CO";
 
   return (
-    <div className="min-h-screen bg-[#f8fafc]" style={MANROPE}>
+    <div className="min-h-screen bg-[#f8fafc]" style={POPPINS}>
       <Head>
         <title>{profile.companyName || "Company Profile"} - Preview</title>
       </Head>
@@ -61,7 +60,7 @@ export default function PublicProfilePreview() {
           {/* Logo */}
           <div 
             className="w-32 h-32 flex-shrink-0 bg-slate-50 border-4 border-white rounded-2xl shadow flex items-center justify-center overflow-hidden text-3xl font-bold text-teal-600"
-            style={SYNE}
+            style={POPPINS}
           >
             {profile.logoUrl ? (
               <img src={profile.logoUrl} alt="Logo" className="w-full h-full object-cover" />
@@ -72,7 +71,7 @@ export default function PublicProfilePreview() {
           
           <div className="flex-1 space-y-4 pt-2">
             <div>
-              <h1 className="text-4xl font-bold text-slate-900" style={SYNE}>
+              <h1 className="text-4xl font-bold text-slate-900" style={POPPINS}>
                 {profile.companyName || "Unnamed Company"}
               </h1>
               {profile.tagline && (
@@ -132,7 +131,7 @@ export default function PublicProfilePreview() {
           <div className="lg:col-span-2 space-y-8">
             {profile.description && (
               <section className="bg-white rounded-3xl p-8 sm:p-10 shadow-sm border border-slate-200">
-                <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2" style={SYNE}>
+                <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2" style={POPPINS}>
                   <span className="w-8 h-8 rounded-lg bg-teal-100 text-teal-600 flex items-center justify-center">
                     <span className="material-symbols-outlined text-[18px]">business</span>
                   </span>

@@ -9,7 +9,7 @@ import { saveJobDraftAPI } from '@/lib/api/jobs';
 import { getRolesForSeniority, findJDTemplate, formatJDToHTML } from '../../../lib/jdTemplates';
 
 const MONO = { fontFamily: "'JetBrains Mono', monospace" };
-const SYNE = { fontFamily: "'Syne', sans-serif" };
+const SYNE = { fontFamily: "'Poppins', sans-serif" };
 
 const CERT_SUGGESTIONS = [
   'CIA', 'CISSP', 'CISA', 'CISM', 'CRISC', 'CDPSE', 'CPA', 'CFE', 'GRCP', 'CCEP'

@@ -7,7 +7,7 @@ import { ActiveJobListings } from "../../../modules/employer/dashboard/ActiveJob
 import { useDashboardTheme } from "../../../contexts/DashboardThemeContext";
 import { useEmployerProfile } from "../../../contexts/EmployerProfileContext";
 
-const SYNE = { fontFamily: "'Syne', sans-serif" };
+const SYNE = { fontFamily: "'Poppins', sans-serif" };
 const MONO = { fontFamily: "'JetBrains Mono', monospace" };
 
 function SunIcon() {

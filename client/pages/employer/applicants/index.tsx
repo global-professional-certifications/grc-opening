@@ -4,7 +4,7 @@ import { EmployerDashboardLayout } from "../../../components/layout/EmployerDash
 import { apiFetch } from "@/lib/api";
 import { ApplicantDetailDialog } from "./ApplicantDetailDialog";
 
-const SYNE    = { fontFamily: "'Syne', sans-serif" };
+const SYNE    = { fontFamily: "'Poppins', sans-serif" };
 const MONO    = { fontFamily: "'JetBrains Mono', monospace" };
 const POPPINS = { fontFamily: "'Poppins', sans-serif" };
 
