@@ -1,4 +1,4 @@
-﻿import React, { useState } from "react";
+import React, { useState } from "react";
 import type { EmployerProfileData } from "./types";
 import { SectionCard, Field, BASE_INPUT, LABEL_STYLE, MONO } from "./shared";
 
@@ -17,7 +17,7 @@ function LinkPreview({ url, label }: { url: string; label: string }) {
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="flex items-center gap-1.5 text-xs hover:underline mt-1.5 w-fit"
+      className="flex items-center gap-1.5 text-xs mt-1.5 w-fit"
       style={{ ...MONO, color: "var(--db-primary)" }}
     >
       <span className="material-symbols-outlined" style={{ fontSize: 13 }}>open_in_new</span>
@@ -64,8 +64,6 @@ function ExtraLinkField({ index, value, onChange, onRemove, error }: ExtraLinkFi
             color: "#ef4444",
             border: "1px solid rgba(239,68,68,0.2)",
           }}
-          onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(239,68,68,0.15)"; }}
-          onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(239,68,68,0.08)"; }}
         >
           <span className="material-symbols-outlined" style={{ fontSize: 18 }}>close</span>
         </button>
@@ -166,8 +164,6 @@ export function SocialLinksSection({ data, onChange, errors = {} }: Props) {
               width: "100%",
               justifyContent: "center",
             }}
-            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "var(--db-primary-20)"; }}
-            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "var(--db-primary-10)"; }}
           >
             <span className="material-symbols-outlined" style={{ fontSize: 18 }}>add</span>
             + Add More Links
