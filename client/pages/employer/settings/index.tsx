@@ -16,7 +16,7 @@ export default function EmployerSettingsPage() {
     applicantAlerts: true,
     weeklyDigest: false,
   });
-  
+
   // Hide global theme toggle
   useEffect(() => {
     const toggle = document.querySelector<HTMLElement>(".theme-toggle");
@@ -90,7 +90,7 @@ export default function EmployerSettingsPage() {
           </p>
         </div>
       </header>
-      
+
       <div className="max-w-4xl space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Notification Preferences */}
@@ -136,8 +136,9 @@ export default function EmployerSettingsPage() {
             <div className="space-y-2">
               {[
                 { icon: "lock", label: "Change Password", href: "#password" },
-                { icon: "security", label: "Two-Factor Auth", href: "#2fa" },
-                { icon: "download", label: "Export Data", href: "#export" },
+                { icon: "delete", label: "Delete Account", href: "#delete" },
+                //{ icon: "security", label: "Two-Factor Auth", href: "#2fa" },
+                //{ icon: "download", label: "Export Data", href: "#export" },
               ].map(({ icon, label, href }) => (
                 <a
                   key={label}

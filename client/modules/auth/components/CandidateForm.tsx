@@ -80,7 +80,8 @@ export function CandidateForm() {
       setStoredUser({ ...dbUser, fullName: fields.fullName, phone: fields.phone } as any);
       import("../../../lib/userRole").then(lib => lib.saveRole("job_seeker" as UserRole));
 
-      router.push("/dashboard");
+      // New account → send to profile to complete their setup
+      router.push("/dashboard/profile");
     } catch (err: any) {
       const msg = err instanceof Error ? err.message : "Registration failed.";
       setErrors(prev => ({ ...prev, email: msg }));

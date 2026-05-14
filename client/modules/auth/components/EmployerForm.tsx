@@ -76,7 +76,8 @@ export function EmployerForm() {
       setStoredUser(dbUser as any);
       import("../../../lib/userRole").then(lib => lib.saveRole("employer" as UserRole));
 
-      router.push("/employer/dashboard");
+      // New account → send to profile to complete company setup
+      router.push("/employer/profile");
     } catch (err: any) {
       const msg = err instanceof Error ? err.message : "Registration failed.";
       setErrors(prev => ({ ...prev, workEmail: msg }));

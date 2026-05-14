@@ -721,19 +721,18 @@ export default function EmployerProfilePage() {
 
           {/* Form sections */}
           <div ref={firstSectionRef} className="scroll-mt-6 space-y-6">
-            {/* Single column layout */}
-            <div className="max-w-4xl mx-auto space-y-6">
-              <CompanyInfoSection data={formData} onChange={handleChange} errors={errors} />
-              <AboutSection data={formData} onChange={handleChange} errors={errors} />
-              <ContactSection data={formData} onChange={handleChange} errors={errors} />
-              <SocialLinksSection data={formData} onChange={handleChange} errors={errors} />
-            </div>
+            <CompanyInfoSection data={formData} onChange={handleChange} errors={errors} />
+            <AboutSection data={formData} onChange={handleChange} errors={errors} />
+            <ContactSection data={formData} onChange={handleChange} errors={errors} />
+            <SocialLinksSection data={formData} onChange={handleChange} errors={errors} />
           </div>
 
           {/* Spacer so sticky bar doesn't overlap last card */}
           {isDirty && <div className="h-20" />}
         </>
       )}
+
+
 
       {/* Unsaved changes bar */}
       {isDirty && !loading && (

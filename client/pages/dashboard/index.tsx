@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useRouter } from "next/router";
 import { DashboardLayout } from "../../components/layout/DashboardLayout";
 import { KPISection } from "../../modules/dashboard/KPISection";
 import { RecommendedJobs } from "../../modules/dashboard/RecommendedJobs";
@@ -39,6 +40,7 @@ function getGreeting() {
 }
 
 function DashboardHeader() {
+  const router = useRouter();
   const { theme, toggleTheme } = useDashboardTheme();
   const { user } = useUser();
   const [profile, setProfile] = useState<any>(null);
@@ -75,7 +77,8 @@ function DashboardHeader() {
 
         {/* Upload Resume */}
         <button
-          className="db-btn-primary px-5 py-2.5 font-bold text-sm rounded-full shadow-lg transition-all"
+          onClick={() => router.push("/dashboard/profile")}
+          className="db-btn-primary px-5 py-2.5 font-bold text-sm rounded-full shadow-lg transition-all hover:-translate-y-0.5"
           style={{ background: "var(--db-primary)", color: "var(--db-primary-text)" }}
         >
           Upload Resume

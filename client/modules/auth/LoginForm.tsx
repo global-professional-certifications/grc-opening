@@ -95,8 +95,10 @@ export function LoginForm({ onRoleChange }: LoginFormProps) {
         }).catch(() => {});
       }
 
-      // 5. Redirect based on role
-      router.push(dbUser.role === "EMPLOYER" ? "/employer/dashboard" : "/dashboard");
+      // 5. Redirect based on role:
+      //    - Employers  → employer dashboard (management hub)
+      //    - Job Seekers → jobs marketplace (the primary action after login)
+      router.push(dbUser.role === "EMPLOYER" ? "/employer/dashboard" : "/dashboard/jobs");
     } catch (err: any) {
       console.error("[LocalLogin] Error:", err.message);
       setError(err.message || "Invalid credentials.");

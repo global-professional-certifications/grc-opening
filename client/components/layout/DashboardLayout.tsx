@@ -138,14 +138,15 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
               </p>
               <div className="space-y-1">
                 <NavItem href="/dashboard" icon="dashboard" label="Dashboard" />
+                <NavItem href="/dashboard/profile" icon="person" label="Profile" />
                 <NavItem href="/dashboard/jobs" icon="work" label="Jobs" />
                 <NavItem href="/dashboard/saved-jobs" icon="bookmark" label="Saved Jobs" />
                 <NavItem href="/dashboard/notifications" icon="notifications" label="Notifications" />
                 {/* <NavItem href="/dashboard/applications" icon="description" label="Applications" /> */}
                 {/* <NavItem href="/dashboard/messages"     icon="mail"        label="Messages" /> */}
-                <NavItem href="/dashboard/profile" icon="person" label="Profile" />
               </div>
             </div>
+            {/*
             <div>
               <p className="px-4 text-[11px] uppercase tracking-widest mb-4 font-semibold"
                 style={{ color: "var(--db-sidebar-section)" }}>
@@ -156,6 +157,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
                 <NavItem href="/dashboard/insights" icon="analytics" label="Market Insights" />
               </div>
             </div>
+            */}
             <div>
               <p className="px-4 text-[11px] uppercase tracking-widest mb-4 font-semibold"
                 style={{ color: "var(--db-sidebar-section)" }}>

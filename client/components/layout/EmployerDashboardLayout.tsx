@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/router";
 import { DashboardThemeProvider, useDashboardTheme } from "../../contexts/DashboardThemeContext";
 import { useUser } from "../../contexts/UserContext";
 import { EmployerJobsProvider } from "../../contexts/EmployerJobsContext";
+import { EmployerProfileProvider, useEmployerProfile } from "../../contexts/EmployerProfileContext";
 import { NotificationsBell } from "../../modules/dashboard/NotificationsBell";
 
 const SYNE    = { fontFamily: "'Syne', sans-serif" };
@@ -24,32 +25,34 @@ function EmployerDashboardLayoutInner({ children }: { children: React.ReactNode 
   const { theme } = useDashboardTheme();
   void theme;
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
   const { user, logout } = useUser();
   const router = useRouter();
-  const [employerProfile, setEmployerProfile] = useState<{ companyName?: string } | null>(null);
+  const { companyName: displayName } = useEmployerProfile();
 
-  // Load employer profile for real company name in the nameplate
-  useEffect(() => {
-    if (!user || user.role !== "EMPLOYER") return;
-    import("../../lib/api").then(({ apiFetch }) => {
-      apiFetch<{ profile: { companyName?: string } }>("/profile/employer")
-        .then(res => setEmployerProfile(res.profile))
-        .catch(() => setEmployerProfile(null));
-    });
-  }, [user]);
-
-  // Derive display values: employer profile's companyName, then fall back to user email's local part
-  const displayName =
-    employerProfile?.companyName ||
-    user?.firstName ||
-    (user?.email ? user.email.split("@")[0] : "") ||
-    "Employer";
   const initials = displayName
     .split(/[\s._-]+/)
     .map((w: string) => w[0] ?? "")
     .join("")
     .toUpperCase()
     .slice(0, 2) || "E";
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+    }
+    if (menuOpen) document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [menuOpen]);
+
+  function handleLogout() {
+    logout();
+    router.replace("/auth/login");
+  }
 
   // Guard: Redirect non-employers or unauthenticated users.
   // Blocks rendering until role is verified so a seeker never sees employer content.
@@ -131,74 +134,117 @@ function EmployerDashboardLayoutInner({ children }: { children: React.ReactNode 
 
           {/* Navigation */}
           <nav className="flex-1 px-4 py-2 overflow-y-auto scrollbar-hide space-y-6">
+
+            {/* ── Main Menu ── */}
             <div>
               <p
-                className="px-2 text-[11px] uppercase tracking-widest mb-3"
+                className="px-2 text-[11px] uppercase tracking-widest mb-3 font-semibold"
                 style={{ ...MONO, color: "var(--db-sidebar-section)" }}
               >
                 Main Menu
               </p>
               <div className="space-y-0.5">
-                <NavItem href="/employer/dashboard"      icon="dashboard"       label="Dashboard" />
-                <NavItem href="/employer/post-job"       icon="add_circle"      label="Post a Job" />
-                <NavItem href="/employer/jobs"           icon="work_history"    label="My Job Listings" />
-                <NavItem href="/employer/applicants"     icon="group"           label="Applicants" />
-                <NavItem href="/employer/notifications"  icon="notifications"   label="Notifications" />
+                <NavItem href="/employer/dashboard"  icon="dashboard"    label="Dashboard" />
+                <NavItem href="/employer/profile"    icon="business"     label="Company Profile" />
+                <NavItem href="/employer/post-job"   icon="add_circle"   label="Post a Job" />
+                <NavItem href="/employer/jobs"       icon="work_history" label="My Job Listings" />
+                <NavItem href="/employer/applicants" icon="group"        label="Applicants" />
               </div>
             </div>
 
+            {/* ── Account ── */}
             <div>
               <p
-                className="px-2 text-[11px] uppercase tracking-widest mb-3"
+                className="px-2 text-[11px] uppercase tracking-widest mb-3 font-semibold"
                 style={{ ...MONO, color: "var(--db-sidebar-section)" }}
               >
                 Account
               </p>
               <div className="space-y-0.5">
-                <NavItem href="/employer/profile"  icon="business"  label="Company Profile" />
-                <NavItem href="/employer/settings" icon="settings"  label="Settings" />
-                <button
-                  type="button"
-                  onClick={() => { logout(); router.replace('/auth/login'); }}
-                  className="db-nav-item w-full text-left"
-                  style={{ color: "var(--db-sidebar-nav-text)" }}
-                >
-                  <span className="material-symbols-outlined" style={{ fontSize: 20 }}>logout</span>
-                  <span className="text-sm font-medium">Logout</span>
-                </button>
+                <NavItem href="/employer/notifications" icon="notifications" label="Notifications" />
+                <NavItem href="/employer/settings"      icon="settings"      label="Settings" />
               </div>
             </div>
+
           </nav>
 
-          {/* Company block */}
+          {/* User / company block — same popup pattern as candidate sidebar */}
           <div
-            className="p-5 shrink-0"
+            className="p-4"
             style={{
               borderTop: "1px solid var(--db-sidebar-border)",
-              background: "var(--db-sidebar-user-bg)",
+              background: "var(--db-primary-10)",
+              position: "relative",
             }}
+            ref={menuRef}
           >
-            <div className="flex items-center gap-3">
+            {/* Popup — appears above the user block */}
+            {menuOpen && (
               <div
-                className="w-10 h-10 rounded-lg flex items-center justify-center text-xs font-bold shrink-0"
+                role="menu"
                 style={{
-                  background: "var(--db-primary-10)",
-                  color: "var(--db-primary)",
-                  border: "1px solid var(--db-primary-20)",
-                  ...MONO,
+                  position: "absolute", bottom: "calc(100% + 8px)", left: 16, right: 16,
+                  background: "#ffffff", border: "1px solid var(--db-border)",
+                  borderRadius: 12, boxShadow: "0 -8px 32px rgba(0,0,0,0.15)",
+                  overflow: "hidden", zIndex: 200,
                 }}
+              >
+                <div style={{ padding: "10px 14px 8px", borderBottom: "1px solid var(--db-border)" }}>
+                  <p style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--db-text)", marginBottom: 2 }}>{displayName}</p>
+                  <p style={{ fontSize: "0.7rem", color: "var(--db-text-muted)" }}>{user?.email}</p>
+                </div>
+                <button
+                  onClick={handleLogout}
+                  style={{
+                    display: "flex", alignItems: "center", gap: 8,
+                    width: "100%", padding: "10px 14px",
+                    background: "none", border: "none", cursor: "pointer",
+                    fontSize: "0.82rem", fontWeight: 600,
+                    color: "#ef4444", textAlign: "left",
+                    transition: "background 0.15s",
+                  }}
+                  onMouseEnter={e => (e.currentTarget.style.background = "rgba(239,68,68,0.08)")}
+                  onMouseLeave={e => (e.currentTarget.style.background = "none")}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: 16 }}>logout</span>
+                  Sign out
+                </button>
+              </div>
+            )}
+
+            {/* Clickable company row */}
+            <button
+              onClick={() => setMenuOpen(o => !o)}
+              style={{
+                display: "flex", alignItems: "center", gap: 10,
+                width: "100%", background: "none", border: "none",
+                cursor: "pointer", borderRadius: 10, padding: "6px 8px",
+                transition: "background 0.15s",
+              }}
+              onMouseEnter={e => (e.currentTarget.style.background = "var(--db-sidebar-nav-hover)")}
+              onMouseLeave={e => (e.currentTarget.style.background = "none")}
+            >
+              <div
+                className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 shadow-sm"
+                style={{ background: "var(--db-primary)", color: "#ffffff", fontWeight: 800, fontSize: "0.8rem", ...MONO }}
               >
                 {initials}
               </div>
-              <div className="overflow-hidden">
-                <p className="text-sm font-bold truncate" style={{ color: "var(--db-sidebar-user-text)" }}>
-                  {displayName}
-                </p>
-                <p className="text-[10px] uppercase tracking-wide" style={{ ...MONO, color: "var(--db-primary)" }}>
-                  Employer
-                </p>
+              <div className="overflow-hidden flex-1 text-left">
+                <p className="text-sm font-bold truncate" style={{ color: "var(--db-text)" }}>{displayName}</p>
+                <p className="text-xs truncate font-semibold" style={{ color: "var(--db-primary)", ...MONO }}>Employer</p>
               </div>
-            </div>
+              <span
+                className="material-symbols-outlined"
+                style={{
+                  fontSize: 16, color: "var(--db-text-muted)", flexShrink: 0,
+                  transform: menuOpen ? "rotate(180deg)" : "none",
+                  transition: "transform 0.2s",
+                }}
+              >
+                expand_less
+              </span>
+            </button>
           </div>
         </aside>
 
@@ -250,9 +296,11 @@ function EmployerDashboardLayoutInner({ children }: { children: React.ReactNode 
 export function EmployerDashboardLayout({ children }: { children: React.ReactNode }) {
   return (
     <DashboardThemeProvider>
-      <EmployerJobsProvider>
-        <EmployerDashboardLayoutInner>{children}</EmployerDashboardLayoutInner>
-      </EmployerJobsProvider>
+      <EmployerProfileProvider>
+        <EmployerJobsProvider>
+          <EmployerDashboardLayoutInner>{children}</EmployerDashboardLayoutInner>
+        </EmployerJobsProvider>
+      </EmployerProfileProvider>
     </DashboardThemeProvider>
   );
 }

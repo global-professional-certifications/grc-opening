@@ -5,8 +5,7 @@ const SYNE = { fontFamily: "'Syne', sans-serif" };
 
 const STEPS = [
   { num: 1, label: 'Job Details',    sub: 'Title, type & salary' },
-  { num: 2, label: 'Requirements',   sub: 'Skills & qualifications' },
-  { num: 3, label: 'Preview & Post', sub: 'Review and submit' },
+  { num: 2, label: 'Preview & Post', sub: 'Review and submit' },
 ];
 
 interface PostJobProgressProps {
