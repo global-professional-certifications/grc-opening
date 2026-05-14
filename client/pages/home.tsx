@@ -137,7 +137,7 @@ export default function LandingPage() {
             }}
           >
             <img
-              src="/images/grc-hero.png"
+              src="/images/grc-hero.webp"
               alt="GRC professionals — woman and man in business formal attire"
               className="w-full h-full object-cover"
               style={{ objectPosition: "50% 20%", filter: "brightness(1.0) contrast(1.05)" }}
