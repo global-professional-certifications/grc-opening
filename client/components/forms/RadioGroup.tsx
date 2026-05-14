@@ -29,7 +29,7 @@ export function RadioGroup({ options, value, onChange, className = '' }: RadioGr
               fontSize: '12px',
               borderColor: 'var(--db-border)',
               backgroundColor: isSelected ? 'var(--db-primary)' : 'transparent',
-              color: isSelected ? '#0a0a0a' : 'var(--db-text-muted)',
+              color: isSelected ? '#ffffff' : 'var(--db-text-muted)',
               fontWeight: isSelected ? 700 : 500,
             }}
           >

@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { useRouter } from 'next/router';
 import { useJobPosting } from '../../../contexts/JobPostingContext';
-import { useUser } from '../../../contexts/UserContext';
+import { useEmployerProfile } from '../../../contexts/EmployerProfileContext';
 import { useEmployerJobs } from '../../../contexts/EmployerJobsContext';
 
 const MONO = { fontFamily: "'JetBrains Mono', monospace" };
@@ -155,9 +155,9 @@ function SuccessScreen({ jobId }: { jobId: string }) {
 
 interface DuplicateJob { id: string; title: string; score: number }
 
-export function Step3Preview() {
+export function Step2Preview() {
   const { data, prevStep, goToStep, reset, editId } = useJobPosting();
-  const { user } = useUser();
+  const { companyName } = useEmployerProfile();
   const { addJob, editJob } = useEmployerJobs();
   const router = useRouter();
 
@@ -167,8 +167,6 @@ export function Step3Preview() {
   const [publishError, setPublishError] = useState<string | null>(null);
   const [duplicates, setDuplicates]     = useState<DuplicateJob[]>([]);
   const hasPublished = useRef(false);
-
-  const companyName = user?.firstName || 'Your Company';
 
   const salaryDisplay = data.undisclosedSalary
     ? 'Competitive'
@@ -304,7 +302,6 @@ export function Step3Preview() {
               {data.workMode === 'Hybrid'  && <MetaPill icon="home_work" label={data.location ? `Hybrid · ${data.location}` : 'Hybrid'} />}
               {data.workMode === 'On-site' && <MetaPill icon="apartment" label={data.location || 'On-site'} />}
               {data.jobType    && <MetaPill icon="schedule"      label={data.jobType} />}
-              {data.experience && <MetaPill icon="trending_up"   label={`${data.experience} yrs exp`} />}
               {data.seniority  && <MetaPill icon="military_tech" label={data.seniority} />}
             </div>
           </div>
@@ -315,22 +312,12 @@ export function Step3Preview() {
             <TextBlock text={data.description} />
           </div>
 
-          {/* ── Section 4: Responsibilities ── */}
-          <div className="p-6">
-            <SectionHeader label="Key Responsibilities" onEdit={() => goToStep(2)} />
-            <TextBlock text={data.responsibilities} />
-          </div>
 
-          {/* ── Section 5: Qualifications ── */}
-          <div className="p-6">
-            <SectionHeader label="Qualifications" onEdit={() => goToStep(2)} />
-            <TextBlock text={data.qualifications} />
-          </div>
 
-          {/* ── Section 6: Certifications (conditional) ── */}
+          {/* ── Section 4: Certifications (conditional) ── */}
           {data.certifications.length > 0 && (
             <div className="p-6">
-              <SectionHeader label="Required Certifications" onEdit={() => goToStep(2)} />
+              <SectionHeader label="Required Certifications" onEdit={() => goToStep(1)} />
               <div className="flex flex-wrap gap-2">
                 {data.certifications.map((cert) => (
                   <span
@@ -345,10 +332,10 @@ export function Step3Preview() {
             </div>
           )}
 
-          {/* ── Section 7: Nice to Have (conditional) ── */}
+          {/* ── Section 5: Nice to Have (conditional) ── */}
           {data.niceToHave.trim() && (
             <div className="p-6">
-              <SectionHeader label="Nice to Have" onEdit={() => goToStep(2)} />
+              <SectionHeader label="Nice to Have" onEdit={() => goToStep(1)} />
               <TextBlock text={data.niceToHave} />
             </div>
           )}

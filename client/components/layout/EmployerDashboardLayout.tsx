@@ -3,6 +3,7 @@ import { useRouter } from "next/router";
 import { DashboardThemeProvider, useDashboardTheme } from "../../contexts/DashboardThemeContext";
 import { useUser } from "../../contexts/UserContext";
 import { EmployerJobsProvider } from "../../contexts/EmployerJobsContext";
+import { EmployerProfileProvider, useEmployerProfile } from "../../contexts/EmployerProfileContext";
 import { NotificationsBell } from "../../modules/dashboard/NotificationsBell";
 
 const SYNE    = { fontFamily: "'Syne', sans-serif" };
@@ -28,24 +29,8 @@ function EmployerDashboardLayoutInner({ children }: { children: React.ReactNode 
   const menuRef = useRef<HTMLDivElement>(null);
   const { user, logout } = useUser();
   const router = useRouter();
-  const [employerProfile, setEmployerProfile] = useState<{ companyName?: string } | null>(null);
+  const { companyName: displayName } = useEmployerProfile();
 
-  // Load employer profile for real company name in the nameplate
-  useEffect(() => {
-    if (!user || user.role !== "EMPLOYER") return;
-    import("../../lib/api").then(({ apiFetch }) => {
-      apiFetch<{ profile: { companyName?: string } }>("/profile/employer")
-        .then(res => setEmployerProfile(res.profile))
-        .catch(() => setEmployerProfile(null));
-    });
-  }, [user]);
-
-  // Derive display values: employer profile's companyName, then fall back to user email's local part
-  const displayName =
-    employerProfile?.companyName ||
-    user?.firstName ||
-    (user?.email ? user.email.split("@")[0] : "") ||
-    "Employer";
   const initials = displayName
     .split(/[\s._-]+/)
     .map((w: string) => w[0] ?? "")
@@ -311,9 +296,11 @@ function EmployerDashboardLayoutInner({ children }: { children: React.ReactNode 
 export function EmployerDashboardLayout({ children }: { children: React.ReactNode }) {
   return (
     <DashboardThemeProvider>
-      <EmployerJobsProvider>
-        <EmployerDashboardLayoutInner>{children}</EmployerDashboardLayoutInner>
-      </EmployerJobsProvider>
+      <EmployerProfileProvider>
+        <EmployerJobsProvider>
+          <EmployerDashboardLayoutInner>{children}</EmployerDashboardLayoutInner>
+        </EmployerJobsProvider>
+      </EmployerProfileProvider>
     </DashboardThemeProvider>
   );
 }

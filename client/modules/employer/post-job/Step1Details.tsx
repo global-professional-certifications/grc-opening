@@ -4,11 +4,16 @@ import { Input } from '../../../components/forms/Input';
 import { Select } from '../../../components/forms/Select';
 import { RadioGroup } from '../../../components/forms/RadioGroup';
 import { RichTextarea, extractText } from '../../../components/forms/RichTextarea';
+import { TagInput } from '../../../components/forms/TagInput';
 import { saveJobDraftAPI } from '@/lib/api/jobs';
 import { getRolesForSeniority, findJDTemplate, formatJDToHTML } from '../../../lib/jdTemplates';
 
 const MONO = { fontFamily: "'JetBrains Mono', monospace" };
 const SYNE = { fontFamily: "'Syne', sans-serif" };
+
+const CERT_SUGGESTIONS = [
+  'CIA', 'CISSP', 'CISA', 'CISM', 'CRISC', 'CDPSE', 'CPA', 'CFE', 'GRCP', 'CCEP'
+];
 
 const CATEGORIES = [
   { value: '',            label: 'Select a category' },
@@ -641,6 +646,83 @@ export function Step1Details() {
         </div>
       </SectionCard>
 
+      {/* ── Section 7: Certifications ── */}
+      <SectionCard>
+        <SectionTitle>Certifications</SectionTitle>
+
+        <div className="flex flex-col gap-3">
+          <TagInput
+            label="REQUIRED CERTIFICATIONS"
+            tags={data.certifications}
+            onChange={(tags) => updateData({ certifications: tags })}
+            placeholder="Type and press Enter or comma…"
+            suggestionText="Press Enter or comma to add. Backspace to remove last."
+          />
+
+          {/* Quick-add suggestion pills */}
+          <div className="flex flex-wrap gap-2 items-center pt-1">
+            <span
+              className="text-[10px] uppercase tracking-widest"
+              style={{ ...MONO, color: 'var(--db-text-muted)' }}
+            >
+              Common:
+            </span>
+            {CERT_SUGGESTIONS.map((cert) => {
+              const added = data.certifications.includes(cert);
+              return (
+                <button
+                  key={cert}
+                  type="button"
+                  onClick={() => {
+                    if (!added) {
+                      updateData({ certifications: [...data.certifications, cert] });
+                    }
+                  }}
+                  disabled={added}
+                  className="px-2.5 py-0.5 rounded text-xs font-medium border transition-all"
+                  style={{
+                    ...MONO,
+                    borderColor: added ? 'var(--db-primary)' : 'var(--db-border)',
+                    color:       added ? 'var(--db-primary)' : 'var(--db-text-muted)',
+                    backgroundColor: added ? 'rgba(4,255,180,0.08)' : 'transparent',
+                    cursor: added ? 'default' : 'pointer',
+                    opacity: added ? 0.7 : 1,
+                  }}
+                >
+                  {added ? '✓ ' : '+ '}{cert}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </SectionCard>
+
+      {/* ── Section 8: Nice to Have ── */}
+      <SectionCard>
+        <div className="flex items-center justify-between">
+          <SectionTitle>Nice to Have</SectionTitle>
+          <span
+            className="text-[10px] px-2 py-0.5 rounded border"
+            style={{ ...MONO, color: 'var(--db-text-muted)', borderColor: 'var(--db-border)' }}
+          >
+            Optional
+          </span>
+        </div>
+
+        <textarea
+          className="w-full p-4 bg-transparent outline-none resize-y min-h-[110px] text-sm rounded-lg border transition-all focus:ring-1 focus:ring-[var(--db-primary)] focus:border-[var(--db-primary)]"
+          style={{
+            backgroundColor: 'transparent',
+            borderColor: 'var(--db-border)',
+            color: 'var(--db-text)',
+            lineHeight: '1.65',
+          }}
+          placeholder="Optional skills, soft skills, or familiarity with specific tools (e.g. ServiceNow GRC, OneTrust, Workiva)…"
+          value={data.niceToHave}
+          onChange={(e) => updateData({ niceToHave: e.target.value })}
+        />
+      </SectionCard>
+
       {/* ── Footer actions ── */}
       <div
         className="flex items-center justify-between pt-5 border-t"
@@ -671,7 +753,7 @@ export function Step1Details() {
           className="flex items-center gap-2 px-6 py-2.5 rounded-lg font-bold text-sm transition-all hover:opacity-90 active:scale-[0.98]"
           style={{ background: 'var(--db-primary)', color: '#ffffff', ...MONO }}
         >
-          Next: Requirements
+          Next: Preview
           <span className="material-symbols-outlined" style={{ fontSize: 18 }}>arrow_forward</span>
         </button>
       </div>

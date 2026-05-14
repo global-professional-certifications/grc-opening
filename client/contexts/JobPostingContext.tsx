@@ -17,9 +17,6 @@ export interface JobPostingData {
   description: string;
   jdRole: string;
 
-  responsibilities: string;
-  qualifications: string;
-  experience: string;
   seniority: string;
   certifications: string[];
   niceToHave: string;
@@ -57,9 +54,6 @@ const defaultData: JobPostingData = {
   undisclosedSalary: true,
   description: '',
   jdRole: '',
-  responsibilities: '',
-  qualifications: '',
-  experience: '',
   seniority: '',
   certifications: [],
   niceToHave: '',
@@ -139,7 +133,7 @@ export function JobPostingProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const goToStep = (step: number) => setCurrentStep(step);
-  const nextStep = () => setCurrentStep((prev) => Math.min(prev + 1, 3));
+  const nextStep = () => setCurrentStep((prev) => Math.min(prev + 1, 2));
   const prevStep = () => setCurrentStep((prev) => Math.max(prev - 1, 1));
 
   const reset = useCallback(() => {
