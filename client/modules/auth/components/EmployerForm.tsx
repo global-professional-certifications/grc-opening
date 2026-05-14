@@ -32,7 +32,7 @@ function validate(data: Fields): Partial<Fields> {
   return errs;
 }
 
-export function EmployerForm() {
+export function EmployerForm({ currentRole = "employer" }: { currentRole?: "job_seeker" | "employer" }) {
   const router = useRouter();
   const { setUser } = useUser();
   const [fields, setFields] = useState<Fields>(EMPTY);
@@ -139,7 +139,7 @@ export function EmployerForm() {
 
       <p className="text-center text-[14px] text-gray-500 font-medium">
         Already have an account?{" "}
-        <a href="/auth/login" className="text-[#3a1292] font-bold hover:underline">Log In</a>
+        <a href={`/auth/login${currentRole === "job_seeker" ? "" : "?role=employer"}`} className="text-[#3a1292] font-bold hover:underline">Log In</a>
       </p>
     </form>
   );

@@ -35,7 +35,7 @@ function validate(data: Fields): Partial<Fields> {
   return errs;
 }
 
-export function CandidateForm() {
+export function CandidateForm({ currentRole = "job_seeker" }: { currentRole?: "job_seeker" | "employer" }) {
   const router = useRouter();
   const { setUser } = useUser();
   const [fields, setFields] = useState<Fields>(EMPTY);
@@ -144,7 +144,7 @@ export function CandidateForm() {
 
       <p className="text-center text-[14px] text-gray-500 font-medium mt-1">
         Already have an account?{" "}
-        <a href="/auth/login" className="text-[#3a1292] font-bold hover:underline">Sign In</a>
+        <a href={`/auth/login${currentRole === "employer" ? "?role=employer" : ""}`} className="text-[#3a1292] font-bold hover:underline">Sign In</a>
       </p>
     </form>
   );

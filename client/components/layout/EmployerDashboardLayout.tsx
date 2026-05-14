@@ -3,6 +3,7 @@ import { useRouter } from "next/router";
 import { DashboardThemeProvider, useDashboardTheme } from "../../contexts/DashboardThemeContext";
 import { useUser } from "../../contexts/UserContext";
 import { EmployerJobsProvider } from "../../contexts/EmployerJobsContext";
+import { LogoutConfirmModal } from "../ui/LogoutConfirmModal";
 import { EmployerProfileProvider, useEmployerProfile } from "../../contexts/EmployerProfileContext";
 import { NotificationsBell } from "../../modules/dashboard/NotificationsBell";
 
@@ -25,6 +26,7 @@ function EmployerDashboardLayoutInner({ children }: { children: React.ReactNode 
   void theme;
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const { user, logout } = useUser();
   const router = useRouter();
@@ -193,7 +195,7 @@ function EmployerDashboardLayoutInner({ children }: { children: React.ReactNode 
                   <p style={{ fontSize: "0.7rem", color: "var(--db-text-muted)" }}>{user?.email}</p>
                 </div>
                 <button
-                  onClick={handleLogout}
+                  onClick={() => { setMenuOpen(false); setShowLogoutModal(true); }}
                   style={{
                     display: "flex", alignItems: "center", gap: 8,
                     width: "100%", padding: "10px 14px",
@@ -288,6 +290,13 @@ function EmployerDashboardLayoutInner({ children }: { children: React.ReactNode 
           </div>
         </main>
       </div>
+
+      {showLogoutModal && (
+        <LogoutConfirmModal
+          onConfirm={handleLogout}
+          onClose={() => setShowLogoutModal(false)}
+        />
+      )}
     </div>
   );
 }

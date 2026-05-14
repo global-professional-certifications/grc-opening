@@ -56,7 +56,7 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col font-sans overflow-x-hidden w-full" style={{ background: "var(--db-bg)", color: "var(--db-text)" }}>
+    <div className="min-h-screen flex flex-col overflow-x-hidden w-full" style={{ background: "var(--db-bg)", color: "var(--db-text)", fontFamily: "'Poppins', sans-serif" }}>
       <Head>
         <title>GRC Openings | Governance, Risk Management, and Control Careers</title>
         <meta name="description" content="The premier network for Governance, Risk Management, and Control professionals. Find exclusive cybersecurity, audit, and risk management jobs, or hire certified top-tier GRC talent." />

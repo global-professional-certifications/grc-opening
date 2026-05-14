@@ -3,6 +3,7 @@ import { useRouter } from "next/router";
 import { DashboardThemeProvider, useDashboardTheme } from "../../contexts/DashboardThemeContext";
 import { useUser } from "../../contexts/UserContext";
 import { COUNTRY_CODE_TO_CURRENCY, getCurrencyFromLocation } from "../../lib/currencyMap";
+import { LogoutConfirmModal } from "../ui/LogoutConfirmModal";
 
 // Fonts are now handled globally via Poppins in _document.tsx
 
@@ -23,6 +24,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
   const { user, logout } = useUser();
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   // Tracks whether auth/role check passed. While false, we render a neutral
@@ -90,7 +92,6 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
 
   function handleLogout() {
     logout();
-    // replace() so the dashboard is removed from history — back button won't return to it
     router.replace("/auth/login");
   }
 
@@ -191,7 +192,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
                   <p style={{ fontSize: "0.7rem", color: "var(--db-text-muted)" }}>{user?.email}</p>
                 </div>
                 <button
-                  onClick={handleLogout}
+                  onClick={() => { setMenuOpen(false); setShowLogoutModal(true); }}
                   style={{
                     display: "flex", alignItems: "center", gap: 8,
                     width: "100%", padding: "10px 14px",
@@ -244,6 +245,13 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
           {children}
         </main>
       </div>
+
+      {showLogoutModal && (
+        <LogoutConfirmModal
+          onConfirm={handleLogout}
+          onClose={() => setShowLogoutModal(false)}
+        />
+      )}
     </div>
   );
 }

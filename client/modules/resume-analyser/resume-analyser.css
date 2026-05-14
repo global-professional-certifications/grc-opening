@@ -6,7 +6,7 @@
   display: flex;
   flex-direction: column;
   gap: 24px;
-  font-family: 'Inter', 'Manrope', sans-serif;
+  font-family: 'Poppins', sans-serif;
 }
 
 /* ── Home Page Tool Selector Cards ── */
@@ -43,7 +43,7 @@
 }
 
 .ra-title {
-  font-family: 'Syne', sans-serif;
+  font-family: 'Poppins', sans-serif;
   font-size: 1.5rem;
   font-weight: 700;
   color: var(--db-text);
@@ -396,7 +396,7 @@
 }
 
 .ra-results-name {
-  font-family: 'Syne', sans-serif;
+  font-family: 'Poppins', sans-serif;
   font-size: 1.75rem;
   font-weight: 700;
   color: var(--db-text);
@@ -665,7 +665,7 @@
   color: var(--db-text);
   font-size: 0.875rem;
   font-weight: 600;
-  font-family: 'Inter', 'Manrope', sans-serif;
+  font-family: 'Poppins', sans-serif;
   cursor: pointer;
   transition: all 0.2s ease;
   outline: none;
@@ -772,7 +772,7 @@
 }
 
 .jdl-preview-role {
-  font-family: 'Syne', sans-serif;
+  font-family: 'Poppins', sans-serif;
   font-size: 1.25rem;
   font-weight: 700;
   color: var(--db-text);
@@ -1029,7 +1029,7 @@
     0 1px 3px rgba(0, 0, 0, 0.08),
     0 8px 30px rgba(0, 0, 0, 0.06);
   padding: 48px 44px;
-  font-family: 'Inter', 'Calibri', 'Segoe UI', sans-serif;
+  font-family: 'Poppins', sans-serif;
   color: #333;
   line-height: 1.6;
 }
