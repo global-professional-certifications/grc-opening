@@ -1,11 +1,9 @@
 fastapi
 uvicorn
-python-multipart
-pymupdf
-docx2txt
 langchain
 langchain-openai
-langchain-community
-pydantic
-pydantic-settings
 python-dotenv
+python-multipart
+pydantic
+PyMuPDF
+python-docx
