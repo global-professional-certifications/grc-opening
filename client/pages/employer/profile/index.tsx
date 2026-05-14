@@ -144,7 +144,7 @@ function ProfileHeaderCard({
         <div className="flex flex-wrap items-end justify-between gap-4 -mt-12 mb-4">
           {/* Logo */}
           <div
-            className="relative cursor-pointer group flex-shrink-0"
+            className="cursor-pointer flex-shrink-0"
             onClick={onLogoClick}
             title="Upload company logo"
           >
@@ -163,18 +163,6 @@ function ProfileHeaderCard({
               ) : (
                 initials
               )}
-            </div>
-            {/* Hover overlay */}
-            <div
-              className="absolute inset-0 rounded-2xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-150"
-              style={{ background: "rgba(0,0,0,0.5)" }}
-            >
-              <span
-                className="material-symbols-outlined"
-                style={{ fontSize: 22, color: "#fff" }}
-              >
-                photo_camera
-              </span>
             </div>
             <input
               ref={logoInputRef}
