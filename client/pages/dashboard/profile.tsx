@@ -54,6 +54,8 @@ interface ApiProfilePayload {
     expectedCtc?: string;
     noticePeriod?: string;
     buybackOption?: string;
+    reasonForChange?: string;
+    reasonForChangeOther?: string;
   };
 }
 
@@ -100,6 +102,8 @@ function mapApiToForm(api: ApiProfilePayload): ProfileFormData {
     expectedCtc: p.expectedCtc ?? "",
     noticePeriod: p.noticePeriod ?? "",
     buybackOption: p.buybackOption ?? "",
+    reasonForChange: p.reasonForChange ? (() => { try { return JSON.parse(p.reasonForChange!); } catch { return []; } })() : [],
+    reasonForChangeOther: p.reasonForChangeOther ?? "",
   };
 }
 
@@ -133,6 +137,8 @@ const EMPTY_PROFILE: ProfileFormData = {
   expectedCtc: "",
   noticePeriod: "",
   buybackOption: "",
+  reasonForChange: [],
+  reasonForChangeOther: "",
 };
 
 function SkeletonBlock({ className }: { className: string }) {
@@ -311,6 +317,8 @@ export default function ProfilePage() {
           expectedCtc: formData.expectedCtc,
           noticePeriod: formData.noticePeriod,
           buybackOption: formData.buybackOption,
+          reasonForChange: JSON.stringify(formData.reasonForChange ?? []),
+          reasonForChangeOther: formData.reasonForChangeOther,
         }),
       });
       const saved = mapApiToForm(res);

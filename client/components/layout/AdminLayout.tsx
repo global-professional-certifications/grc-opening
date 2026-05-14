@@ -127,9 +127,6 @@ export function AdminLayout({ children, title = "Admin" }: { children: React.Rea
           {/* Logo */}
           <div className="px-5 pt-6 pb-5 border-b border-white/5">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-[#3a1292] flex items-center justify-center shrink-0">
-                <span className="material-symbols-outlined text-white" style={{ fontSize: 17 }}>shield</span>
-              </div>
               <div>
                 <p className="text-[13px] font-bold text-white leading-none">GRC Openings</p>
                 <span className="mt-1 inline-block text-[9px] font-bold tracking-widest px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30">

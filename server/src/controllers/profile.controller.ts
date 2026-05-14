@@ -38,7 +38,7 @@ export const updateSeekerProfile = async (req: Request, res: Response): Promise<
     const userId = req.user!.id;
     const {
       firstName, lastName, headline, bio, location, linkedInUrl, avatarUrl, country, phone,
-      openToShareCriticalInfo, ctcCurrency, currentCtc, expectedCtc, noticePeriod, buybackOption,
+      openToShareCriticalInfo, ctcCurrency, currentCtc, expectedCtc, noticePeriod, buybackOption, reasonForChange, reasonForChangeOther,
       skills, workExperiences, educations, certifications
     } = req.body;
 
@@ -67,6 +67,8 @@ export const updateSeekerProfile = async (req: Request, res: Response): Promise<
           ...(expectedCtc !== undefined && { expectedCtc }),
           ...(noticePeriod !== undefined && { noticePeriod }),
           ...(buybackOption !== undefined && { buybackOption }),
+          ...(reasonForChange !== undefined && { reasonForChange }),
+          ...(reasonForChangeOther !== undefined && { reasonForChangeOther }),
         } as any,
       });
 
@@ -172,6 +174,22 @@ export const updateSeekerProfile = async (req: Request, res: Response): Promise<
     res.status(200).json({ message: 'Profile updated successfully', profile: updatedProfile });
   } catch (error) {
     console.error('Error updating seeker profile:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+// ==========================================
+// ACCOUNT DELETION
+// ==========================================
+
+export const deleteAccount = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = req.user!.id;
+    // onDelete: Cascade on all relations means this removes everything tied to the user
+    await prisma.user.delete({ where: { id: userId } });
+    res.status(200).json({ message: 'Account deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting account:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 };

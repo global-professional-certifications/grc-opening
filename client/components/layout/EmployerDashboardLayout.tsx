@@ -3,6 +3,7 @@ import { useRouter } from "next/router";
 import { DashboardThemeProvider, useDashboardTheme } from "../../contexts/DashboardThemeContext";
 import { useUser } from "../../contexts/UserContext";
 import { EmployerJobsProvider } from "../../contexts/EmployerJobsContext";
+import { LogoutConfirmModal } from "../ui/LogoutConfirmModal";
 import { EmployerProfileProvider, useEmployerProfile } from "../../contexts/EmployerProfileContext";
 import { NotificationsBell } from "../../modules/dashboard/NotificationsBell";
 
@@ -25,6 +26,7 @@ function EmployerDashboardLayoutInner({ children }: { children: React.ReactNode 
   void theme;
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const { user, logout } = useUser();
   const router = useRouter();
@@ -107,14 +109,6 @@ function EmployerDashboardLayoutInner({ children }: { children: React.ReactNode 
         >
           {/* Logo */}
           <div className="p-6 flex items-center gap-3 shrink-0">
-            <div
-              className="w-8 h-8 rounded flex items-center justify-center shrink-0"
-              style={{ background: "var(--db-primary)" }}
-            >
-              <span className="material-symbols-outlined" style={{ fontSize: 18, color: "var(--db-primary-text)" }}>
-                shield_person
-              </span>
-            </div>
             <div>
               <h1
                 className="text-base tracking-tight uppercase font-semibold leading-tight"
@@ -193,7 +187,7 @@ function EmployerDashboardLayoutInner({ children }: { children: React.ReactNode 
                   <p style={{ fontSize: "0.7rem", color: "var(--db-text-muted)" }}>{user?.email}</p>
                 </div>
                 <button
-                  onClick={handleLogout}
+                  onClick={() => { setMenuOpen(false); setShowLogoutModal(true); }}
                   style={{
                     display: "flex", alignItems: "center", gap: 8,
                     width: "100%", padding: "10px 14px",
@@ -288,6 +282,13 @@ function EmployerDashboardLayoutInner({ children }: { children: React.ReactNode 
           </div>
         </main>
       </div>
+
+      {showLogoutModal && (
+        <LogoutConfirmModal
+          onConfirm={handleLogout}
+          onClose={() => setShowLogoutModal(false)}
+        />
+      )}
     </div>
   );
 }

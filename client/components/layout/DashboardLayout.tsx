@@ -3,6 +3,7 @@ import { useRouter } from "next/router";
 import { DashboardThemeProvider, useDashboardTheme } from "../../contexts/DashboardThemeContext";
 import { useUser } from "../../contexts/UserContext";
 import { COUNTRY_CODE_TO_CURRENCY, getCurrencyFromLocation } from "../../lib/currencyMap";
+import { LogoutConfirmModal } from "../ui/LogoutConfirmModal";
 
 // Fonts are now handled globally via Poppins in _document.tsx
 
@@ -23,6 +24,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
   const { user, logout } = useUser();
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   // Tracks whether auth/role check passed. While false, we render a neutral
@@ -90,7 +92,6 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
 
   function handleLogout() {
     logout();
-    // replace() so the dashboard is removed from history — back button won't return to it
     router.replace("/auth/login");
   }
 
@@ -118,12 +119,6 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
         >
           {/* Logo */}
           <div className="p-6 flex items-center gap-3">
-            <div className="w-8 h-8 rounded flex items-center justify-center flex-shrink-0"
-              style={{ background: "var(--db-primary)" }}>
-              <span className="material-symbols-outlined" style={{ fontSize: 18, color: "var(--db-primary-text)" }}>
-                shield_person
-              </span>
-            </div>
             <h1 className="text-lg tracking-tight uppercase font-bold" style={{ color: "var(--db-sidebar-logo-text)" }}>
               GRC <span style={{ color: "var(--db-primary)" }}>Openings</span>
             </h1>
@@ -191,7 +186,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
                   <p style={{ fontSize: "0.7rem", color: "var(--db-text-muted)" }}>{user?.email}</p>
                 </div>
                 <button
-                  onClick={handleLogout}
+                  onClick={() => { setMenuOpen(false); setShowLogoutModal(true); }}
                   style={{
                     display: "flex", alignItems: "center", gap: 8,
                     width: "100%", padding: "10px 14px",
@@ -244,6 +239,13 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
           {children}
         </main>
       </div>
+
+      {showLogoutModal && (
+        <LogoutConfirmModal
+          onConfirm={handleLogout}
+          onClose={() => setShowLogoutModal(false)}
+        />
+      )}
     </div>
   );
 }

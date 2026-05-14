@@ -56,7 +56,7 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col font-sans overflow-x-hidden w-full" style={{ background: "var(--db-bg)", color: "var(--db-text)" }}>
+    <div className="min-h-screen flex flex-col overflow-x-hidden w-full" style={{ background: "var(--db-bg)", color: "var(--db-text)", fontFamily: "'Poppins', sans-serif" }}>
       <Head>
         <title>GRC Openings | Governance, Risk Management, and Control Careers</title>
         <meta name="description" content="The premier network for Governance, Risk Management, and Control professionals. Find exclusive cybersecurity, audit, and risk management jobs, or hire certified top-tier GRC talent." />
@@ -75,9 +75,6 @@ export default function LandingPage() {
         <div className="max-w-[1440px] mx-auto w-full px-6 lg:px-12 py-3.5 lg:py-4 flex items-center justify-between">
           {/* Brand */}
           <Link href="/" className="flex items-center gap-2.5 shrink-0 group">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#3a1292] to-[#7c3aed] flex items-center justify-center shadow-lg shadow-[#3a12921a] group-hover:scale-105 transition-transform duration-300">
-              <span className="material-symbols-outlined text-xl text-white">shield_locked</span>
-            </div>
             <span className="text-xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600">
               GRC Openings
             </span>
@@ -661,7 +658,6 @@ export default function LandingPage() {
             {/* Brand */}
             <div className="space-y-4">
               <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-2xl" style={{ color: "var(--db-primary)" }}>shield_locked</span>
                 <span className="text-lg font-black tracking-tight" style={{ color: "var(--db-text)" }}>GRC Openings</span>
               </div>
               <p className="text-sm font-medium leading-relaxed max-w-xs" style={{ color: "var(--db-text-muted)" }}>The premier network for Governance, Risk Management, and Control professionals. Precision matching for the security sector.</p>

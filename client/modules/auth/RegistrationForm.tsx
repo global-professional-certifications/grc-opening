@@ -49,7 +49,7 @@ export function RegistrationForm({ onRoleChange, initialRole = "job_seeker" }: {
 
       {/* Forms Section */}
       <div className="animate-in slide-in-from-bottom-3 duration-500">
-        {role === "job_seeker" ? <CandidateForm /> : <EmployerForm />}
+        {role === "job_seeker" ? <CandidateForm currentRole={role} /> : <EmployerForm currentRole={role} />}
       </div>
     </div>
   );

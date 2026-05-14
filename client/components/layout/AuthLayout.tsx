@@ -8,9 +8,6 @@ interface AuthLayoutProps {
 function Logo() {
   return (
     <div className="flex items-center gap-2 mb-6">
-      <div className="w-9 h-9 rounded-xl bg-[#3a1292] flex items-center justify-center shadow-lg shadow-[#3a1292]/20">
-        <span className="material-symbols-outlined text-white text-[20px]">shield</span>
-      </div>
       <span className="font-extrabold text-[16px] tracking-tight text-[#3a1292]" style={{ fontFamily: "'Poppins', sans-serif" }}>
         GRC OPENINGS
       </span>

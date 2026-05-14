@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { ModernInput } from "../../components/ui/ModernInput";
 import { apiFetch } from "../../lib/api";
@@ -21,19 +21,23 @@ interface EmployerProfileResponse {
 }
 
 interface LoginFormProps {
+  initialRole?: "job_seeker" | "employer";
   onRoleChange?: (role: "job_seeker" | "employer") => void;
 }
 
-export function LoginForm({ onRoleChange }: LoginFormProps) {
+export function LoginForm({ initialRole = "job_seeker", onRoleChange }: LoginFormProps) {
   const router = useRouter();
   const { setUser } = useUser();
 
-  const [activeRole, setActiveRole] = useState<"job_seeker" | "employer">("job_seeker");
+  const [activeRole, setActiveRole] = useState<"job_seeker" | "employer">(initialRole);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // Keep local state in sync when the parent updates from URL query
+  useEffect(() => { setActiveRole(initialRole); }, [initialRole]);
 
   function handleRoleSwitch(role: "job_seeker" | "employer") {
     setActiveRole(role);
@@ -244,7 +248,10 @@ export function LoginForm({ onRoleChange }: LoginFormProps) {
 
         <p className="text-center text-[14px] text-gray-500 font-medium mt-2">
           New to the platform?{" "}
-          <a href="/auth/register" className="text-[#3a1292] font-bold hover:underline">
+          <a
+            href={`/auth/register${activeRole === "employer" ? "?role=employer" : ""}`}
+            className="text-[#3a1292] font-bold hover:underline"
+          >
             Create account
           </a>
         </p>

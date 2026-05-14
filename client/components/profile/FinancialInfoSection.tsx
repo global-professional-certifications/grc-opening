@@ -1,5 +1,13 @@
-import React, { useRef, useEffect, useState } from "react";
+import { useRef, useEffect, useState } from "react";
 import type { ProfileFormData } from "./types";
+
+const REASON_OPTIONS = [
+  "Career growth",
+  "Better Exposure",
+  "Better Compensation and Benefits",
+  "Leadership Opportunities",
+  "Others",
+] as const;
 
 interface FinancialInfoSectionProps {
   data: ProfileFormData;
@@ -13,13 +21,22 @@ export function FinancialInfoSection({ data, onChange }: FinancialInfoSectionPro
   useEffect(() => {
     if (data.openToShareCriticalInfo && contentRef.current) {
       setHeight(contentRef.current.scrollHeight);
-      // Optional: After animation, set height to auto in case content changes
       const timeout = setTimeout(() => setHeight(undefined), 300);
       return () => clearTimeout(timeout);
     } else {
       setHeight(0);
     }
   }, [data.openToShareCriticalInfo]);
+
+  function toggleReason(reason: string) {
+    const current = data.reasonForChange ?? [];
+    const next = current.includes(reason)
+      ? current.filter((r) => r !== reason)
+      : [...current, reason];
+    onChange({ reasonForChange: next });
+  }
+
+  const showOthersInput = (data.reasonForChange ?? []).includes("Others");
 
   return (
     <section className="db-card rounded-2xl p-6 lg:p-8 space-y-6" style={{ background: "var(--db-card)", border: "1px solid var(--db-border)" }}>
@@ -51,9 +68,9 @@ export function FinancialInfoSection({ data, onChange }: FinancialInfoSectionPro
         className="overflow-hidden transition-all duration-300 ease-in-out"
         style={{ height }}
       >
-        <div ref={contentRef} className="pt-2">
+        <div ref={contentRef} className="pt-2 space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-5 rounded-xl border" style={{ background: "var(--db-bg)", borderColor: "var(--db-border)" }}>
-            
+
             <div className="space-y-1.5">
               <label className="block text-xs font-bold uppercase tracking-widest" style={{ color: "var(--db-text-muted)" }}>
                 Current CTC
@@ -153,6 +170,62 @@ export function FinancialInfoSection({ data, onChange }: FinancialInfoSectionPro
               </select>
             </div>
 
+          </div>
+
+          {/* Reason for Change */}
+          <div className="p-5 rounded-xl border space-y-3" style={{ background: "var(--db-bg)", borderColor: "var(--db-border)" }}>
+            <label className="block text-xs font-bold uppercase tracking-widest" style={{ color: "var(--db-text-muted)" }}>
+              Reason for Change
+            </label>
+            <p className="text-xs" style={{ color: "var(--db-text-muted)" }}>
+              Select all that apply
+            </p>
+            <div className="flex flex-wrap gap-3">
+              {REASON_OPTIONS.map((option) => {
+                const selected = (data.reasonForChange ?? []).includes(option);
+                return (
+                  <label key={option} className="flex items-center gap-2 cursor-pointer group">
+                    <div className="relative flex items-center justify-center shrink-0">
+                      <input
+                        type="checkbox"
+                        className="peer appearance-none w-4 h-4 rounded border border-[var(--db-border)] bg-[var(--db-surface)] checked:bg-[var(--db-primary)] checked:border-[var(--db-primary)] transition-all cursor-pointer"
+                        checked={selected}
+                        onChange={() => toggleReason(option)}
+                      />
+                      <span
+                        className="material-symbols-outlined absolute pointer-events-none opacity-0 peer-checked:opacity-100 text-white"
+                        style={{ fontSize: 12 }}
+                      >
+                        check
+                      </span>
+                    </div>
+                    <span
+                      className="text-sm font-medium select-none transition-colors"
+                      style={{ color: selected ? "var(--db-primary)" : "var(--db-text)" }}
+                    >
+                      {option}
+                    </span>
+                  </label>
+                );
+              })}
+            </div>
+
+            {showOthersInput && (
+              <div className="mt-2">
+                <input
+                  type="text"
+                  className="w-full h-10 px-3 rounded-lg text-sm font-medium outline-none transition-all focus:ring-2 focus:ring-[var(--db-primary-20)]"
+                  style={{
+                    background: "var(--db-surface)",
+                    border: "1px solid var(--db-border)",
+                    color: "var(--db-text)",
+                  }}
+                  placeholder="Please specify your reason…"
+                  value={data.reasonForChangeOther || ""}
+                  onChange={(e) => onChange({ reasonForChangeOther: e.target.value })}
+                />
+              </div>
+            )}
           </div>
         </div>
       </div>
