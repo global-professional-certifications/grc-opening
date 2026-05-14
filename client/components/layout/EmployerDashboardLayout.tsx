@@ -109,19 +109,14 @@ function EmployerDashboardLayoutInner({ children }: { children: React.ReactNode 
         >
           {/* Logo */}
           <div className="p-6 flex items-center gap-3 shrink-0">
-            <div>
-              <h1
-                className="text-base tracking-tight uppercase font-semibold leading-tight"
-                style={{ ...POPPINS, color: "var(--db-sidebar-logo-text)" }}
-              >
-                GRC <span style={{ color: "var(--db-primary)" }}>Openings</span>
+            <div className="flex flex-col">
+              <h1 className="text-lg font-black tracking-tight leading-none whitespace-nowrap">
+                <span className="text-[#3a1292]">GRC</span>
+                <span className="text-gray-900 ml-1">Openings</span>
               </h1>
-              <p
-                className="text-[9px] uppercase tracking-widest leading-none mt-0.5"
-                style={{ ...MONO, color: "var(--db-text-muted)" }}
-              >
-                Employer Portal
-              </p>
+              <span className="text-[9px] font-medium text-gray-400 mt-1 uppercase tracking-wider leading-none whitespace-nowrap">
+                By Global Professional Certifications
+              </span>
             </div>
           </div>
 
@@ -271,12 +266,18 @@ function EmployerDashboardLayoutInner({ children }: { children: React.ReactNode 
             minWidth: 0,
           }}
         >
-          {/* Top bar with notification bell — hidden on the notifications page itself */}
-          {router.pathname !== '/employer/notifications' && (
-            <div className="sticky top-0 z-20 flex items-center justify-end px-6 lg:px-8 py-4 lg:py-5" style={{ background: "var(--db-bg)", borderBottom: "1px solid var(--db-border)" }}>
-              <NotificationsBell />
+          {/* Top bar with notification bell */}
+          <div className="sticky top-0 z-20 flex items-center justify-between px-6 lg:px-8 py-4 lg:py-5" style={{ background: "var(--db-bg)", borderBottom: "1px solid var(--db-border)" }}>
+            <div className="flex items-center gap-3">
+              <span 
+                className="text-[10px] font-black uppercase tracking-[0.2em] px-2.5 py-1 rounded-md bg-white border border-gray-200 shadow-sm"
+                style={{ ...MONO, color: "var(--db-text-muted)" }}
+              >
+                Employer Portal
+              </span>
             </div>
-          )}
+            {router.pathname !== '/employer/notifications' && <NotificationsBell />}
+          </div>
           <div className="p-6 lg:p-8 space-y-6 lg:space-y-8 pt-4 lg:pt-4">
             {children}
           </div>

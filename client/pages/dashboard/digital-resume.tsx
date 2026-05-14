@@ -23,6 +23,8 @@ interface ApiProfilePayload {
     expectedCtc: string | null;
     noticePeriod: string | null;
     buybackOption: string | null;
+    reasonForChange?: string;
+    reasonForChangeOther?: string;
     skills: { id: string; name: string }[];
     workExperiences: {
       id: string;
@@ -92,6 +94,8 @@ function mapApiToForm(api: ApiProfilePayload): ProfileFormData {
     expectedCtc: p.expectedCtc ?? "",
     noticePeriod: p.noticePeriod ?? "",
     buybackOption: p.buybackOption ?? "",
+    reasonForChange: p.reasonForChange ? (() => { try { return JSON.parse(p.reasonForChange!); } catch { return []; } })() : [],
+    reasonForChangeOther: p.reasonForChangeOther ?? "",
   };
 }
 
@@ -121,6 +125,8 @@ const EMPTY: ProfileFormData = {
   expectedCtc: "",
   noticePeriod: "",
   buybackOption: "",
+  reasonForChange: [],
+  reasonForChangeOther: "",
 };
 
 export default function DigitalResumePage() {

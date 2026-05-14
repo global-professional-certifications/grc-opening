@@ -8,26 +8,26 @@ import { ResumeJDLibrary } from "../modules/resume-analyser/ResumeJDLibrary";
 type HomeTool = "checker" | "enhancer" | "jdlibrary";
 
 const GRC_CATEGORIES = [
-  { icon: "gpp_good",        label: "Compliance & Audit"  },
-  { icon: "security",        label: "Cybersecurity"        },
-  { icon: "policy",          label: "Risk Management"      },
-  { icon: "manage_accounts", label: "Identity & Access"    },
-  { icon: "privacy_tip",     label: "Data Privacy"         },
-  { icon: "verified_user",   label: "IT Governance"        },
-  { icon: "hub",             label: "Third-Party Risk"     },
+  { icon: "gpp_good", label: "Compliance & Audit" },
+  { icon: "security", label: "Cybersecurity" },
+  { icon: "policy", label: "Risk Management" },
+  { icon: "manage_accounts", label: "Identity & Access" },
+  { icon: "privacy_tip", label: "Data Privacy" },
+  { icon: "verified_user", label: "IT Governance" },
+  { icon: "hub", label: "Third-Party Risk" },
 ];
 
 const POPULAR_SEARCHES = ["Risk Analyst", "Compliance Manager", "GRC Consultant", "Internal Auditor", "Governance Specialist", "SOC Analyst"];
 
 const EXPERIENCE_OPTIONS = ["Any Level", "Entry Level (0–2 yrs)", "Mid Level (3–5 yrs)", "Senior (6–9 yrs)", "Lead / Manager (10+ yrs)"];
-const FUNCTION_OPTIONS   = ["All Functions", "Compliance & Audit", "Cybersecurity", "Risk Management", "Identity & Access", "Data Privacy", "IT Governance"];
+const FUNCTION_OPTIONS = ["All Functions", "Compliance & Audit", "Cybersecurity", "Risk Management", "Identity & Access", "Data Privacy", "IT Governance"];
 
 export default function LandingPage() {
-  const [activeTool, setActiveTool]         = useState<HomeTool>("checker");
-  const [heroSearch, setHeroSearch]         = useState("");
-  const [heroLocation, setHeroLocation]     = useState("");
+  const [activeTool, setActiveTool] = useState<HomeTool>("checker");
+  const [heroSearch, setHeroSearch] = useState("");
+  const [heroLocation, setHeroLocation] = useState("");
   const [heroExperience, setHeroExperience] = useState("");
-  const [heroFunction, setHeroFunction]     = useState("");
+  const [heroFunction, setHeroFunction] = useState("");
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -48,26 +48,26 @@ export default function LandingPage() {
   const handleHeroSearch = (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     const params = new URLSearchParams();
-    if (heroSearch.trim())     params.set("q",          heroSearch.trim());
-    if (heroLocation.trim())   params.set("location",   heroLocation.trim());
-    if (heroExperience)        params.set("experience", heroExperience);
-    if (heroFunction)          params.set("function",   heroFunction);
+    if (heroSearch.trim()) params.set("q", heroSearch.trim());
+    if (heroLocation.trim()) params.set("location", heroLocation.trim());
+    if (heroExperience) params.set("experience", heroExperience);
+    if (heroFunction) params.set("function", heroFunction);
     window.location.href = `/auth/register${params.toString() ? "?" + params : ""}`;
   };
 
   return (
     <div className="min-h-screen flex flex-col overflow-x-hidden w-full" style={{ background: "var(--db-bg)", color: "var(--db-text)", fontFamily: "'Poppins', sans-serif" }}>
       <Head>
-        <title>GRC Openings | Governance, Risk Management, and Control Careers</title>
+        <title>GRC Openings</title>
         <meta name="description" content="The premier network for Governance, Risk Management, and Control professionals. Find exclusive cybersecurity, audit, and risk management jobs, or hire certified top-tier GRC talent." />
         <meta name="keywords" content="GRC, Governance, Risk Management, and Control, Cybersecurity Jobs, Audit Careers, Privacy Hiring, CISA, CISSP" />
       </Head>
 
       {/* ── Navigation ──────────────────────────────────────────────────────── */}
       {/* ── Navigation ──────────────────────────────────────────────────────── */}
-      <header className="fixed top-0 w-full z-50 transition-all duration-300 border-b border-white/10" 
-        style={{ 
-          background: "rgba(255,255,255,0.8)", 
+      <header className="fixed top-0 w-full z-50 transition-all duration-300 border-b border-white/10"
+        style={{
+          background: "rgba(255,255,255,0.8)",
           backdropFilter: "blur(16px) saturate(180%)",
           WebkitBackdropFilter: "blur(16px) saturate(180%)",
           boxShadow: "0 4px 30px rgba(0, 0, 0, 0.03)"
@@ -75,19 +75,22 @@ export default function LandingPage() {
         <div className="max-w-[1440px] mx-auto w-full px-6 lg:px-12 py-3.5 lg:py-4 flex items-center justify-between">
           {/* Brand */}
           <Link href="/" className="flex items-center gap-2.5 shrink-0 group">
-            <span className="text-xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600">
-              GRC Openings
-            </span>
+            <div className="flex flex-col">
+              <h1 className="text-xl font-black tracking-tight leading-none whitespace-nowrap">
+                <span className="text-[#3a1292]">GRC</span>
+                <span className="text-gray-900 ml-1.5">Openings</span>
+              </h1>
+                          </div>
           </Link>
 
           {/* Centre links */}
           <nav className="hidden lg:flex items-center gap-1.5">
             {[
-              { label: "Find Jobs",         href: "/auth/register"                },
-              { label: "For Employers",     href: "/auth/register?role=employer"  },
-              { label: "Resume Tools",      href: "#ai-resume-tools"              },
-              { label: "Career Resources",  href: "/auth/register"                },
-              { label: "Pricing",           href: "/auth/register"                },
+              { label: "Find Jobs", href: "/auth/register" },
+              { label: "For Employers", href: "/auth/register?role=employer" },
+              { label: "Resume Tools", href: "#ai-resume-tools" },
+              { label: "Career Resources", href: "/auth/register" },
+              { label: "Pricing", href: "/auth/register" },
             ].map(({ label, href }) => (
               <Link
                 key={label}
@@ -120,80 +123,66 @@ export default function LandingPage() {
       <main className="flex-1 flex flex-col pt-[60px]">
 
         {/* ── Hero ────────────────────────────────────────────────────────────── */}
-        <section className="relative pt-36 pb-28 lg:pt-[190px] lg:pb-36 flex flex-col items-center justify-center overflow-hidden" style={{ background: "var(--db-primary)" }}>
-          {/* Ambient glows */}
-          <div className="absolute top-0 right-0 w-[700px] h-[700px] bg-white/10 rounded-full blur-[100px] pointer-events-none transform translate-x-1/3 -translate-y-1/3" />
-          <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-[#2a0e69] rounded-full blur-[80px] pointer-events-none transform -translate-x-1/3 translate-y-1/3" />
+        <section className="relative pt-16 pb-32 lg:pt-36 lg:pb-48 flex flex-col items-center justify-center overflow-hidden" style={{ background: "#3A1292" }}>
+          {/* Ambient glows & patterns
+          <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: `radial-gradient(circle at 2px 2px, rgba(255,255,255,1) 1px, transparent 0)`, backgroundSize: "48px 48px" }} />
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-blue-500/10 rounded-full blur-[120px] pointer-events-none" />
+          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-[#000B21] rounded-full blur-[100px] pointer-events-none opacity-60" /> */}
 
-          {/* Fade-to-edge hero image */}
-          <div
-            className="hidden lg:block absolute top-0 right-0 w-[55%] h-full z-0 pointer-events-none select-none"
-            style={{
-              maskImage: "linear-gradient(to right, transparent 0%, black 18%, black 85%, transparent 100%)",
-              WebkitMaskImage: "linear-gradient(to right, transparent 0%, black 18%, black 85%, transparent 100%)"
-            }}
-          >
-            <img
-              src="/images/grc-hero.webp"
-              alt="GRC professionals — woman and man in business formal attire"
-              className="w-full h-full object-cover"
-              style={{ objectPosition: "50% 20%", filter: "brightness(1.0) contrast(1.05)" }}
-            />
-          </div>
-
-          <div className="relative z-10 max-w-[1400px] mx-auto w-full px-6">
-            <div className="w-full lg:w-[52%] space-y-7 text-white lg:pr-14">
+          <div className="relative z-10 mx-auto w-full px-6 flex flex-col items-center text-center">
+            <div className="w-full max-w-4xl space-y-8 text-white flex flex-col items-center">
               {/* Badge */}
               <span
-                className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-widest reveal-scroll opacity-0 translate-y-8 transition-all duration-1000"
-                style={{ background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)" }}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-[13px] font-bold uppercase tracking-[0.2em] reveal-scroll opacity-0 translate-y-8 transition-all duration-1000"
+                style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)", backdropFilter: "blur(8px)" }}
               >
-                <span className="material-symbols-outlined" style={{ fontSize: 13 }}>stars</span>
-                Exclusive Professional Network
+                <span className="material-symbols-outlined text-[#60a5fa]" style={{ fontSize: 14 }}>verified</span>
+                By Global Professional Certifications
               </span>
 
               {/* Headline */}
-              <h1 className="text-5xl lg:text-[3.75rem] font-black tracking-tight leading-[1.08] drop-shadow-lg reveal-scroll opacity-0 translate-y-8 transition-all duration-1000 delay-100">
+              <h1 className="text-6xl font-black tracking-tight leading-[1.05] drop-shadow-2xl reveal-scroll opacity-0 translate-y-8 transition-all duration-1000 delay-100">
                 The Future of{" "}
-                <span className="text-transparent bg-clip-text" style={{ backgroundImage: "linear-gradient(to right, #60a5fa, #ffffff)" }}>GRC</span>
-                {" "}Careers
+                <span className="text-transparent bg-clip-text" style={{ backgroundImage: "linear-gradient(to right, #f77913ff, #ffffff, #f77913ff)" }}>GRC Careers</span>
               </h1>
 
               {/* Subheading */}
-              <p className="text-lg font-medium leading-relaxed text-white/85 reveal-scroll opacity-0 translate-y-8 transition-all duration-1000 delay-200 max-w-lg">
-                Connect with top organizations. Get discovered for verified roles. Build a career in Governance, Risk Management, and Control.
+              <p className="text-lg font-medium leading-relaxed text-white/80 reveal-scroll opacity-0 translate-y-8 transition-all duration-1000 delay-200 max-w-2xl mx-auto">
+                Connect with world-class organizations. Get discovered for high-impact roles. Build your legacy in Governance, Risk Management, and Control.
               </p>
 
               {/* CTA buttons */}
-              <div className="flex flex-col sm:flex-row items-start gap-3 pt-1 reveal-scroll opacity-0 translate-y-8 transition-all duration-1000 delay-300">
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4 reveal-scroll opacity-0 translate-y-8 transition-all duration-1000 delay-300">
                 <Link
                   href="/auth/register"
-                  className="group flex items-center gap-2 px-8 py-4 rounded-xl text-base font-bold transition-all duration-300 hover:shadow-[0_8px_40px_rgba(255,255,255,0.4)] hover:-translate-y-[2px]"
-                  style={{ background: "#fff", color: "var(--db-primary)", boxShadow: "0 8px 24px rgba(0,0,0,0.15)" }}
+                  className="group flex items-center gap-2 px-10 py-4.5 rounded-xl text-base font-bold transition-all duration-300 hover:shadow-[0_0_40px_rgba(255,255,255,0.3)] hover:-translate-y-[2px]"
+                  style={{ background: "#fff", color: "var(--db-primary)", boxShadow: "0 12px 30px rgba(0,0,0,0.2)" }}
                 >
                   Get Started
                   <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform duration-300" style={{ fontSize: 18 }}>arrow_forward</span>
                 </Link>
                 <Link
                   href="/auth/login"
-                  className="flex items-center justify-center px-8 py-4 rounded-xl text-base font-bold transition-all duration-300 hover:bg-white/10 hover:-translate-y-[2px]"
-                  style={{ background: "rgba(255,255,255,0.06)", border: "2px solid rgba(255,255,255,0.22)", color: "#fff", backdropFilter: "blur(10px)" }}
+                  className="flex items-center justify-center px-10 py-4.5 rounded-xl text-base font-bold transition-all duration-300 hover:bg-white/10 hover:-translate-y-[2px]"
+                  style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.2)", color: "#fff", backdropFilter: "blur(10px)" }}
                 >
-                  Login
+                  Employer Login
                 </Link>
               </div>
 
               {/* Stats strip */}
-              <div className="flex flex-wrap items-center gap-6 pt-4 reveal-scroll opacity-0 translate-y-8 transition-all duration-1000 delay-400">
+              <div className="flex flex-wrap items-center justify-center gap-8 lg:gap-12 pt-8 reveal-scroll opacity-0 translate-y-8 transition-all duration-1000 delay-400">
                 {[
-                  { icon: "group",           value: "10K+",  label: "Professionals"       },
-                  { icon: "corporate_fare",  value: "500+",  label: "Enterprise Partners"  },
-                  { icon: "verified",        value: "98%",   label: "Verified Roles"        },
+                  { icon: "group", value: "10K+", label: "Professionals" },
+                  { icon: "corporate_fare", value: "500+", label: "Enterprise Partners" },
+                  { icon: "verified", value: "98%", label: "Verified Roles" },
                 ].map(({ icon, value, label }) => (
-                  <div key={label} className="flex items-center gap-2">
-                    <span className="material-symbols-outlined" style={{ fontSize: 20, color: "rgba(255,255,255,0.55)" }} aria-hidden="true">{icon}</span>
-                    <span className="text-xl font-black text-white">{value}</span>
-                    <span className="text-xs font-semibold text-white/55">{label}</span>
+                  <div key={label} className="flex flex-col items-center gap-1">
+                    <div className="flex items-center gap-2">
+                      <span className="material-symbols-outlined" style={{ fontSize: 22, color: "#60a5fa" }} aria-hidden="true">{icon}</span>
+                      <span className="text-2xl font-black text-white">{value}</span>
+                    </div>
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-white/50">{label}</span>
                   </div>
                 ))}
               </div>
@@ -202,7 +191,7 @@ export default function LandingPage() {
 
           {/* Shape divider */}
           <div className="absolute bottom-[-1px] left-0 w-full overflow-hidden leading-[0] z-10">
-            <svg className="relative block w-full h-[70px] md:h-[130px]" viewBox="0 0 1200 120" preserveAspectRatio="none">
+            <svg className="relative block w-full h-[60px] md:h-[100px]" viewBox="0 0 1200 120" preserveAspectRatio="none">
               <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V120H0V95.8C59.71,118,137.93,114,204,103.55c58.26-9.15,114.47-28.78,172.39-40.49Z" fill="var(--db-surface)" />
             </svg>
           </div>
@@ -353,9 +342,9 @@ export default function LandingPage() {
             {/* Tool selector cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-10">
               {([
-                { id: "checker"   as HomeTool, icon: "fact_check",    title: "Basic Resume Checker",       description: "Instant quality scan — catch typos, broken links, and formatting issues in seconds." },
-                { id: "enhancer"  as HomeTool, icon: "auto_awesome",  title: "Enhance with Job Description", description: "Paste a JD and our AI rewrites your resume for maximum ATS impact and keyword coverage." },
-                { id: "jdlibrary" as HomeTool, icon: "library_books", title: "Access our JD Library",       description: "Pick a GRC role from our curated library — AI auto-fills the JD and optimizes your resume." },
+                { id: "checker" as HomeTool, icon: "fact_check", title: "Basic Resume Checker", description: "Instant quality scan — catch typos, broken links, and formatting issues in seconds." },
+                { id: "enhancer" as HomeTool, icon: "auto_awesome", title: "Enhance with Job Description", description: "Paste a JD and our AI rewrites your resume for maximum ATS impact and keyword coverage." },
+                { id: "jdlibrary" as HomeTool, icon: "library_books", title: "Access our JD Library", description: "Pick a GRC role from our curated library — AI auto-fills the JD and optimizes your resume." },
               ]).map((card) => {
                 const isActive = activeTool === card.id;
                 return (
@@ -501,9 +490,9 @@ export default function LandingPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
               <div className="hidden md:block absolute top-10 left-[calc(16.67%+1rem)] right-[calc(16.67%+1rem)] h-[2px] z-0" style={{ background: "linear-gradient(90deg, var(--db-primary-20), var(--db-primary), var(--db-primary-20))" }} />
               {[
-                { step: "01", icon: "person_add",    title: "Create Your Profile",    desc: "Sign up in minutes and build your GRC-focused profile showcasing certifications, experience, and skills."    },
+                { step: "01", icon: "person_add", title: "Create Your Profile", desc: "Sign up in minutes and build your GRC-focused profile showcasing certifications, experience, and skills." },
                 { step: "02", icon: "travel_explore", title: "Discover Matched Roles", desc: "Our engine surfaces roles matched to your exact certifications, experience level, and preferred work mode." },
-                { step: "03", icon: "task_alt",       title: "Apply & Get Hired",      desc: "Apply with one click, track your applications, and connect directly with verified hiring teams."             },
+                { step: "03", icon: "task_alt", title: "Apply & Get Hired", desc: "Apply with one click, track your applications, and connect directly with verified hiring teams." },
               ].map(({ step, icon, title, desc }) => (
                 <div key={step} className="relative z-10 flex flex-col items-center text-center gap-4">
                   <div className="w-20 h-20 rounded-full flex items-center justify-center shadow-lg shrink-0" style={{ background: "var(--db-primary)", boxShadow: "0 8px 24px rgba(58,18,146,0.3)" }}>
@@ -530,7 +519,7 @@ export default function LandingPage() {
           <div className="absolute top-0 w-full h-[1px]" style={{ background: "var(--db-border)" }} />
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-16 space-y-4">
-              <h2 className="text-3xl lg:text-4xl font-bold tracking-tight" style={{ color: "var(--db-text)" }}>Built exclusively for the Security Sector</h2>
+              <h2 className="text-3xl lg:text-4xl font-bold tracking-tight" style={{ color: "var(--db-text)" }}>Built exclusively for the <span className="text-[#3a1292]">GRC Professionals</span></h2>
               <p className="text-base font-medium max-w-2xl mx-auto" style={{ color: "var(--db-text-muted)" }}>Industry-grade infrastructure crafted to parse credentials, analyze core competencies, and securely negotiate opportunities.</p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch pb-10">
@@ -567,7 +556,7 @@ export default function LandingPage() {
               <div className="absolute -right-20 -top-20 w-80 h-80 rounded-full opacity-20 pointer-events-none" style={{ background: "radial-gradient(circle, #fff 0%, transparent 70%)" }} />
               <div className="relative z-10 text-center md:text-left">
                 <h2 className="text-2xl md:text-3xl font-black text-white leading-tight">Hiring GRC talent?<br className="hidden md:block" /> We've got you covered.</h2>
-                <p className="mt-3 text-white/75 font-medium text-base max-w-md">Post verified roles, reach pre-screened professionals, and close positions faster — built exclusively for security teams.</p>
+                <p className="mt-3 text-white/75 font-medium text-base max-w-md">Post verified roles, reach pre-screened professionals, and close positions faster.</p>
               </div>
               <div className="relative z-10 flex flex-col sm:flex-row gap-3 shrink-0">
                 <Link href="/auth/register?role=employer" className="flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl text-sm font-bold transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_30px_rgba(255,255,255,0.3)]" style={{ background: "#fff", color: "var(--db-primary)" }}>
@@ -585,7 +574,7 @@ export default function LandingPage() {
 
         {/* ── Final CTA ────────────────────────────────────────────────────────── */}
         <section className="px-6 py-24 lg:py-32 relative reveal-scroll opacity-0 translate-y-8 transition-all duration-1000 overflow-hidden" style={{ background: "var(--db-surface)" }}>
-          <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center">
+          <div className="w-full mx-auto flex justify-center items-center gap-32 px-32">
             {/* Image card */}
             <div className="relative w-full max-w-[340px] mx-auto min-h-[420px] flex justify-center items-center">
               <div className="absolute w-[80%] h-[80%] top-[8%] left-[12%] rounded-[32px] transform -rotate-6 opacity-90 pointer-events-none" style={{ background: "linear-gradient(135deg, var(--db-primary) 0%, rgba(58,18,146,0.4) 100%)", boxShadow: "0 20px 50px rgba(58,18,146,0.3)" }} />
@@ -635,17 +624,6 @@ export default function LandingPage() {
                 </Link>
               </div>
 
-              {/* Social proof */}
-              <div className="flex items-center justify-center lg:justify-start gap-3 pt-1">
-                <div className="flex -space-x-2">
-                  {[["bg-blue-500","RK"],["bg-purple-500","AP"],["bg-green-500","SM"],["bg-orange-500","JD"]].map(([c,initials], i) => (
-                    <div key={i} className={`w-8 h-8 rounded-full border-2 border-white ${c} flex items-center justify-center text-white text-[10px] font-bold`}>{initials}</div>
-                  ))}
-                </div>
-                <p className="text-sm font-medium" style={{ color: "var(--db-text-muted)" }}>
-                  Join <strong style={{ color: "var(--db-text)" }}>15,000+</strong> GRC professionals
-                </p>
-              </div>
             </div>
           </div>
         </section>
@@ -658,11 +636,11 @@ export default function LandingPage() {
             {/* Brand */}
             <div className="space-y-4">
               <div className="flex items-center gap-2">
-                <span className="text-lg font-black tracking-tight" style={{ color: "var(--db-text)" }}>GRC Openings</span>
+                <span className="text-2xl font-black tracking-tight" style={{ color: "var(--db-text)" }}><span className="text-[#3a1292]">GRC</span> Openings</span>
               </div>
               <p className="text-sm font-medium leading-relaxed max-w-xs" style={{ color: "var(--db-text-muted)" }}>The premier network for Governance, Risk Management, and Control professionals. Precision matching for the security sector.</p>
               <div className="flex items-center gap-2 pt-1">
-                {[["language","Website"],["link","LinkedIn"]].map(([icon, label]) => (
+                {[["language", "Website"], ["link", "LinkedIn"]].map(([icon, label]) => (
                   <span key={label} className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "var(--db-primary-10)", color: "var(--db-primary)" }} title={label}>
                     <span className="material-symbols-outlined" style={{ fontSize: 16 }}>{icon}</span>
                   </span>
@@ -674,7 +652,7 @@ export default function LandingPage() {
             <div className="space-y-4">
               <h4 className="text-sm font-black uppercase tracking-widest" style={{ color: "var(--db-text)" }}>For Job Seekers</h4>
               <ul className="space-y-2.5">
-                {[["Browse GRC Jobs","/auth/register"],["Create Profile","/auth/register"],["AI Resume Tools","#ai-resume-tools"],["Career Resources","/auth/register"],["Salary Insights","/auth/register"]].map(([label,href]) => (
+                {[["Browse GRC Jobs", "/auth/register"], ["Create Profile", "/auth/register"], ["AI Resume Tools", "#ai-resume-tools"], ["Career Resources", "/auth/register"], ["Salary Insights", "/auth/register"]].map(([label, href]) => (
                   <li key={label}><Link href={href} className="text-sm font-medium hover:underline" style={{ color: "var(--db-text-muted)" }}>{label}</Link></li>
                 ))}
               </ul>
@@ -684,7 +662,7 @@ export default function LandingPage() {
             <div className="space-y-4">
               <h4 className="text-sm font-black uppercase tracking-widest" style={{ color: "var(--db-text)" }}>For Employers</h4>
               <ul className="space-y-2.5">
-                {[["Post a Job","/auth/register?role=employer"],["Browse Candidates","/auth/register?role=employer"],["Employer Dashboard","/auth/register?role=employer"],["Pricing","/auth/register?role=employer"],["Contact Sales","/auth/register?role=employer"]].map(([label,href]) => (
+                {[["Post a Job", "/auth/register?role=employer"], ["Browse Candidates", "/auth/register?role=employer"], ["Employer Dashboard", "/auth/register?role=employer"], ["Pricing", "/auth/register?role=employer"], ["Contact Sales", "/auth/register?role=employer"]].map(([label, href]) => (
                   <li key={label}><Link href={href} className="text-sm font-medium hover:underline" style={{ color: "var(--db-text-muted)" }}>{label}</Link></li>
                 ))}
               </ul>
@@ -694,7 +672,7 @@ export default function LandingPage() {
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-6" style={{ borderTop: "1px solid var(--db-border)" }}>
             <p className="text-sm" style={{ color: "var(--db-text-muted)" }}>&copy; {new Date().getFullYear()} GRC Openings. All rights reserved.</p>
             <div className="flex items-center gap-5">
-              {["Privacy Policy","Terms of Use","Cookie Settings"].map((label) => (
+              {["Privacy Policy", "Terms of Use", "Cookie Settings"].map((label) => (
                 <Link key={label} href="/auth/register" className="text-xs font-medium hover:underline" style={{ color: "var(--db-text-muted)" }}>{label}</Link>
               ))}
             </div>

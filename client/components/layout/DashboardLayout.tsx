@@ -118,10 +118,14 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
           style={{ background: "var(--db-sidebar-bg)", borderRight: "1px solid var(--db-sidebar-border)" }}
         >
           {/* Logo */}
-          <div className="p-6 flex items-center gap-3">
-            <h1 className="text-lg tracking-tight uppercase font-bold" style={{ color: "var(--db-sidebar-logo-text)" }}>
-              GRC <span style={{ color: "var(--db-primary)" }}>Openings</span>
+          <div className="p-6 flex flex-col">
+            <h1 className="text-lg font-black tracking-tight leading-none whitespace-nowrap">
+              <span className="text-[#3a1292]">GRC</span>
+              <span className="text-gray-900 ml-1">Openings</span>
             </h1>
+            <p className="text-[9px] font-medium text-gray-400 mt-1 uppercase tracking-wider leading-none whitespace-nowrap">
+              By Global Professional Certifications
+            </p>
           </div>
 
           {/* Navigation */}

@@ -266,6 +266,7 @@ export const updateEmployerProfile = async (req: Request, res: Response): Promis
     res.status(200).json({ message: 'Profile updated successfully', profile: updatedProfile });
   } catch (error) {
     console.error('Error updating employer profile:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    res.status(500).json({ error: 'Internal server error', details: errorMessage });
   }
 };

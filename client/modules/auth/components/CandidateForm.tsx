@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useRouter } from "next/router";
+import Link from "next/link";
 import { ModernInput } from "../../../components/ui/ModernInput";
 import { PasswordStrength } from "./PasswordStrength";
 import { setToken, setStoredUser } from "../../../lib/auth";
@@ -144,7 +145,7 @@ export function CandidateForm({ currentRole = "job_seeker" }: { currentRole?: "j
 
       <p className="text-center text-[14px] text-gray-500 font-medium mt-1">
         Already have an account?{" "}
-        <a href={`/auth/login${currentRole === "employer" ? "?role=employer" : ""}`} className="text-[#3a1292] font-bold hover:underline">Sign In</a>
+        <Link href={`/auth/login${currentRole === "employer" ? "?role=employer" : ""}`} className="text-[#3a1292] font-bold hover:underline">Sign In</Link>
       </p>
     </form>
   );

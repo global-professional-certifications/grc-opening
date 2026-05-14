@@ -16,7 +16,7 @@ import { MONO, SYNE } from "../../../components/employer/profile/shared";
 
 const STORAGE_KEY = "grc_employer_profile";
 
-// ΓöÇΓöÇ Skeleton ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+// Skeleton
 function SkeletonBlock({ className }: { className: string }) {
   return (
     <div
@@ -75,7 +75,7 @@ function ProfileSkeleton() {
 
 
 
-// ΓöÇΓöÇ Profile Header Card ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+// Profile Header Card
 function ProfileHeaderCard({
   profile,
   logoImage,
@@ -290,7 +290,7 @@ function ProfileHeaderCard({
   );
 }
 
-// ΓöÇΓöÇ Empty state prompt ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+// Empty state prompt
 function EmptyStateBanner({ onStart }: { onStart: () => void }) {
   return (
     <div
@@ -333,7 +333,7 @@ function EmptyStateBanner({ onStart }: { onStart: () => void }) {
   );
 }
 
-// ΓöÇΓöÇ Unsaved-changes bar ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+// Unsaved-changes bar
 function UnsavedBar({
   saving,
   onSave,
@@ -391,7 +391,7 @@ function UnsavedBar({
   );
 }
 
-// ΓöÇΓöÇ Save toast ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+// Save toast
 function SaveToast({ visible }: { visible: boolean }) {
   return (
     <div
@@ -417,7 +417,7 @@ function SaveToast({ visible }: { visible: boolean }) {
   );
 }
 
-// ΓöÇΓöÇ Page ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+// Page
 export default function EmployerProfilePage() {
   const [formData, setFormData] = useState<EmployerProfileData>(EMPTY_EMPLOYER_PROFILE);
   const [original, setOriginal] = useState<EmployerProfileData>(EMPTY_EMPLOYER_PROFILE);
@@ -630,7 +630,8 @@ export default function EmployerProfilePage() {
       setToastVisible(true);
       setTimeout(() => setToastVisible(false), 3000);
     } catch (err: any) {
-      setErrors({ companyName: err?.message ?? "Failed to save. Please try again." });
+      const msg = err?.data?.details || err?.message || "Failed to save. Please try again.";
+      setErrors({ companyName: msg });
     } finally {
       setSaving(false);
     }
