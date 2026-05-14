@@ -58,7 +58,7 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen flex flex-col overflow-x-hidden w-full" style={{ background: "var(--db-bg)", color: "var(--db-text)", fontFamily: "'Poppins', sans-serif" }}>
       <Head>
-        <title>GRC Openings | Governance, Risk Management, and Control Careers</title>
+        <title>GRC Openings</title>
         <meta name="description" content="The premier network for Governance, Risk Management, and Control professionals. Find exclusive cybersecurity, audit, and risk management jobs, or hire certified top-tier GRC talent." />
         <meta name="keywords" content="GRC, Governance, Risk Management, and Control, Cybersecurity Jobs, Audit Careers, Privacy Hiring, CISA, CISSP" />
       </Head>
@@ -75,9 +75,12 @@ export default function LandingPage() {
         <div className="max-w-[1440px] mx-auto w-full px-6 lg:px-12 py-3.5 lg:py-4 flex items-center justify-between">
           {/* Brand */}
           <Link href="/" className="flex items-center gap-2.5 shrink-0 group">
-            <span className="text-xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600">
-              GRC Openings
-            </span>
+            <div className="flex flex-col">
+              <h1 className="text-xl font-black tracking-tight leading-none whitespace-nowrap">
+                <span className="text-[#3a1292]">GRC</span>
+                <span className="text-gray-900 ml-1.5">Openings</span>
+              </h1>
+                          </div>
           </Link>
 
           {/* Centre links */}
@@ -126,7 +129,7 @@ export default function LandingPage() {
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-blue-500/10 rounded-full blur-[120px] pointer-events-none" />
           <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-[#000B21] rounded-full blur-[100px] pointer-events-none opacity-60" /> */}
 
-          <div className="relative z-10 max-w-[1400px] mx-auto w-full px-6 flex flex-col items-center text-center">
+          <div className="relative z-10 mx-auto w-full px-6 flex flex-col items-center text-center">
             <div className="w-full max-w-4xl space-y-8 text-white flex flex-col items-center">
               {/* Badge */}
               <span
@@ -138,14 +141,14 @@ export default function LandingPage() {
               </span>
 
               {/* Headline */}
-              <h1 className="text-5xl lg:text-[4.5rem] font-black tracking-tight leading-[1.05] drop-shadow-2xl reveal-scroll opacity-0 translate-y-8 transition-all duration-1000 delay-100">
+              <h1 className="text-6xl font-black tracking-tight leading-[1.05] drop-shadow-2xl reveal-scroll opacity-0 translate-y-8 transition-all duration-1000 delay-100">
                 The Future of{" "}
-                <span className="text-transparent bg-clip-text" style={{ backgroundImage: "linear-gradient(to right, #60a5fa, #ffffff, #60a5fa)" }}>GRC Careers</span>
+                <span className="text-transparent bg-clip-text" style={{ backgroundImage: "linear-gradient(to right, #f77913ff, #ffffff, #f77913ff)" }}>GRC Careers</span>
               </h1>
 
               {/* Subheading */}
-              <p className="text-xl lg:text-2xl font-medium leading-relaxed text-white/80 reveal-scroll opacity-0 translate-y-8 transition-all duration-1000 delay-200 max-w-2xl mx-auto">
-                Connect with world-class organizations. Get discovered for high-impact roles. Build your legacy in Governance, Risk, and Control.
+              <p className="text-lg font-medium leading-relaxed text-white/80 reveal-scroll opacity-0 translate-y-8 transition-all duration-1000 delay-200 max-w-2xl mx-auto">
+                Connect with world-class organizations. Get discovered for high-impact roles. Build your legacy in Governance, Risk Management, and Control.
               </p>
 
               {/* CTA buttons */}
@@ -516,7 +519,7 @@ export default function LandingPage() {
           <div className="absolute top-0 w-full h-[1px]" style={{ background: "var(--db-border)" }} />
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-16 space-y-4">
-              <h2 className="text-3xl lg:text-4xl font-bold tracking-tight" style={{ color: "var(--db-text)" }}>Built exclusively for the GRC Professionals</h2>
+              <h2 className="text-3xl lg:text-4xl font-bold tracking-tight" style={{ color: "var(--db-text)" }}>Built exclusively for the <span className="text-[#3a1292]">GRC Professionals</span></h2>
               <p className="text-base font-medium max-w-2xl mx-auto" style={{ color: "var(--db-text-muted)" }}>Industry-grade infrastructure crafted to parse credentials, analyze core competencies, and securely negotiate opportunities.</p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch pb-10">
@@ -633,7 +636,7 @@ export default function LandingPage() {
             {/* Brand */}
             <div className="space-y-4">
               <div className="flex items-center gap-2">
-                <span className="text-lg font-black tracking-tight" style={{ color: "var(--db-text)" }}>GRC Openings</span>
+                <span className="text-2xl font-black tracking-tight" style={{ color: "var(--db-text)" }}><span className="text-[#3a1292]">GRC</span> Openings</span>
               </div>
               <p className="text-sm font-medium leading-relaxed max-w-xs" style={{ color: "var(--db-text-muted)" }}>The premier network for Governance, Risk Management, and Control professionals. Precision matching for the security sector.</p>
               <div className="flex items-center gap-2 pt-1">

@@ -1,4 +1,5 @@
 import React from "react";
+import Link from "next/link";
 
 interface AuthLayoutProps {
   children: React.ReactNode;
@@ -7,11 +8,15 @@ interface AuthLayoutProps {
 
 function Logo() {
   return (
-    <div className="flex items-center gap-2 mb-6">
-      <span className="font-extrabold text-[16px] tracking-tight text-[#3a1292]" style={{ fontFamily: "'Poppins', sans-serif" }}>
-        GRC OPENINGS
+    <Link href="/home" className="flex flex-col mb-8 cursor-pointer hover:opacity-90 transition-opacity">
+      <h1 className="text-[20px] font-black tracking-tight leading-none whitespace-nowrap">
+        <span className="text-[#3a1292]">GRC</span>
+        <span className="text-gray-900 ml-1.5">OPENINGS</span>
+      </h1>
+      <span className="text-[9px] font-medium text-gray-400 uppercase tracking-widest leading-none mt-1.5 whitespace-nowrap">
+        By Global Professional Certifications
       </span>
-    </div>
+    </Link>
   );
 }
 

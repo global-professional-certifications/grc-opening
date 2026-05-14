@@ -27,7 +27,7 @@ export const LABEL_STYLE: React.CSSProperties = {
   ...MONO,
 };
 
-// ΓöÇΓöÇ Section card wrapper ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+// Section card wrapper
 export function SectionCard({
   icon,
   title,
@@ -61,7 +61,7 @@ export function SectionCard({
   );
 }
 
-// ΓöÇΓöÇ Text input field ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+// Text input field
 export function Field({
   label,
   value,
@@ -125,7 +125,7 @@ export function Field({
   );
 }
 
-// ΓöÇΓöÇ Select field ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+// Select field
 export function SelectField({
   label,
   value,
@@ -149,52 +149,90 @@ export function SelectField({
   required?: boolean;
   disabled?: boolean;
 }) {
-  const [focused, setFocused] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const [dropUp, setDropUp] = useState(false);
+  const containerRef = React.useRef<HTMLDivElement>(null);
+  
+  const allOptions = options.map((o) => (typeof o === "string" ? { label: o, value: o } : o));
+  const selectedLabel = allOptions.find(o => o.value === value)?.label || placeholder || "Select...";
+
+  const toggleDropdown = () => {
+    if (disabled) return;
+    if (!isOpen && containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      // If less than 260px space below, open upwards
+      setDropUp(spaceBelow < 260);
+    }
+    setIsOpen(!isOpen);
+  };
+
   return (
-    <div className={colSpan ? "col-span-2" : ""}>
+    <div className={`relative ${colSpan ? "col-span-2" : ""}`} ref={containerRef}>
       <label htmlFor={id} style={LABEL_STYLE}>
         {label}
         {required && <span style={{ color: "#ef4444", marginLeft: 2 }}>*</span>}
       </label>
       <div className="relative">
-        <select
+        <button
+          type="button"
           id={id}
-          value={value}
           disabled={disabled}
-          onChange={(e) => onChange(e.target.value)}
-          onFocus={() => setFocused(true)}
-          onBlur={() => setFocused(false)}
+          onClick={toggleDropdown}
+          onBlur={() => setTimeout(() => setIsOpen(false), 200)}
+          className="group"
           style={{
             ...BASE_INPUT,
-            borderColor: error ? "#ef4444" : focused ? "var(--db-primary)" : "var(--db-border)",
-            boxShadow: focused ? (error ? "0 0 0 3px rgba(239, 68, 68, 0.1)" : "0 0 0 3px var(--db-primary-10)") : "none",
+            textAlign: "left",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            borderColor: error ? "#ef4444" : isOpen ? "var(--db-primary)" : "var(--db-border)",
+            boxShadow: isOpen ? (error ? "0 0 0 3px rgba(239, 68, 68, 0.1)" : "0 0 0 3px var(--db-primary-10)") : "none",
             cursor: disabled ? "not-allowed" : "pointer",
-            appearance: "none",
-            paddingRight: 36,
             opacity: disabled ? 0.6 : 1,
+            paddingRight: "12px",
           }}
         >
-          {placeholder && (
-            <option value="" disabled>
-              {placeholder}
-            </option>
-          )}
-          {options.map((o) => {
-            const val = typeof o === "string" ? o : o.value;
-            const lbl = typeof o === "string" ? o : o.label;
-            return (
-              <option key={val} value={val}>
-                {lbl}
-              </option>
-            );
-          })}
-        </select>
-        <span 
-          className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-[20px] text-gray-400 pointer-events-none"
-          style={{ zIndex: 10 }}
-        >
-          expand_more
-        </span>
+          <span className={`truncate ${!value ? "text-gray-400" : "text-[var(--db-text)]"}`}>
+            {selectedLabel}
+          </span>
+          <span 
+            className="material-symbols-outlined text-[20px] text-gray-400 transition-transform duration-200"
+            style={{ transform: `rotate(${isOpen ? '180deg' : '0deg'})` }}
+          >
+            expand_more
+          </span>
+        </button>
+
+        {isOpen && !disabled && (
+          <div 
+            className={`absolute left-0 right-0 bg-white border border-gray-200 rounded-xl shadow-[0_20px_50px_-12px_rgba(0,0,0,0.25)] z-[9999] max-h-[240px] overflow-y-auto p-1.5 animate-in fade-in duration-200 ${dropUp ? "bottom-[calc(100%+8px)] slide-in-from-bottom-2" : "mt-1.5 top-full slide-in-from-top-2"}`}
+          >
+            {allOptions.length > 0 ? (
+              allOptions.map((opt) => (
+                <div
+                  key={opt.value}
+                  onMouseDown={(e) => {
+                    e.preventDefault(); // Prevent blur before selection
+                    onChange(opt.value);
+                    setIsOpen(false);
+                  }}
+                  className={`
+                    px-3 py-2 text-[13.5px] font-medium rounded-lg cursor-pointer transition-colors mb-0.5 last:mb-0
+                    ${value === opt.value ? "bg-[#3a1292] text-white" : "text-gray-700 hover:bg-gray-50"}
+                  `}
+                >
+                  {opt.label}
+                </div>
+              ))
+            ) : (
+              <div className="px-3 py-4 text-center text-xs text-gray-400 font-medium">
+                No options available
+              </div>
+            )}
+          </div>
+        )}
       </div>
       {error && (
         <p className="text-[10px] mt-1.5" style={{ ...MONO, color: "#ef4444" }}>
@@ -205,7 +243,7 @@ export function SelectField({
   );
 }
 
-// ΓöÇΓöÇ Textarea field ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+// Textarea field
 export function TextareaField({
   label,
   value,
@@ -303,6 +341,8 @@ export function ComboboxField({
   const [focused, setFocused] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState(value);
+  const [dropUp, setDropUp] = useState(false);
+  const containerRef = React.useRef<HTMLDivElement>(null);
 
   // Sync searchTerm when value changes externally
   React.useEffect(() => {
@@ -311,8 +351,6 @@ export function ComboboxField({
 
   const allOptions = options.map((o) => (typeof o === "string" ? { label: o, value: o } : o));
   
-  // Logic: If focused and the search term matches the currently selected label, show all options.
-  // This allows users to see the full list without deleting their current selection.
   const selectedLabel = allOptions.find(o => o.value === value)?.label || "";
   const isDefaultTerm = searchTerm === selectedLabel;
 
@@ -329,11 +367,28 @@ export function ComboboxField({
   const handleInputChange = (v: string) => {
     setSearchTerm(v);
     onChange(v);
-    if (!isOpen) setIsOpen(true);
+    if (!isOpen) {
+      if (containerRef.current) {
+        const rect = containerRef.current.getBoundingClientRect();
+        const spaceBelow = window.innerHeight - rect.bottom;
+        setDropUp(spaceBelow < 260);
+      }
+      setIsOpen(true);
+    }
+  };
+
+  const handleFocus = () => {
+    if (containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      setDropUp(spaceBelow < 260);
+    }
+    setFocused(true);
+    setIsOpen(true);
   };
 
   return (
-    <div className={`relative ${colSpan ? "col-span-2" : ""}`}>
+    <div className={`relative ${colSpan ? "col-span-2" : ""}`} ref={containerRef}>
       <label htmlFor={id} style={LABEL_STYLE}>
         {label}
         {required && <span style={{ color: "#ef4444", marginLeft: 2 }}>*</span>}
@@ -347,13 +402,9 @@ export function ComboboxField({
           disabled={disabled}
           autoComplete="off"
           placeholder={placeholder}
-          onFocus={() => {
-            setFocused(true);
-            setIsOpen(true);
-          }}
+          onFocus={handleFocus}
           onBlur={() => {
             setFocused(false);
-            // Delay closing to allow clicking options
             setTimeout(() => setIsOpen(false), 200);
           }}
           onChange={(e) => handleInputChange(e.target.value)}
@@ -379,15 +430,18 @@ export function ComboboxField({
 
         {isOpen && !disabled && (filteredOptions.length > 0) && (
           <div 
-            className="absolute left-0 right-0 mt-1.5 bg-white border border-gray-200 rounded-xl shadow-[0_20px_50px_-12px_rgba(0,0,0,0.25)] z-[9999] max-h-[140px] overflow-y-auto overflow-x-hidden p-1.5 animate-in fade-in slide-in-from-top-2 duration-200"
+            className={`absolute left-0 right-0 bg-white border border-gray-200 rounded-xl shadow-[0_20px_50px_-12px_rgba(0,0,0,0.25)] z-[9999] max-h-[240px] overflow-y-auto overflow-x-hidden p-1.5 animate-in fade-in duration-200 ${dropUp ? "bottom-[calc(100%+8px)] slide-in-from-bottom-2" : "mt-1.5 top-full slide-in-from-top-2"}`}
           >
             {filteredOptions.map((opt) => (
               <div
                 key={opt.value}
-                onClick={() => handleSelect(opt.value)}
+                onMouseDown={(e) => {
+                  e.preventDefault(); // Prevent blur before selection
+                  handleSelect(opt.value);
+                }}
                 className={`
                   px-3 py-1.5 text-[13.5px] font-medium rounded-lg cursor-pointer transition-colors
-                  ${value === opt.value ? "bg-[#3a1292] text-white" : "text-gray-700"}
+                  ${value === opt.value ? "bg-[#3a1292] text-white" : "text-gray-700 hover:bg-gray-50"}
                 `}
               >
                 {opt.label}
@@ -410,7 +464,7 @@ export function ComboboxField({
   );
 }
 
-// ΓöÇΓöÇ Toggle switch ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+// Toggle switch
 export function Toggle({
   checked,
   onChange,

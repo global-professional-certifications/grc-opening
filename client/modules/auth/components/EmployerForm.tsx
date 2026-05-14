@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useRouter } from "next/router";
+import Link from "next/link";
 import { ModernInput } from "../../../components/ui/ModernInput";
 import { PasswordStrength } from "./PasswordStrength";
 import { setToken, setStoredUser } from "../../../lib/auth";
@@ -139,7 +140,7 @@ export function EmployerForm({ currentRole = "employer" }: { currentRole?: "job_
 
       <p className="text-center text-[14px] text-gray-500 font-medium">
         Already have an account?{" "}
-        <a href={`/auth/login${currentRole === "job_seeker" ? "" : "?role=employer"}`} className="text-[#3a1292] font-bold hover:underline">Log In</a>
+        <Link href={`/auth/login${currentRole === "job_seeker" ? "" : "?role=employer"}`} className="text-[#3a1292] font-bold hover:underline">Log In</Link>
       </p>
     </form>
   );
