@@ -1,78 +1,144 @@
 import os
+import logging
 from fastapi import FastAPI, UploadFile, File, HTTPException, Depends
 from fastapi.responses import FileResponse
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.middleware.cors import CORSMiddleware
 from pathlib import Path
 from dotenv import load_dotenv
 
-# Ensure parser_logic.py has the updated parse_resume(file_content, filename)
 from parser_logic import parse_resume
 
 load_dotenv()
 
-app = FastAPI(title="GRC Resume Parser - Secure Mode")
-security = HTTPBearer()
+# ─────────────────────────────────────────────
+# Logging
+# ─────────────────────────────────────────────
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logger = logging.getLogger(__name__)
 
-# We keep UPLOAD_DIR only if you decide to save files later. 
-# For now, we process in memory for speed and link extraction.
+# ─────────────────────────────────────────────
+# App & Security
+# ─────────────────────────────────────────────
+app = FastAPI(title="GRC Resume Parser – Secure Mode", version="2.0.0")
+
+# Allow your frontend origin; tighten this in production
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+security = HTTPBearer()
 UPLOAD_DIR = Path("uploads")
 UPLOAD_DIR.mkdir(exist_ok=True)
 
-# Define your secret key in the .env file
 API_AUTH_TOKEN = os.getenv("APP_SECURITY_KEY")
 
+ALLOWED_EXTENSIONS = {"pdf", "docx", "txt"}
+MAX_FILE_SIZE_MB = 10
+
+
 def validate_token(credentials: HTTPAuthorizationCredentials = Depends(security)):
-    """Validates the Bearer token against the APP_SECURITY_KEY."""
-    if not API_AUTH_TOKEN or credentials.credentials != API_AUTH_TOKEN:
+    """Validates the Bearer token against APP_SECURITY_KEY."""
+    if not API_AUTH_TOKEN:
         raise HTTPException(
-            status_code=403, 
+            status_code=500,
+            detail="Server misconfiguration: APP_SECURITY_KEY is not set in .env"
+        )
+    if credentials.credentials != API_AUTH_TOKEN:
+        raise HTTPException(
+            status_code=403,
             detail="Invalid or missing Authorization Token"
         )
     return credentials.credentials
 
+
+# ─────────────────────────────────────────────
+# Routes
+# ─────────────────────────────────────────────
+
 @app.get("/")
 def health_check():
-    return {"status": "online", "security": "enabled"}
+    return {"status": "online", "security": "enabled", "version": "2.0.0"}
+
 
 @app.post("/parse-resume")
 async def upload_and_parse(
-    file: UploadFile = File(...), 
-    token: str = Depends(validate_token)
+    file: UploadFile = File(...),
+    token: str = Depends(validate_token),
 ):
     """
-    Parses the resume directly from memory. 
-    This ensures 'fitz' can read the hyperlink metadata layer.
+    Accepts a PDF, DOCX, or TXT resume and returns structured JSON data.
+    Processes the file entirely in memory (no disk write required).
     """
+
+    # ── File-type guard ──
+    ext = (file.filename or "").lower().rsplit(".", 1)[-1]
+    if ext not in ALLOWED_EXTENSIONS:
+        raise HTTPException(
+            status_code=415,
+            detail=f"Unsupported file type '.{ext}'. Allowed: {', '.join(ALLOWED_EXTENSIONS)}"
+        )
+
+    # ── Read into memory ──
+    file_bytes = await file.read()
+    if not file_bytes:
+        raise HTTPException(status_code=400, detail="Uploaded file is empty.")
+
+    # ── File-size guard ──
+    size_mb = len(file_bytes) / (1024 * 1024)
+    if size_mb > MAX_FILE_SIZE_MB:
+        raise HTTPException(
+            status_code=413,
+            detail=f"File too large ({size_mb:.1f} MB). Max allowed: {MAX_FILE_SIZE_MB} MB."
+        )
+
+    logger.info(f"Received file: '{file.filename}' ({size_mb:.2f} MB)")
+
+    # ── Parse ──
     try:
-        # 1. Read the file into memory
-        file_bytes = await file.read()
-        
-        if not file_bytes:
-            raise HTTPException(status_code=400, detail="Uploaded file is empty.")
-
-        # 2. Pass the bytes to the parser
-        # The parser_logic.py MUST use fitz.open(stream=file_bytes, filetype="pdf")
         parsed_data = parse_resume(file_bytes, file.filename)
-        
-        return {
-            "status": "success",
-            "filename": file.filename,
-            "data": parsed_data
-        }
+    except ValueError as ve:
+        raise HTTPException(status_code=422, detail=str(ve))
     except Exception as e:
-        # Detailed error for debugging GRC extraction
-        raise HTTPException(status_code=500, detail=f"AI Parsing Error: {str(e)}")
+        logger.exception(f"Parsing failed for '{file.filename}'")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Parsing error: {str(e)}"
+        )
 
-# NOTE: The download route will only work if you save the file to UPLOAD_DIR.
-# If you want to remain memory-only, this route can be removed.
+    return {
+        "status": "success",
+        "filename": file.filename,
+        "data": parsed_data,
+    }
+
+
 @app.get("/download/{filename}")
 async def download_file(filename: str, token: str = Depends(validate_token)):
-    file_path = UPLOAD_DIR / filename
-    if not file_path.exists():
-        raise HTTPException(status_code=404, detail="File not found. (Memory-only mode is active)")
-    
-    return FileResponse(path=file_path, filename=filename)
+    """
+    Download a previously saved file from UPLOAD_DIR.
+    NOTE: only works if files were saved to disk; memory-only mode will return 404.
+    """
+    # Basic path traversal guard
+    safe_filename = Path(filename).name
+    file_path = UPLOAD_DIR / safe_filename
 
+    if not file_path.exists():
+        raise HTTPException(
+            status_code=404,
+            detail="File not found. The parser operates in memory-only mode by default."
+        )
+
+    return FileResponse(path=file_path, filename=safe_filename)
+
+
+# ─────────────────────────────────────────────
+# Entry point
+# ─────────────────────────────────────────────
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8001)
+    uvicorn.run("main:app", host="0.0.0.0", port=8001, reload=True)
