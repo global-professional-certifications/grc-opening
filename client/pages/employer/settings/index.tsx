@@ -11,7 +11,7 @@ const STORAGE_KEY = "grc_employer_profile";
 
 // ─── Delete Account Modal ─────────────────────────────────────────────────────
 
-function DeleteAccountModal({ onClose }: { onClose: () => void }) {
+function DeleteAccountModal({ onClose, onLogout }: { onClose: () => void; onLogout: () => void }) {
   const router = useRouter();
   const [confirmText, setConfirmText] = useState("");
   const [loading, setLoading] = useState(false);
@@ -49,10 +49,10 @@ function DeleteAccountModal({ onClose }: { onClose: () => void }) {
     setError("");
     try {
       await apiFetch("/profile/me", { method: "DELETE" });
-      // Clear all auth tokens and local data
       localStorage.removeItem("grc_token");
       localStorage.removeItem("grc_employer_profile");
       localStorage.removeItem("grc-dash-theme");
+      onLogout();
       router.replace("/auth/login");
     } catch {
       setError("Failed to delete account. Please try again.");
@@ -334,7 +334,7 @@ export default function EmployerSettingsPage() {
         </div>
       </div>
 
-      {showDeleteModal && <DeleteAccountModal onClose={() => setShowDeleteModal(false)} />}
+      {showDeleteModal && <DeleteAccountModal onClose={() => setShowDeleteModal(false)} onLogout={logout} />}
       {showLogoutModal && <LogoutConfirmModal onConfirm={handleLogout} onClose={() => setShowLogoutModal(false)} />}
     </EmployerDashboardLayout>
   );

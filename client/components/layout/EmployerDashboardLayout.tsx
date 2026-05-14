@@ -109,14 +109,6 @@ function EmployerDashboardLayoutInner({ children }: { children: React.ReactNode 
         >
           {/* Logo */}
           <div className="p-6 flex items-center gap-3 shrink-0">
-            <div
-              className="w-8 h-8 rounded flex items-center justify-center shrink-0"
-              style={{ background: "var(--db-primary)" }}
-            >
-              <span className="material-symbols-outlined" style={{ fontSize: 18, color: "var(--db-primary-text)" }}>
-                shield_person
-              </span>
-            </div>
             <div>
               <h1
                 className="text-base tracking-tight uppercase font-semibold leading-tight"

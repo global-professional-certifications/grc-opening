@@ -48,4 +48,6 @@ export interface ProfileFormData {
   expectedCtc: string;
   noticePeriod: string;
   buybackOption: string;
+  reasonForChange: string[];
+  reasonForChangeOther: string;
 }

@@ -119,12 +119,6 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
         >
           {/* Logo */}
           <div className="p-6 flex items-center gap-3">
-            <div className="w-8 h-8 rounded flex items-center justify-center flex-shrink-0"
-              style={{ background: "var(--db-primary)" }}>
-              <span className="material-symbols-outlined" style={{ fontSize: 18, color: "var(--db-primary-text)" }}>
-                shield_person
-              </span>
-            </div>
             <h1 className="text-lg tracking-tight uppercase font-bold" style={{ color: "var(--db-sidebar-logo-text)" }}>
               GRC <span style={{ color: "var(--db-primary)" }}>Openings</span>
             </h1>

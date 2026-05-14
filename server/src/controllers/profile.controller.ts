@@ -38,7 +38,7 @@ export const updateSeekerProfile = async (req: Request, res: Response): Promise<
     const userId = req.user!.id;
     const {
       firstName, lastName, headline, bio, location, linkedInUrl, avatarUrl, country, phone,
-      openToShareCriticalInfo, ctcCurrency, currentCtc, expectedCtc, noticePeriod, buybackOption,
+      openToShareCriticalInfo, ctcCurrency, currentCtc, expectedCtc, noticePeriod, buybackOption, reasonForChange, reasonForChangeOther,
       skills, workExperiences, educations, certifications
     } = req.body;
 
@@ -67,6 +67,8 @@ export const updateSeekerProfile = async (req: Request, res: Response): Promise<
           ...(expectedCtc !== undefined && { expectedCtc }),
           ...(noticePeriod !== undefined && { noticePeriod }),
           ...(buybackOption !== undefined && { buybackOption }),
+          ...(reasonForChange !== undefined && { reasonForChange }),
+          ...(reasonForChangeOther !== undefined && { reasonForChangeOther }),
         } as any,
       });
 

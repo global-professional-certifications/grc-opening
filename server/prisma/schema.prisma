@@ -158,6 +158,8 @@ model SeekerProfile {
   expectedCtc             String? @map("expected_ctc")
   noticePeriod            String? @map("notice_period")
   buybackOption           String? @map("buyback_option")
+  reasonForChange         String? @map("reason_for_change")
+  reasonForChangeOther    String? @map("reason_for_change_other")
 
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
