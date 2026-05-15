@@ -17,6 +17,7 @@ export interface EmployerForModal {
   city:        string | null;
   state:       string | null;
   country:     string | null;
+  otherUrl:    string | null;
 }
 
 interface Props {
@@ -198,22 +199,38 @@ export function EmployerProfileModal({ employer, onClose }: Props) {
             </div>
           )}
 
-          {/* Website */}
-          {employer.website && (
+          {/* Website & Links */}
+          {(employer.website || employer.otherUrl) && (
             <div>
               <p className="text-[10px] font-bold uppercase tracking-widest mb-3" style={{ color: PRIMARY, ...MONO }}>
-                Website
+                Links
               </p>
-              <a
-                href={employer.website.startsWith('http') ? employer.website : `https://${employer.website}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 text-[13px] font-semibold transition-opacity hover:opacity-70"
-                style={{ color: PRIMARY }}
-              >
-                <span className="material-symbols-outlined" style={{ fontSize: 15 }}>open_in_new</span>
-                {employer.website.replace(/^https?:\/\//, '')}
-              </a>
+              <div className="flex flex-wrap gap-x-6 gap-y-3">
+                {employer.website && (
+                  <a
+                    href={employer.website.startsWith('http') ? employer.website : `https://${employer.website}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 text-[13px] font-semibold transition-opacity hover:opacity-70"
+                    style={{ color: PRIMARY }}
+                  >
+                    <span className="material-symbols-outlined" style={{ fontSize: 15 }}>open_in_new</span>
+                    {employer.website.replace(/^https?:\/\//, '')}
+                  </a>
+                )}
+                {employer.otherUrl && (
+                  <a
+                    href={employer.otherUrl.startsWith('http') ? employer.otherUrl : `https://${employer.otherUrl}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 text-[13px] font-semibold transition-opacity hover:opacity-70"
+                    style={{ color: PRIMARY }}
+                  >
+                    <span className="material-symbols-outlined" style={{ fontSize: 15 }}>link</span>
+                    {employer.otherUrl.replace(/^https?:\/\//, '')}
+                  </a>
+                )}
+              </div>
             </div>
           )}
 

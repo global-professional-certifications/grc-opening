@@ -6,13 +6,37 @@ import { apiFetch } from "@/lib/api";
 const POPPINS = { fontFamily: "'Poppins', sans-serif" };
 const MONO = { fontFamily: "'JetBrains Mono', monospace" };
 const PRIMARY = "var(--db-primary)";
+const HTML_TAG_PATTERN = /<\/?[a-z][\s\S]*>/i;
+
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function sanitizeRichHtml(html: string): string {
+  return html
+    .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, "")
+    .replace(/<style[\s\S]*?>[\s\S]*?<\/style>/gi, "")
+    .replace(/<\/?(iframe|object|embed|link|meta|base)[^>]*>/gi, "")
+    .replace(/\son\w+=(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, "")
+    .replace(/\s(href|src)\s*=\s*(['"])\s*javascript:[\s\S]*?\2/gi, " $1=\"#\"");
+}
+
+function toContentHtml(raw: string): string {
+  const trimmed = raw.trim();
+  if (!trimmed) return "";
+  if (HTML_TAG_PATTERN.test(trimmed)) return sanitizeRichHtml(trimmed);
+  return escapeHtml(trimmed).replace(/\n/g, "<br />");
+}
 
 type JobDetail = {
   id: string;
   title: string;
   description: string;
-  responsibilities: string;
-  qualifications: string;
   niceToHave: string;
   location: string;
   workMode: string;
@@ -253,32 +277,20 @@ export default function JobDetailPage() {
             <div className="lg:col-span-2 space-y-8">
               <div className="rounded-[20px] border p-7 space-y-8" style={{ background: "var(--db-card)", borderColor: "var(--db-border)" }}>
                 <Section title="About the Role">
-                  <p className="text-[0.95rem] leading-relaxed whitespace-pre-line" style={{ color: "var(--db-text-secondary)" }}>
-                    {job.description}
-                  </p>
+                  <div 
+                    className="text-[0.95rem] leading-relaxed [&_p]:mb-3 [&_ul]:my-3 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:my-3 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:mb-1" 
+                    style={{ color: "var(--db-text-secondary)" }}
+                    dangerouslySetInnerHTML={{ __html: toContentHtml(job.description) }}
+                  />
                 </Section>
-
-                {job.responsibilities && (
-                  <Section title="Responsibilities">
-                    <p className="text-[0.95rem] leading-relaxed whitespace-pre-line" style={{ color: "var(--db-text-secondary)" }}>
-                      {job.responsibilities}
-                    </p>
-                  </Section>
-                )}
-
-                {job.qualifications && (
-                  <Section title="Qualifications">
-                    <p className="text-[0.95rem] leading-relaxed whitespace-pre-line" style={{ color: "var(--db-text-secondary)" }}>
-                      {job.qualifications}
-                    </p>
-                  </Section>
-                )}
 
                 {job.niceToHave && (
                   <Section title="Nice to Have">
-                    <p className="text-[0.95rem] leading-relaxed whitespace-pre-line" style={{ color: "var(--db-text-secondary)" }}>
-                      {job.niceToHave}
-                    </p>
+                    <div 
+                      className="text-[0.95rem] leading-relaxed [&_p]:mb-3 [&_ul]:my-3 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:my-3 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:mb-1" 
+                      style={{ color: "var(--db-text-secondary)" }}
+                      dangerouslySetInnerHTML={{ __html: toContentHtml(job.niceToHave) }}
+                    />
                   </Section>
                 )}
               </div>

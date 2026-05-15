@@ -22,8 +22,6 @@ export type DialogJob = {
   tags: string[];
   verified: boolean;
   description: string;
-  responsibilities: string;
-  qualifications: string;
   niceToHave: string;
   isSaved: boolean;
   applicationId?: string | null;
@@ -351,16 +349,6 @@ export function JobDetailDialog({
             <div>
               <SectionLabel text="About the Role" />
               <ContentBlock text={job.description} />
-            </div>
-
-            <div>
-              <SectionLabel text="Responsibilities" />
-              <ContentBlock text={job.responsibilities} />
-            </div>
-
-            <div>
-              <SectionLabel text="Qualifications" />
-              <ContentBlock text={job.qualifications} />
             </div>
 
             <div>

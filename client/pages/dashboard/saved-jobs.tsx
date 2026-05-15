@@ -25,8 +25,6 @@ interface SavedJob {
   deadline: string | null;
   applicationWindowLabel: string;
   description: string;
-  responsibilities: string;
-  qualifications: string;
   niceToHave: string;
   verified: boolean;
   isSaved: boolean;
@@ -47,6 +45,7 @@ type EmployerPayload = {
   city?: string | null;
   state?: string | null;
   country?: string | null;
+  otherUrl?: string | null;
 };
 
 type JobDetailWithEmployerResponse = {
@@ -72,6 +71,7 @@ function toEmployerForModal(employer: EmployerPayload | null | undefined, fallba
     city: normalizeOptionalText(employer?.city),
     state: normalizeOptionalText(employer?.state),
     country: normalizeOptionalText(employer?.country),
+    otherUrl: normalizeOptionalText(employer?.otherUrl),
   };
 }
 

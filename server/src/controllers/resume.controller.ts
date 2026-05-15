@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import fs from 'fs';
+import path from 'path';
 import { enqueueResumeParse } from '../queues/resume.queue';
 import { parseResume as parseResumeLocally } from '../services/resume-parser.service';
 
@@ -419,6 +420,14 @@ export const uploadResume = async (req: Request, res: Response): Promise<void> =
       },
     });
 
+    // Build a public URL for the stored file and persist it on the seeker profile
+    const filename = path.basename(file.path);
+    const fileUrl = `/uploads/resumes/${filename}`;
+    await prisma.seekerProfile.update({
+      where: { userId },
+      data: { resumeUrl: fileUrl },
+    });
+
     // Enqueue parsing job
     await enqueueResumeParse({
       resumeId: resume.id,
@@ -431,6 +440,7 @@ export const uploadResume = async (req: Request, res: Response): Promise<void> =
       message: 'Resume uploaded successfully. Parsing in progress.',
       resumeId: resume.id,
       status: 'PENDING',
+      fileUrl,
     });
 
   } catch (error: any) {

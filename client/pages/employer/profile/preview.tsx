@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import Head from "next/head";
 import type { EmployerProfileData } from "../../../components/employer/profile/types";
 import { EMPTY_EMPLOYER_PROFILE } from "../../../components/employer/profile/types";
@@ -59,11 +59,16 @@ export default function PublicProfilePreview() {
         <div className="bg-white rounded-3xl shadow-xl p-8 sm:p-12 border border-slate-100 flex flex-col sm:flex-row gap-8 items-start mb-8">
           {/* Logo */}
           <div 
-            className="w-32 h-32 flex-shrink-0 bg-slate-50 border-4 border-white rounded-2xl shadow flex items-center justify-center overflow-hidden text-3xl font-bold text-teal-600"
-            style={POPPINS}
+            className="w-32 h-32 flex-shrink-0 bg-white border-4 border-white rounded-2xl shadow flex items-center justify-center overflow-hidden text-3xl font-bold text-teal-600 relative z-10"
+            style={{ ...POPPINS, backgroundColor: '#ffffff' }}
           >
             {profile.logoUrl ? (
-              <img src={profile.logoUrl} alt="Logo" className="w-full h-full object-cover" />
+              <img 
+                src={profile.logoUrl} 
+                alt="Logo" 
+                className="w-full h-full object-cover bg-white" 
+                style={{ backgroundColor: '#ffffff' }} 
+              />
             ) : (
               initials
             )}
@@ -182,7 +187,7 @@ export default function PublicProfilePreview() {
             )}
 
             {/* Social Links */}
-            {(profile.linkedInUrl || profile.twitterUrl || profile.otherUrl || (profile.customLinks && profile.customLinks.length > 0)) && (
+            {(profile.linkedInUrl || profile.twitterUrl || profile.otherUrl) && (
               <section className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
                 <h3 className="text-sm font-bold uppercase tracking-widest text-slate-400 mb-5 flex items-center gap-2" style={MONO}>
                   <span className="material-symbols-outlined text-[16px]">link</span>
@@ -213,14 +218,6 @@ export default function PublicProfilePreview() {
                       <span className="font-semibold text-sm">Other Link</span>
                     </a>
                   )}
-                  {profile.customLinks && profile.customLinks.map((link, idx) => link ? (
-                    <a key={idx} href={link.startsWith("http") ? link : `https://${link}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-slate-600 hover:text-teal-600 hover:bg-slate-50 p-2 -mx-2 rounded-lg transition-colors group">
-                      <div className="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 flex items-center justify-center">
-                        <span className="material-symbols-outlined text-[16px]">link</span>
-                      </div>
-                      <span className="font-semibold text-sm truncate max-w-[150px]">{link.replace(/^https?:\/\/(www\.)?/, "")}</span>
-                    </a>
-                  ) : null)}
                 </div>
               </section>
             )}

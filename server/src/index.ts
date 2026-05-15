@@ -5,6 +5,7 @@ dotenv.config();
 validateEnv();
 
 import express from 'express';
+import path from 'path';
 import { corsMiddleware } from './middleware/cors';
 import healthRouter from './routes/health';
 import authRouter from './routes/auth.routes';
@@ -28,6 +29,9 @@ const PORT = process.env.PORT || 4000;
 app.use(corsMiddleware);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Serve uploaded files (resumes, etc.) as static assets
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // Routes
 app.get('/', (_req, res) => {

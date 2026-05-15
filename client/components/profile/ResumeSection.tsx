@@ -294,6 +294,7 @@ export function ResumeSection({ resumeUrl, resumeFileName, onChange }: Props) {
       latestObjectUrlRef.current = null;
     }
 
+    // Show the filename immediately via a blob URL while the real upload is in flight
     const objectUrl = URL.createObjectURL(file);
     latestObjectUrlRef.current = objectUrl;
     onChange({ resumeUrl: objectUrl, resumeFileName: file.name });
@@ -305,6 +306,29 @@ export function ResumeSection({ resumeUrl, resumeFileName, onChange }: Props) {
     setApplyResult(null);
 
     try {
+      // Upload the file to persist it on the server and get a durable URL.
+      // PDF only — non-PDF files (DOC/DOCX) skip this step gracefully.
+      if (file.type === "application/pdf") {
+        try {
+          const uploadBody = new FormData();
+          uploadBody.append("resume", file);
+          const uploadRes = await apiFetch<{ fileUrl: string }>("/resume/upload", {
+            method: "POST",
+            body: uploadBody,
+          });
+          const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+          const persistentUrl = `${apiBase}${uploadRes.fileUrl}`;
+          // Replace the temporary blob URL with the real server URL
+          if (latestObjectUrlRef.current) {
+            URL.revokeObjectURL(latestObjectUrlRef.current);
+            latestObjectUrlRef.current = null;
+          }
+          onChange({ resumeUrl: persistentUrl, resumeFileName: file.name });
+        } catch {
+          // Upload failed — keep blob URL so the user can still see the filename
+        }
+      }
+
       const formData = new FormData();
       formData.append("resume", file);
 
@@ -372,7 +396,7 @@ export function ResumeSection({ resumeUrl, resumeFileName, onChange }: Props) {
             </div>
             <div className="min-w-0">
               <p className="text-sm font-medium truncate" style={{ color: "var(--db-text)" }}>
-                {resumeFileName || "Resume.pdf"}
+                {(resumeFileName || "Resume.pdf").split(/[/\\]/).pop()}
               </p>
               <p className="text-xs font-medium" style={{ color: "var(--db-text-muted)" }}>
                 {parsing ? (

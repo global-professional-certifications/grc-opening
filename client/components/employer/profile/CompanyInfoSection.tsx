@@ -1,6 +1,6 @@
 import React from "react";
 import type { EmployerProfileData } from "./types";
-import { INDUSTRY_OPTIONS, COMPANY_SIZE_OPTIONS } from "./types";
+// import { INDUSTRY_OPTIONS, COMPANY_SIZE_OPTIONS } from "./types"; // temporarily disabled — re-enable when switching back to dropdowns
 import { SectionCard, Field, SelectField } from "./shared";
 import { CompanyAutoFill } from "./CompanyAutoFill";
 
@@ -33,6 +33,7 @@ export function CompanyInfoSection({ data, onChange, errors = {} }: Props) {
           placeholder="Acme Corp Recruitment"
           colSpan
         />
+        {/* DROPDOWN TEMPORARILY DISABLED — re-enable by replacing the Field below with the SelectField block
         <SelectField
           id="industry"
           label="Industry / Category"
@@ -43,6 +44,17 @@ export function CompanyInfoSection({ data, onChange, errors = {} }: Props) {
           options={INDUSTRY_OPTIONS}
           placeholder="Select industry..."
         />
+        */}
+        <Field
+          id="industry"
+          label="Industry / Category"
+          required
+          value={data.industry}
+          error={errors.industry}
+          onChange={(v) => onChange({ industry: v })}
+          placeholder="e.g. Financial Services, Technology..."
+        />
+        {/* DROPDOWN TEMPORARILY DISABLED — re-enable by replacing the Field below with the SelectField block
         <SelectField
           id="companySize"
           label="Company Size"
@@ -52,6 +64,16 @@ export function CompanyInfoSection({ data, onChange, errors = {} }: Props) {
           onChange={(v) => onChange({ companySize: v })}
           options={COMPANY_SIZE_OPTIONS}
           placeholder="Select size..."
+        />
+        */}
+        <Field
+          id="companySize"
+          label="Company Size"
+          required
+          value={data.companySize}
+          error={errors.companySize}
+          onChange={(v) => onChange({ companySize: v })}
+          placeholder="e.g. 1–10, 11–50, 51–200..."
         />
         <SelectField
           id="foundedYear"

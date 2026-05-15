@@ -115,7 +115,7 @@ export default function ResumePreviewPage() {
 
           <div className="space-y-1">
             <p className="text-lg font-semibold" style={{ color: "var(--db-text)" }}>
-              {resumeFileName ?? "Document"}
+              {resumeFileName ? resumeFileName.split(/[/\\]/).pop() : "Document"}
             </p>
             <p className="text-sm" style={{ color: "var(--db-text-muted)" }}>
               This file format cannot be previewed in the browser.
@@ -129,7 +129,7 @@ export default function ResumePreviewPage() {
 
           <a
             href={resumeUrl}
-            download={resumeFileName ?? "resume"}
+            download={resumeFileName ? resumeFileName.split(/[/\\]/).pop() : "resume"}
             className="db-btn-primary flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold"
             style={{ background: "var(--db-primary)", color: "var(--db-primary-text)", textDecoration: "none" }}
           >

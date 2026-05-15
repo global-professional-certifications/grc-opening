@@ -104,9 +104,44 @@ export function AdminLayout({ children, title = "Admin" }: { children: React.Rea
     setChecked(true);
   }, []);
 
+  // bfcache guard: re-validates the admin token on every page show, including
+  // bfcache restores, so the forward button cannot bypass the auth check.
+  useEffect(() => {
+    function handlePageShow(e: PageTransitionEvent) {
+      if (!e.persisted) return;
+      const token = localStorage.getItem("grc_local_token");
+      if (!token) { window.location.replace("/admin/login"); return; }
+      try {
+        const payload = JSON.parse(atob(token.split(".")[1]));
+        const now = Math.floor(Date.now() / 1000);
+        if (payload.role !== "ADMIN" || (payload.exp && payload.exp < now)) {
+          window.location.replace("/admin/login");
+        }
+      } catch {
+        window.location.replace("/admin/login");
+      }
+    }
+    window.addEventListener("pageshow", handlePageShow);
+    return () => window.removeEventListener("pageshow", handlePageShow);
+  }, [router]);
+
+  // Back-navigation guard: native popstate fires reliably on every browser
+  // back/forward press. When the admin leaves the /admin area, destroy the
+  // session so a subsequent forward press finds no token.
+  useEffect(() => {
+    function handlePopState() {
+      const path = window.location.pathname;
+      if (!path.startsWith("/admin") && localStorage.getItem("grc_local_token")) {
+        localStorage.removeItem("grc_local_token");
+      }
+    }
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
   function handleLogout() {
     localStorage.removeItem("grc_local_token");
-    router.push("/admin/login");
+    router.replace("/admin/login");
   }
 
   if (!checked) {
@@ -177,10 +212,10 @@ export function AdminLayout({ children, title = "Admin" }: { children: React.Rea
               <h1 className="text-[18px] font-bold text-gray-900 truncate">{title}</h1>
               <p className="text-[12px] text-gray-400 mt-0.5">Admin Moderation Hub · Real-time oversight of platform activity</p>
             </div>
-            <button className="shrink-0 flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 bg-white text-[13px] font-semibold text-gray-600 shadow-sm hover:shadow-md transition-all">
+            {/* <button className="shrink-0 flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 bg-white text-[13px] font-semibold text-gray-600 shadow-sm hover:shadow-md transition-all">
               <span className="material-symbols-outlined" style={{ fontSize: 16 }}>download</span>
               Reports
-            </button>
+            </button> */}
           </div>
 
           <div className="p-8">

@@ -13,9 +13,9 @@ interface ConfirmModal { title: string; message: string; confirmColor?: string; 
 
 function RoleBadge({ role }: { role: string }) {
   const map: Record<string, string> = {
-    EMPLOYER:   "bg-blue-50 text-blue-700",
+    EMPLOYER: "bg-blue-50 text-blue-700",
     JOB_SEEKER: "bg-purple-50 text-purple-700",
-    ADMIN:      "bg-amber-50 text-amber-700",
+    ADMIN: "bg-amber-50 text-amber-700",
   };
   return (
     <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap ${map[role] ?? "bg-gray-100 text-gray-500"}`}>
@@ -99,8 +99,8 @@ function UserRow({
           className="text-[11px] font-medium border border-gray-200 rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:border-[#3a1292] min-w-[100px] hover:border-gray-300 transition-colors"
         >
           <option value="ACTIVE">Active</option>
-          <option value="SUSPENDED">Suspended</option>
-          <option value="BANNED">Banned</option>
+          <option value="SUSPENDED">Suspend</option>
+          <option value="BANNED">Ban</option>
         </select>
       </div>
     </div>
@@ -213,8 +213,8 @@ export default function AdminUsersPage() {
         >
           <option value="">All Statuses</option>
           <option value="ACTIVE">Active</option>
-          <option value="SUSPENDED">Suspended</option>
-          <option value="BANNED">Banned</option>
+          <option value="SUSPENDED">Suspend</option>
+          <option value="BANNED">Ban</option>
         </select>
         <span className="text-[12px] text-gray-400">{total} users</span>
       </div>

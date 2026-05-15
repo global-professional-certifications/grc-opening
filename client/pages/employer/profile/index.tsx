@@ -94,11 +94,11 @@ function ProfileHeaderCard({
   const { pct } = calcEmployerCompletion(profile);
   const initials = profile.companyName
     ? profile.companyName
-        .split(" ")
-        .slice(0, 2)
-        .map((w) => w[0])
-        .join("")
-        .toUpperCase()
+      .split(" ")
+      .slice(0, 2)
+      .map((w) => w[0])
+      .join("")
+      .toUpperCase()
     : "TC";
 
   return (
@@ -149,17 +149,23 @@ function ProfileHeaderCard({
             title="Upload company logo"
           >
             <div
-              className="w-24 h-24 rounded-2xl flex items-center justify-center overflow-hidden text-xl font-bold select-none"
+              className="w-24 h-24 rounded-2xl flex items-center justify-center overflow-hidden text-xl font-bold select-none bg-white relative z-20"
               style={{
-                background: "var(--db-primary-20)",
+                backgroundColor: "#ffffff",
+                background: "#ffffff",
                 color: "var(--db-primary)",
-                border: "4px solid var(--db-card)",
+                border: "4px solid #ffffff",
                 boxShadow: "0 4px 16px rgba(0,0,0,0.15)",
                 ...SYNE,
               }}
             >
               {logoImage ? (
-                <img src={logoImage} alt="Company logo" className="w-full h-full object-cover" />
+                <img
+                  src={logoImage}
+                  alt="Company logo"
+                  className="w-full h-full object-cover bg-white"
+                  style={{ backgroundColor: '#ffffff', display: 'block' }}
+                />
               ) : (
                 initials
               )}
@@ -441,31 +447,30 @@ export default function EmployerProfilePage() {
     apiFetch<{ profile: any }>("/profile/employer")
       .then(({ profile: p }) => {
         const mapped: EmployerProfileData = {
-          companyName:      p.companyName        ?? "",
-          industry:         p.industry           ?? "",
-          companySize:      p.companySize        ?? "",
-          foundedYear:      p.foundedYear        ?? "",
-          website:          p.website            ?? "",
-          tagline:          p.tagline            ?? "",
-          description:      p.description        ?? "",
-          contactName:      p.contactName        ?? "",
-          contactEmail:     p.contactEmail       ?? "",
-          contactPhone:     p.phone              ?? "",
-          contactPhoneCode: p.contactPhoneCode   ?? "+1",
-          address:          p.address            ?? "",
-          city:             p.city               ?? "",
-          state:            p.state              ?? "",
-          stateCode:        "",
-          country:          p.country            ?? "",
-          countryCode:      p.countryCode        ?? "",
-          linkedInUrl:      p.linkedInUrl        ?? "",
-          twitterUrl:       p.twitterUrl         ?? "",
-          otherUrl:         "",
-          customLinks:      [],
+          companyName: p.companyName ?? "",
+          industry: p.industry ?? "",
+          companySize: p.companySize ?? "",
+          foundedYear: p.foundedYear ?? "",
+          website: p.website ?? "",
+          tagline: p.tagline ?? "",
+          description: p.description ?? "",
+          contactName: p.contactName ?? "",
+          contactEmail: p.contactEmail ?? "",
+          contactPhone: p.phone ?? "",
+          contactPhoneCode: p.contactPhoneCode ?? "+1",
+          address: p.address ?? "",
+          city: p.city ?? "",
+          state: p.state ?? "",
+          stateCode: "",
+          country: p.country ?? "",
+          countryCode: p.countryCode ?? "",
+          linkedInUrl: p.linkedInUrl ?? "",
+          twitterUrl: p.twitterUrl ?? "",
+          otherUrl: p.otherUrl ?? "",
           emailNotifications: true,
-          applicantAlerts:    true,
-          weeklyDigest:       false,
-          logoUrl:          p.logoUrl            ?? null,
+          applicantAlerts: true,
+          weeklyDigest: false,
+          logoUrl: p.logoUrl ?? null,
         };
         setFormData(mapped);
         setOriginal(mapped);
@@ -533,19 +538,19 @@ export default function EmployerProfilePage() {
 
     if (!d.companyName) errs.companyName = "Company Name is required.";
     else if (/^[^a-zA-Z0-9]+$/.test(d.companyName)) errs.companyName = "Cannot contain only symbols.";
-    
-    if (!d.industry) errs.industry = "Please select an industry.";
-    if (!d.companySize) errs.companySize = "Please select a company size.";
+
+    if (!d.industry) errs.industry = "Please enter an industry.";
+    if (!d.companySize) errs.companySize = "Please enter a company size.";
     if (!d.foundedYear) errs.foundedYear = "Please select a founded year.";
-    
+
     const tryUrl = (url: string, key: string) => {
-       if (url) {
-         try {
-           new URL(url.startsWith("http") ? url : `https://${url}`);
-         } catch {
-           errs[key] = "Valid URL required.";
-         }
-       }
+      if (url) {
+        try {
+          new URL(url.startsWith("http") ? url : `https://${url}`);
+        } catch {
+          errs[key] = "Valid URL required.";
+        }
+      }
     };
     tryUrl(d.website, "website");
 
@@ -553,7 +558,7 @@ export default function EmployerProfilePage() {
     else if (d.description.length < 50) errs.description = "Please provide at least 50 characters.";
 
     if (!d.contactName) errs.contactName = "Contact Name is required.";
-    
+
     if (!d.contactEmail) errs.contactEmail = "Contact Email is required.";
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(d.contactEmail)) errs.contactEmail = "Enter a valid email address.";
 
@@ -569,7 +574,6 @@ export default function EmployerProfilePage() {
     tryUrl(d.linkedInUrl, "linkedInUrl");
     tryUrl(d.twitterUrl, "twitterUrl");
     tryUrl(d.otherUrl, "otherUrl");
-    d.customLinks?.forEach((url, i) => tryUrl(url, `customLink_${i}`));
 
     setErrors(errs);
     return errs;
@@ -591,36 +595,36 @@ export default function EmployerProfilePage() {
     const prep = (u: string) => (u && !u.startsWith("http") ? `https://${u}` : u);
     const finalData = {
       ...formData,
-      website:    prep(formData.website),
+      website: prep(formData.website),
       linkedInUrl: prep(formData.linkedInUrl),
-      twitterUrl:  prep(formData.twitterUrl),
-      otherUrl:    prep(formData.otherUrl),
-      customLinks: formData.customLinks?.map(prep),
+      twitterUrl: prep(formData.twitterUrl),
+      otherUrl: prep(formData.otherUrl),
     };
 
     try {
       await apiFetch("/profile/employer", {
         method: "PATCH",
         body: JSON.stringify({
-          companyName:      finalData.companyName,
-          description:      finalData.description,
-          website:          finalData.website,
-          industry:         finalData.industry,
-          companySize:      finalData.companySize,
-          tagline:          finalData.tagline,
-          foundedYear:      finalData.foundedYear,
-          logoUrl:          finalData.logoUrl,
-          phone:            finalData.contactPhone,
+          companyName: finalData.companyName,
+          description: finalData.description,
+          website: finalData.website,
+          industry: finalData.industry,
+          companySize: finalData.companySize,
+          tagline: finalData.tagline,
+          foundedYear: finalData.foundedYear,
+          logoUrl: finalData.logoUrl,
+          phone: finalData.contactPhone,
           contactPhoneCode: finalData.contactPhoneCode,
-          contactName:      finalData.contactName,
-          contactEmail:     finalData.contactEmail,
-          address:          finalData.address,
-          city:             finalData.city,
-          state:            finalData.state,
-          country:          finalData.country,
-          countryCode:      finalData.countryCode,
-          linkedInUrl:      finalData.linkedInUrl,
-          twitterUrl:       finalData.twitterUrl,
+          contactName: finalData.contactName,
+          contactEmail: finalData.contactEmail,
+          address: finalData.address,
+          city: finalData.city,
+          state: finalData.state,
+          country: finalData.country,
+          countryCode: finalData.countryCode,
+          linkedInUrl: finalData.linkedInUrl,
+          twitterUrl: finalData.twitterUrl,
+          otherUrl: finalData.otherUrl,
         }),
       });
       localStorage.setItem(STORAGE_KEY, JSON.stringify(finalData));

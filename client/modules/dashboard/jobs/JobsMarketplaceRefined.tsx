@@ -27,8 +27,6 @@ type DiscoveryJob = {
   tags: string[];
   verified: boolean;
   description: string;
-  responsibilities: string;
-  qualifications: string;
   niceToHave: string;
   isSaved: boolean;
   isApplied?: boolean;
@@ -60,6 +58,7 @@ type EmployerPayload = {
   city?: string | null;
   state?: string | null;
   country?: string | null;
+  otherUrl?: string | null;
 };
 
 type JobDetailWithEmployerResponse = {
@@ -127,6 +126,7 @@ function toEmployerForModal(employer: EmployerPayload | null | undefined, fallba
     city: normalizeOptionalText(employer?.city),
     state: normalizeOptionalText(employer?.state),
     country: normalizeOptionalText(employer?.country),
+    otherUrl: normalizeOptionalText(employer?.otherUrl),
   };
 }
 

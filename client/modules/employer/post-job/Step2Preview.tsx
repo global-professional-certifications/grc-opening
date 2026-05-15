@@ -257,11 +257,11 @@ export function Step2Preview() {
             <SectionHeader label="Job Overview" onEdit={() => goToStep(1)} />
             <div className="flex items-start gap-4">
               <div
-                className="w-14 h-14 rounded-xl flex-shrink-0 flex items-center justify-center text-xs font-bold"
+                className="w-14 h-14 rounded-xl flex-shrink-0 flex items-center justify-center text-xs font-bold bg-white"
                 style={{
                   ...MONO,
-                  backgroundColor: 'rgba(4,255,180,0.08)',
-                  border: '1px solid rgba(4,255,180,0.2)',
+                  backgroundColor: '#ffffff',
+                  border: '1px solid var(--db-border)',
                   color: 'var(--db-primary)',
                   fontSize: '11px',
                 }}

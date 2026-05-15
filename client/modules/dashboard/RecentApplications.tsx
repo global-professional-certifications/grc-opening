@@ -4,12 +4,12 @@ import { apiFetch } from "@/lib/api";
 type Status = "PENDING" | "REVIEWING" | "SHORTLISTED" | "INTERVIEWING" | "REJECTED" | "HIRED";
 
 const STATUS: Record<Status, { bg: string; color: string; label: string }> = {
-  PENDING:      { bg: "var(--db-primary-10)", color: "var(--db-primary)", label: "Submitted" },
-  REVIEWING:    { bg: "rgba(59,130,246,0.1)", color: "#3b82f6", label: "Reviewing" },
-  SHORTLISTED:  { bg: "rgba(245,158,11,0.1)", color: "#f59e0b", label: "Shortlisted" },
+  PENDING: { bg: "var(--db-primary-10)", color: "var(--db-primary)", label: "Submitted" },
+  REVIEWING: { bg: "rgba(59,130,246,0.1)", color: "#3b82f6", label: "Reviewing" },
+  SHORTLISTED: { bg: "rgba(245,158,11,0.1)", color: "#f59e0b", label: "Shortlisted" },
   INTERVIEWING: { bg: "rgba(168,85,247,0.1)", color: "#a855f7", label: "Interviewing" },
-  REJECTED:     { bg: "rgba(239,68,68,0.1)", color: "#ef4444", label: "Rejected" },
-  HIRED:        { bg: "rgba(34,197,94,0.1)", color: "#22c55e", label: "Hired" },
+  REJECTED: { bg: "rgba(239,68,68,0.1)", color: "#ef4444", label: "Rejected" },
+  HIRED: { bg: "rgba(34,197,94,0.1)", color: "#22c55e", label: "Hired" },
 };
 
 type ApplicationData = {
@@ -59,7 +59,7 @@ export function RecentApplications() {
         <table className="w-full text-left">
           <thead>
             <tr style={{ background: "var(--db-table-head)" }}>
-              {["Job Title","Company","Date Applied","Status","Action"].map(h => (
+              {["Job Title", "Company", "Date Applied", "Status"].map(h => (
                 <th key={h} scope="col" className="px-6 py-4 text-[10px] uppercase font-bold tracking-widest"
                   style={{ color: "var(--db-text-muted)" }}>{h}</th>
               ))}
@@ -68,13 +68,13 @@ export function RecentApplications() {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={5} className="px-6 py-8 text-center text-sm" style={{ color: "var(--db-text-muted)" }}>
+                <td colSpan={4} className="px-6 py-8 text-center text-sm" style={{ color: "var(--db-text-muted)" }}>
                   Loading applications...
                 </td>
               </tr>
             ) : applications.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-6 py-8 text-center text-sm" style={{ color: "var(--db-text-muted)" }}>
+                <td colSpan={4} className="px-6 py-8 text-center text-sm" style={{ color: "var(--db-text-muted)" }}>
                   No applications found.
                 </td>
               </tr>
@@ -100,15 +100,7 @@ export function RecentApplications() {
                       {statusConfig.label}
                     </span>
                   </td>
-                  <td className="px-6 py-4">
-                    <button
-                      aria-label={`More options for ${app.job.title}`}
-                      className="p-1 rounded hover:bg-black/5 transition-colors focus:outline-none focus:ring-2 focus:ring-(--db-primary) focus:ring-offset-1"
-                      style={{ color: "var(--db-text-muted)" }}
-                    >
-                      <span className="material-symbols-outlined text-lg" aria-hidden="true">more_horiz</span>
-                    </button>
-                  </td>
+
                 </tr>
               );
             })}

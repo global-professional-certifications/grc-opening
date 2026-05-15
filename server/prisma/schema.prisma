@@ -233,6 +233,7 @@ model EmployerProfile {
   countryCode              String?  @map("country_code")
   linkedInUrl              String?  @map("linked_in_url")
   twitterUrl               String?  @map("twitter_url")
+  otherUrl                 String?  @map("other_url")
   isVerified               Boolean  @default(false) @map("is_verified")
   createdAt                DateTime @default(now()) @map("created_at")
   updatedAt                DateTime @updatedAt @map("updated_at")
@@ -267,8 +268,6 @@ model Job {
   jobType           String?   @map("job_type")
   seniority         String?
   experience        String?
-  responsibilities  String?
-  qualifications    String?
   niceToHave        String?   @map("nice_to_have")
   currency          String?   @default("USD")
   undisclosedSalary Boolean   @default(false) @map("undisclosed_salary")

@@ -25,8 +25,6 @@ export interface EmployerJob {
   currency: string;
   undisclosedSalary: boolean;
   description: string;
-  responsibilities: string;
-  qualifications: string;
   experience: string;
   seniority: string;
   certifications: string[];
@@ -68,8 +66,6 @@ function mapApiJob(j: any): EmployerJob {
     currency:         j.currency ?? 'USD',
     undisclosedSalary: j.undisclosedSalary ?? false,
     description:      j.description ?? '',
-    responsibilities: j.responsibilities ?? '',
-    qualifications:   j.qualifications ?? '',
     experience:       j.experience ?? '',
     seniority:        j.seniority ?? '',
     certifications:   j.certifications?.map((c: any) => c.name) ?? [],

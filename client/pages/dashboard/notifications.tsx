@@ -2,6 +2,10 @@ import { useState, useEffect } from 'react';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import { apiFetch } from '../../lib/api';
 import { useRouter } from 'next/router';
+import { JobDetailDialog, type DialogJob, type SupportedCurrency } from '../../modules/dashboard/jobs/JobDetailDialog';
+import { ApplyModal, ApplySuccessToast, ReportModal } from '../../modules/dashboard/jobs/JobsMarketplaceRefined';
+import { EmployerProfileModal, type EmployerForModal } from '../../modules/dashboard/EmployerProfileModal';
+import { useCallback, useMemo } from 'react';
 
 interface Notification {
   id: string;
@@ -25,6 +29,24 @@ export default function NotificationsPage() {
   const [unreadCount, setUnreadCount] = useState(0);
   const LIMIT = 20;
   const router = useRouter();
+
+  // Job Modal State
+  const [selectedJob, setSelectedJob] = useState<DialogJob | null>(null);
+  const [selectedCurrency, setSelectedCurrency] = useState<SupportedCurrency>("INR");
+  const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
+  const [appliedIds, setAppliedIds] = useState<Set<string>>(new Set());
+  
+  // Other Modals State
+  const [applyTarget, setApplyTarget] = useState<DialogJob | null>(null);
+  const [applySuccess, setApplySuccess] = useState<{ jobTitle: string } | null>(null);
+  const [reportTarget, setReportTarget] = useState<DialogJob | null>(null);
+  const [selectedEmployer, setSelectedEmployer] = useState<EmployerForModal | null>(null);
+  const [isFetchingJob, setIsFetchingJob] = useState(false);
+
+  useEffect(() => {
+    const stored = localStorage.getItem("grc_preferred_currency") as SupportedCurrency | null;
+    if (stored) setSelectedCurrency(stored);
+  }, []);
 
   useEffect(() => {
     fetchNotifications();
@@ -86,12 +108,105 @@ export default function NotificationsPage() {
       }
     }
 
-    if (notification.metadata?.jobId && notification.type.startsWith('APPLICATION_')) {
-      router.push(`/dashboard/job/${notification.metadata.jobId}`);
-    } else if (notification.metadata?.jobId && notification.type === 'JOB_CLOSED') {
-      router.push(`/dashboard/job/${notification.metadata.jobId}`);
+    if (notification.metadata?.jobId) {
+      setIsFetchingJob(true);
+      try {
+        const res = await apiFetch<{ job: any }>(`/jobs/${notification.metadata.jobId}`);
+        const job = res.job;
+        
+        // Map API response to DialogJob type
+        const mappedJob: DialogJob = {
+          id: job.id,
+          title: job.title,
+          companyName: job.employer.companyName,
+          companyLogoText: job.employer.companyName.charAt(0).toUpperCase(),
+          category: job.category,
+          location: job.location,
+          workMode: job.workMode === 'REMOTE' ? 'Remote' : job.workMode === 'HYBRID' ? 'Hybrid' : 'On-site',
+          jobType: job.jobType,
+          seniority: job.seniority,
+          experienceLevel: job.experience,
+          postedAtLabel: timeAgo(job.createdAt),
+          salaryMin: job.salaryMin || 0,
+          salaryMax: job.salaryMax || 0,
+          salaryCurrency: job.currency || 'USD',
+          undisclosedSalary: job.undisclosedSalary || false,
+          applicationWindowLabel: 'Open', // Fallback
+          tags: job.certifications?.map((c: any) => c.name) || [],
+          verified: true,
+          description: job.description,
+          niceToHave: job.niceToHave || '',
+          isSaved: job.isSaved,
+          applicationId: job.applicationId
+        };
+
+        if (job.isSaved) setSavedIds(prev => new Set(prev).add(job.id));
+        if (job.hasApplied) setAppliedIds(prev => new Set(prev).add(job.id));
+
+        setSelectedJob(mappedJob);
+      } catch (e) {
+        console.error('Failed to fetch job details:', e);
+        setError('Could not load job details. It might have been removed.');
+      } finally {
+        setIsFetchingJob(false);
+      }
     }
   };
+
+  const makeToggleSave = useCallback((jobId: string) => () => {
+    const nowSaved = !savedIds.has(jobId);
+    setSavedIds(prev => {
+      const next = new Set(prev);
+      if (nowSaved) next.add(jobId);
+      else next.delete(jobId);
+      return next;
+    });
+    apiFetch(`/jobs/${jobId}/save`, { method: nowSaved ? "POST" : "DELETE" }).catch(() => {
+      setSavedIds(prev => {
+        const next = new Set(prev);
+        if (nowSaved) next.delete(jobId);
+        else next.add(jobId);
+        return next;
+      });
+    });
+  }, [savedIds]);
+
+  const makeWithdraw = useCallback((jobId: string) => async () => {
+    try {
+      await apiFetch(`/jobs/${jobId}/withdraw`, { method: "PATCH" });
+      setAppliedIds(prev => { const next = new Set(prev); next.delete(jobId); return next; });
+    } catch (e) {
+      console.error("Failed to withdraw:", e);
+    }
+  }, []);
+
+  const makeApply = useCallback((jobId: string) => async (notes: string) => {
+    await apiFetch(`/jobs/${jobId}/apply`, { method: "POST", body: JSON.stringify({ notes }) });
+    setAppliedIds(prev => new Set(prev).add(jobId));
+  }, []);
+
+  const openEmployerProfile = useCallback(async (job: Pick<DialogJob, "id" | "companyName">) => {
+    try {
+      const response = await apiFetch<{ job: any }>(`/jobs/${job.id}`);
+      const emp = response.job.employer;
+      setSelectedEmployer({
+        companyName: emp.companyName || job.companyName,
+        industry: emp.industry,
+        companySize: emp.companySize,
+        description: emp.description,
+        tagline: emp.tagline,
+        foundedYear: emp.foundedYear,
+        website: emp.website,
+        address: emp.address,
+        city: emp.city,
+        state: emp.state,
+        country: emp.country,
+        otherUrl: emp.otherUrl
+      });
+    } catch (e) {
+      console.error("Failed to load employer:", e);
+    }
+  }, []);
 
   const timeAgo = (dateStr: string) => {
     const d = new Date(dateStr);
@@ -294,6 +409,60 @@ export default function NotificationsPage() {
             </div>
           </div>
         )}
+
+        {/* Interaction Modals */}
+        {selectedJob && (
+          <JobDetailDialog
+            job={{ ...selectedJob, isSaved: savedIds.has(selectedJob.id) }}
+            selectedCurrency={selectedCurrency}
+            isApplied={appliedIds.has(selectedJob.id)}
+            onClose={() => setSelectedJob(null)}
+            onRequestApply={() => { setSelectedJob(null); setApplyTarget(selectedJob); }}
+            onWithdraw={makeWithdraw(selectedJob.id)}
+            onReport={() => { setSelectedJob(null); setReportTarget(selectedJob); }}
+            onToggleSave={makeToggleSave(selectedJob.id)}
+          />
+        )}
+
+        {applyTarget && (
+          <ApplyModal
+            job={applyTarget}
+            selectedCurrency={selectedCurrency}
+            onSubmit={async (notes) => {
+              await makeApply(applyTarget.id)(notes);
+              setApplySuccess({ jobTitle: applyTarget.title });
+              setApplyTarget(null);
+            }}
+            onClose={() => setApplyTarget(null)}
+          />
+        )}
+
+        {applySuccess && (
+          <ApplySuccessToast jobTitle={applySuccess.jobTitle} onDismiss={() => setApplySuccess(null)} />
+        )}
+
+        {reportTarget && (
+          <ReportModal
+            jobId={reportTarget.id}
+            jobTitle={reportTarget.title}
+            onClose={() => setReportTarget(null)}
+          />
+        )}
+
+        {selectedEmployer && (
+          <EmployerProfileModal employer={selectedEmployer} onClose={() => setSelectedEmployer(null)} />
+        )}
+
+        {/* Global Loading Overlay for Job Details */}
+        {isFetchingJob && (
+          <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/20 backdrop-blur-[2px]">
+            <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-xl flex items-center gap-4">
+              <div className="w-5 h-5 border-2 border-primary border-t-transparent animate-spin rounded-full" />
+              <span className="text-sm font-bold">Loading details...</span>
+            </div>
+          </div>
+        )}
+
 
       </div>
     </DashboardLayout>

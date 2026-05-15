@@ -24,7 +24,6 @@ export interface EmployerProfileData {
   linkedInUrl: string;
   twitterUrl: string;
   otherUrl: string;
-  customLinks: string[];
 
   // Notification preferences
   emailNotifications: boolean;
@@ -56,7 +55,6 @@ export const EMPTY_EMPLOYER_PROFILE: EmployerProfileData = {
   linkedInUrl: "",
   twitterUrl: "",
   otherUrl: "",
-  customLinks: [],
   emailNotifications: true,
   applicantAlerts: true,
   weeklyDigest: false,

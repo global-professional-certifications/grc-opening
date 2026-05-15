@@ -39,6 +39,7 @@ export const updateSeekerProfile = async (req: Request, res: Response): Promise<
     const {
       firstName, lastName, headline, bio, location, linkedInUrl, avatarUrl, country, phone,
       openToShareCriticalInfo, ctcCurrency, currentCtc, expectedCtc, noticePeriod, buybackOption, reasonForChange, reasonForChangeOther,
+      resumeUrl,
       skills, workExperiences, educations, certifications
     } = req.body;
 
@@ -69,6 +70,7 @@ export const updateSeekerProfile = async (req: Request, res: Response): Promise<
           ...(buybackOption !== undefined && { buybackOption }),
           ...(reasonForChange !== undefined && { reasonForChange }),
           ...(reasonForChangeOther !== undefined && { reasonForChangeOther }),
+          ...(resumeUrl !== undefined && { resumeUrl }),
         } as any,
       });
 
@@ -228,7 +230,7 @@ export const updateEmployerProfile = async (req: Request, res: Response): Promis
       tagline, foundedYear, logoUrl,
       phone, contactPhoneCode, contactName, contactEmail,
       address, city, state, country, countryCode,
-      linkedInUrl, twitterUrl,
+      linkedInUrl, twitterUrl, otherUrl,
     } = req.body;
 
     const profile = await prisma.employerProfile.findUnique({ where: { userId } });
@@ -260,6 +262,7 @@ export const updateEmployerProfile = async (req: Request, res: Response): Promis
         ...(countryCode             !== undefined && { countryCode }),
         ...(linkedInUrl             !== undefined && { linkedInUrl }),
         ...(twitterUrl              !== undefined && { twitterUrl }),
+        ...(otherUrl                !== undefined && { otherUrl }),
       } as any,
     });
 

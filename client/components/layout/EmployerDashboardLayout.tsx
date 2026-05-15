@@ -73,6 +73,41 @@ function EmployerDashboardLayoutInner({ children }: { children: React.ReactNode 
     setRoleChecked(true);
   }, [router, user]);
 
+  // bfcache guard: pageshow fires on every display including bfcache restores
+  // (event.persisted === true), re-validating the token prevents forward-button
+  // navigation from bypassing the auth guard after logout.
+  // window.location.replace is used (not router.replace) because the Next.js router
+  // may not be in a consistent state during a bfcache restore.
+  useEffect(() => {
+    function handlePageShow(e: PageTransitionEvent) {
+      if (!e.persisted) return;
+      if (!localStorage.getItem("grc_token")) {
+        window.location.replace("/auth/login");
+        return;
+      }
+      // Token exists but React state may be stale from cache — re-run role check.
+      setRoleChecked(false);
+    }
+    window.addEventListener("pageshow", handlePageShow);
+    return () => window.removeEventListener("pageshow", handlePageShow);
+  }, []);
+
+  // Back-navigation guard: native popstate fires reliably on every browser
+  // back/forward press. When the user leaves the authenticated area, we destroy
+  // the session immediately so a subsequent forward press finds no token and
+  // the auth check in this layout redirects to login.
+  useEffect(() => {
+    function handlePopState() {
+      const path = window.location.pathname;
+      const inAuth = path.startsWith("/employer") || path.startsWith("/dashboard");
+      if (!inAuth && localStorage.getItem("grc_token")) {
+        logout();
+      }
+    }
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, [logout]);
+
   if (!roleChecked) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: "var(--db-bg)", color: "var(--db-text-muted)" }}>

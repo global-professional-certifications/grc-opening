@@ -94,7 +94,7 @@ function mapApiToForm(api: ApiProfilePayload): ProfileFormData {
     coreCompetencies: p.skills.map((s) => s.name),
     certifications: p.certifications.map((c) => ({ id: c.id, name: c.name })),
     resumeUrl: p.resumeUrl,
-    resumeFileName: p.resumeUrl ? "Resume.pdf" : null,
+    resumeFileName: p.resumeUrl ? (p.resumeUrl.split(/[/\\]/).pop() ?? "Resume.pdf") : null,
     avatarUrl: p.avatarUrl,
     openToShareCriticalInfo: p.openToShareCriticalInfo ?? false,
     ctcCurrency: p.ctcCurrency ?? "INR",
@@ -319,14 +319,11 @@ export default function ProfilePage() {
           buybackOption: formData.buybackOption,
           reasonForChange: JSON.stringify(formData.reasonForChange ?? []),
           reasonForChangeOther: formData.reasonForChangeOther,
+          // Only send persisted server URLs — blob: URLs are temporary and must not be stored
+          ...(formData.resumeUrl && !formData.resumeUrl.startsWith("blob:") && { resumeUrl: formData.resumeUrl }),
         }),
       });
       const saved = mapApiToForm(res);
-      // Preserve local resume data if it was uploaded and the backend hasn't updated its URL yet
-      if (formData.resumeUrl && (!saved.resumeUrl || formData.resumeUrl.startsWith("blob:"))) {
-        saved.resumeUrl = formData.resumeUrl;
-        saved.resumeFileName = formData.resumeFileName;
-      }
       setFormData(saved);
       setOriginal(saved);
       if (storageKey) {

@@ -17,6 +17,31 @@ export default function HomeRegister() {
     }
   }, [router.isReady, router.query.role]);
 
+  // Redirect-if-authenticated, with back/forward guard: if the user arrived here
+  // via the browser back button, destroy the session (same logic as login.tsx).
+  useEffect(() => {
+    const token = localStorage.getItem("grc_token");
+    if (!token) return;
+    try {
+      const navEntry = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming | undefined;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const isBackForward = navEntry?.type === "back_forward" || (performance.navigation as any)?.type === 2;
+      if (isBackForward) {
+        localStorage.removeItem("grc_token");
+        localStorage.removeItem("grc_user");
+        return;
+      }
+      const user = JSON.parse(localStorage.getItem("grc_user") ?? "null");
+      if (user?.role) {
+        window.location.replace(
+          user.role === "EMPLOYER" ? "/employer/dashboard" : "/dashboard"
+        );
+      }
+    } catch {
+      // malformed storage — let the user register fresh
+    }
+  }, []); // empty deps — run exactly once on mount
+
   // Lock body scroll for the fullscreen auth experience.
   useEffect(() => {
     const prev = document.body.style.overflow;

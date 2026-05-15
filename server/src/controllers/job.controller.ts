@@ -37,8 +37,6 @@ type DiscoveryJob = {
   tags: string[];
   verified: boolean;
   description: string;
-  responsibilities: string;
-  qualifications: string;
   niceToHave: string;
   isSaved: boolean;
   isApplied: boolean;
@@ -87,7 +85,7 @@ export const createJob = async (req: Request, res: Response): Promise<void> => {
     const {
       title, description, location, workMode,
       category, jobType, seniority, experience,
-      responsibilities, qualifications, niceToHave,
+      niceToHave,
       currency, undisclosedSalary,
       salaryMin, salaryMax,
       certifications,
@@ -183,8 +181,6 @@ export const createJob = async (req: Request, res: Response): Promise<void> => {
         jobType:          jobType         ?? null,
         seniority:        seniority       ?? null,
         experience:       experience      ?? null,
-        responsibilities: responsibilities ?? null,
-        qualifications:   qualifications  ?? null,
         niceToHave:       niceToHave      ?? null,
         currency:         currency        ?? 'USD',
         undisclosedSalary: undisclosedSalary === true || undisclosedSalary === 'true',
@@ -209,7 +205,7 @@ export const updateJob = async (req: Request, res: Response): Promise<void> => {
     const {
       title, description, location, workMode,
       category, jobType, seniority, experience,
-      responsibilities, qualifications, niceToHave,
+      niceToHave,
       currency, undisclosedSalary,
       salaryMin, salaryMax,
       certifications,
@@ -396,8 +392,6 @@ export const getDiscoveryJobs = async (req: Request, res: Response): Promise<voi
       tags:                 job.certifications.map(c => c.name),
       verified:             true,
       description:          job.description,
-      responsibilities:     job.responsibilities ?? '',
-      qualifications:       job.qualifications ?? '',
       niceToHave:           job.niceToHave ?? '',
       isSaved:              savedJobIds.has(job.id),
       isApplied:            appliedJobIds.has(job.id),
@@ -747,8 +741,6 @@ export const getSavedJobs = async (req: Request, res: Response): Promise<void> =
       tags:                 job.certifications.map(c => c.name),
       verified:             true,
       description:          job.description,
-      responsibilities:     job.responsibilities ?? '',
-      qualifications:       job.qualifications ?? '',
       niceToHave:           job.niceToHave ?? '',
       isSaved:              true,
       isApplied:            appliedJobIdsSaved.has(job.id),

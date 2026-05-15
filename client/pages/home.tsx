@@ -29,6 +29,7 @@ export default function LandingPage() {
   const [heroExperience, setHeroExperience] = useState("");
   const [heroFunction, setHeroFunction] = useState("");
 
+
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -80,7 +81,7 @@ export default function LandingPage() {
                 <span className="text-[#3a1292]">GRC</span>
                 <span className="text-gray-900 ml-1.5">Openings</span>
               </h1>
-                          </div>
+            </div>
           </Link>
 
           {/* Centre links */}

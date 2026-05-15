@@ -130,22 +130,6 @@ function EmployerJobDetailDialog({ job, onClose }: { job: EmployerJob; onClose: 
             </section>
           )}
 
-          {/* Responsibilities */}
-          {job.responsibilities && (
-            <section>
-              <h4 className="text-[0.7rem] uppercase tracking-[0.26em] font-bold mb-3" style={{ color: "var(--db-primary)", ...MONO }}>Responsibilities</h4>
-              <p className="text-[0.9rem] leading-[1.78] whitespace-pre-line" style={{ color: "var(--db-text-secondary)" }}>{job.responsibilities}</p>
-            </section>
-          )}
-
-          {/* Qualifications */}
-          {job.qualifications && (
-            <section>
-              <h4 className="text-[0.7rem] uppercase tracking-[0.26em] font-bold mb-3" style={{ color: "var(--db-primary)", ...MONO }}>Qualifications</h4>
-              <p className="text-[0.9rem] leading-[1.78] whitespace-pre-line" style={{ color: "var(--db-text-secondary)" }}>{job.qualifications}</p>
-            </section>
-          )}
-
           {/* Required Certs */}
           {job.certifications && job.certifications.length > 0 && (
             <section>
