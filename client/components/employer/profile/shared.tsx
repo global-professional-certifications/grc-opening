@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 
 export const MONO = { fontFamily: "'JetBrains Mono', monospace" };
 export const SYNE = { fontFamily: "'Poppins', sans-serif" };
@@ -26,6 +26,88 @@ export const LABEL_STYLE: React.CSSProperties = {
   display: "block",
   ...MONO,
 };
+
+const DROPDOWN_HEIGHT_PX = 260;
+
+function resolveDropUp(container: HTMLDivElement | null): boolean {
+  if (!container) return false;
+  const rect = container.getBoundingClientRect();
+  const spaceBelow = window.innerHeight - rect.bottom;
+  const spaceAbove = rect.top;
+  return spaceBelow < DROPDOWN_HEIGHT_PX && spaceAbove > spaceBelow;
+}
+
+function useDropdownLifecycle({
+  containerRef,
+  isOpen,
+  setDropUp,
+  closeDropdown,
+}: {
+  containerRef: React.RefObject<HTMLDivElement | null>;
+  isOpen: boolean;
+  setDropUp: React.Dispatch<React.SetStateAction<boolean>>;
+  closeDropdown: () => void;
+}) {
+  const recalculateDropDirection = useCallback(() => {
+    setDropUp(resolveDropUp(containerRef.current));
+  }, [containerRef, setDropUp]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    recalculateDropDirection();
+
+    const handlePointerDown = (event: MouseEvent | TouchEvent) => {
+      const target = event.target;
+      if (!(target instanceof Node)) return;
+      if (!containerRef.current?.contains(target)) {
+        closeDropdown();
+      }
+    };
+
+    const handleFocusIn = (event: FocusEvent) => {
+      const target = event.target;
+      if (!(target instanceof Node)) return;
+      if (!containerRef.current?.contains(target)) {
+        closeDropdown();
+      }
+    };
+
+    const handleScroll = (event: Event) => {
+      const target = event.target;
+      if (target instanceof Node && containerRef.current?.contains(target)) {
+        // Keep the dropdown open while scrolling inside it, but update direction.
+        recalculateDropDirection();
+        return;
+      }
+      closeDropdown();
+    };
+
+    const handleResize = () => recalculateDropDirection();
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        closeDropdown();
+      }
+    };
+
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("touchstart", handlePointerDown);
+    document.addEventListener("focusin", handleFocusIn);
+    document.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("scroll", handleScroll, true);
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("touchstart", handlePointerDown);
+      document.removeEventListener("focusin", handleFocusIn);
+      document.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("scroll", handleScroll, true);
+      window.removeEventListener("resize", handleResize);
+    };
+  }, [closeDropdown, containerRef, isOpen, recalculateDropDirection]);
+
+  return recalculateDropDirection;
+}
 
 // Section card wrapper
 export function SectionCard({
@@ -152,19 +234,23 @@ export function SelectField({
   const [isOpen, setIsOpen] = useState(false);
   const [dropUp, setDropUp] = useState(false);
   const containerRef = React.useRef<HTMLDivElement>(null);
+  const closeDropdown = useCallback(() => setIsOpen(false), []);
+  const recalculateDropDirection = useDropdownLifecycle({
+    containerRef,
+    isOpen,
+    setDropUp,
+    closeDropdown,
+  });
   
   const allOptions = options.map((o) => (typeof o === "string" ? { label: o, value: o } : o));
-  const selectedLabel = allOptions.find(o => o.value === value)?.label || placeholder || "Select...";
+  const selectedLabel = allOptions.find((o) => o.value === value)?.label || placeholder || "Select...";
 
   const toggleDropdown = () => {
     if (disabled) return;
-    if (!isOpen && containerRef.current) {
-      const rect = containerRef.current.getBoundingClientRect();
-      const spaceBelow = window.innerHeight - rect.bottom;
-      // If less than 260px space below, open upwards
-      setDropUp(spaceBelow < 260);
+    if (!isOpen) {
+      recalculateDropDirection();
     }
-    setIsOpen(!isOpen);
+    setIsOpen((prev) => !prev);
   };
 
   return (
@@ -179,7 +265,6 @@ export function SelectField({
           id={id}
           disabled={disabled}
           onClick={toggleDropdown}
-          onBlur={() => setTimeout(() => setIsOpen(false), 200)}
           className="group"
           style={{
             ...BASE_INPUT,
@@ -199,7 +284,7 @@ export function SelectField({
           </span>
           <span 
             className="material-symbols-outlined text-[20px] text-gray-400 transition-transform duration-200"
-            style={{ transform: `rotate(${isOpen ? '180deg' : '0deg'})` }}
+            style={{ transform: `rotate(${isOpen ? "180deg" : "0deg"})` }}
           >
             expand_more
           </span>
@@ -207,7 +292,7 @@ export function SelectField({
 
         {isOpen && !disabled && (
           <div 
-            className={`absolute left-0 right-0 bg-white border border-gray-200 rounded-xl shadow-[0_20px_50px_-12px_rgba(0,0,0,0.25)] z-[9999] max-h-[240px] overflow-y-auto p-1.5 animate-in fade-in duration-200 ${dropUp ? "bottom-[calc(100%+8px)] slide-in-from-bottom-2" : "mt-1.5 top-full slide-in-from-top-2"}`}
+            className={`absolute left-0 right-0 bg-white border border-gray-200 rounded-xl shadow-[0_20px_50px_-12px_rgba(0,0,0,0.25)] z-50 max-h-[240px] overflow-y-auto p-1.5 animate-in fade-in duration-200 ${dropUp ? "bottom-[calc(100%+8px)] slide-in-from-bottom-2" : "mt-1.5 top-full slide-in-from-top-2"}`}
           >
             {allOptions.length > 0 ? (
               allOptions.map((opt) => (
@@ -343,6 +428,13 @@ export function ComboboxField({
   const [searchTerm, setSearchTerm] = useState(value);
   const [dropUp, setDropUp] = useState(false);
   const containerRef = React.useRef<HTMLDivElement>(null);
+  const closeDropdown = useCallback(() => setIsOpen(false), []);
+  const recalculateDropDirection = useDropdownLifecycle({
+    containerRef,
+    isOpen,
+    setDropUp,
+    closeDropdown,
+  });
 
   // Sync searchTerm when value changes externally
   React.useEffect(() => {
@@ -351,7 +443,7 @@ export function ComboboxField({
 
   const allOptions = options.map((o) => (typeof o === "string" ? { label: o, value: o } : o));
   
-  const selectedLabel = allOptions.find(o => o.value === value)?.label || "";
+  const selectedLabel = allOptions.find((o) => o.value === value)?.label || "";
   const isDefaultTerm = searchTerm === selectedLabel;
 
   const filteredOptions = (searchTerm && !isDefaultTerm)
@@ -361,28 +453,20 @@ export function ComboboxField({
   const handleSelect = (val: string) => {
     onChange(val);
     setSearchTerm(val);
-    setIsOpen(false);
+    closeDropdown();
   };
 
   const handleInputChange = (v: string) => {
     setSearchTerm(v);
     onChange(v);
     if (!isOpen) {
-      if (containerRef.current) {
-        const rect = containerRef.current.getBoundingClientRect();
-        const spaceBelow = window.innerHeight - rect.bottom;
-        setDropUp(spaceBelow < 260);
-      }
+      recalculateDropDirection();
       setIsOpen(true);
     }
   };
 
   const handleFocus = () => {
-    if (containerRef.current) {
-      const rect = containerRef.current.getBoundingClientRect();
-      const spaceBelow = window.innerHeight - rect.bottom;
-      setDropUp(spaceBelow < 260);
-    }
+    recalculateDropDirection();
     setFocused(true);
     setIsOpen(true);
   };
@@ -403,10 +487,7 @@ export function ComboboxField({
           autoComplete="off"
           placeholder={placeholder}
           onFocus={handleFocus}
-          onBlur={() => {
-            setFocused(false);
-            setTimeout(() => setIsOpen(false), 200);
-          }}
+          onBlur={() => setFocused(false)}
           onChange={(e) => handleInputChange(e.target.value)}
           style={{
             ...BASE_INPUT,
@@ -419,18 +500,18 @@ export function ComboboxField({
         />
         
         <span 
-          className="material-symbols-outlined absolute right-3 top-1/2 text-[20px] text-gray-400 pointer-events-none transition-transform duration-200"
-          style={{ 
-            transform: `translateY(-50%) rotate(${isOpen ? '180deg' : '0deg'})`,
-            zIndex: 10
-          }}
+            className="material-symbols-outlined absolute right-3 top-1/2 text-[20px] text-gray-400 pointer-events-none transition-transform duration-200"
+            style={{ 
+              transform: `translateY(-50%) rotate(${isOpen ? "180deg" : "0deg"})`,
+              zIndex: 10
+            }}
         >
           expand_more
         </span>
 
         {isOpen && !disabled && (filteredOptions.length > 0) && (
           <div 
-            className={`absolute left-0 right-0 bg-white border border-gray-200 rounded-xl shadow-[0_20px_50px_-12px_rgba(0,0,0,0.25)] z-[9999] max-h-[240px] overflow-y-auto overflow-x-hidden p-1.5 animate-in fade-in duration-200 ${dropUp ? "bottom-[calc(100%+8px)] slide-in-from-bottom-2" : "mt-1.5 top-full slide-in-from-top-2"}`}
+            className={`absolute left-0 right-0 bg-white border border-gray-200 rounded-xl shadow-[0_20px_50px_-12px_rgba(0,0,0,0.25)] z-50 max-h-[240px] overflow-y-auto overflow-x-hidden p-1.5 animate-in fade-in duration-200 ${dropUp ? "bottom-[calc(100%+8px)] slide-in-from-bottom-2" : "mt-1.5 top-full slide-in-from-top-2"}`}
           >
             {filteredOptions.map((opt) => (
               <div

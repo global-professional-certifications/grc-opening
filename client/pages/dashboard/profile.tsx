@@ -194,6 +194,30 @@ function ProfileSkeleton() {
   );
 }
 
+function SaveToast({ visible, message }: { visible: boolean; message: string }) {
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      className="fixed top-6 right-6 z-50 flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-300"
+      style={{
+        background: "var(--db-card)",
+        border: "1px solid var(--db-border)",
+        color: "var(--db-text)",
+        boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
+        opacity: visible ? 1 : 0,
+        transform: visible ? "translateY(0)" : "translateY(-8px)",
+        pointerEvents: "none",
+      }}
+    >
+      <span className="material-symbols-outlined" style={{ fontSize: 18, color: "#10b981" }}>
+        check_circle
+      </span>
+      {message}
+    </div>
+  );
+}
+
 export default function ProfilePage() {
   const userId = getStoredUser()?.id ?? null;
   const storageKey = userId ? `grc_profile_${userId}` : null;
@@ -203,8 +227,10 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [toastVisible, setToastVisible] = useState(false);
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const avatarInputRef = useRef<HTMLInputElement>(null);
+  const saveToastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const isDirty = JSON.stringify(formData) !== JSON.stringify(original);
 
@@ -218,6 +244,25 @@ export default function ProfilePage() {
     // TODO: Upload to backend when API endpoint is available
     // const body = new FormData(); body.append("avatar", file);
     // await apiFetch("/profile/avatar", { method: "POST", body });
+  }
+
+  useEffect(() => {
+    return () => {
+      if (saveToastTimerRef.current) {
+        clearTimeout(saveToastTimerRef.current);
+      }
+    };
+  }, []);
+
+  function showSaveToast() {
+    if (saveToastTimerRef.current) {
+      clearTimeout(saveToastTimerRef.current);
+    }
+    setToastVisible(true);
+    saveToastTimerRef.current = setTimeout(() => {
+      setToastVisible(false);
+      saveToastTimerRef.current = null;
+    }, 3000);
   }
 
   useEffect(() => {
@@ -267,7 +312,7 @@ export default function ProfilePage() {
         }
       })
       .finally(() => setLoading(false));
-  }, []);
+  }, [storageKey]);
 
   const handleChange = useCallback((updates: Partial<ProfileFormData>) => {
     setFormData((prev) => ({ ...prev, ...updates }));
@@ -329,6 +374,7 @@ export default function ProfilePage() {
       if (storageKey) {
         localStorage.setItem(storageKey, JSON.stringify(saved));
       }
+      showSaveToast();
     } catch (err) {
       console.error("Save failed:", err);
     } finally {
@@ -342,6 +388,7 @@ export default function ProfilePage() {
 
   return (
     <DashboardLayout>
+      <SaveToast visible={toastVisible} message="Profile saved successfully" />
       {/* ── Page header ─────────────────────────────────────────── */}
       <header className="flex items-start justify-between gap-4 mb-2">
         <div>

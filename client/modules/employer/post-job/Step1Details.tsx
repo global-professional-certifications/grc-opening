@@ -46,6 +46,52 @@ const SENIORITY_OPTIONS = [
 ];
 
 type DraftState = 'idle' | 'saving' | 'saved' | 'error';
+const DEADLINE_MAX_MONTHS_AHEAD = 2;
+const NICE_TO_HAVE_MAX_CHARS = 1000;
+
+function formatDateInputValue(date: Date): string {
+  const year = date.getFullYear();
+  const month = `${date.getMonth() + 1}`.padStart(2, '0');
+  const day = `${date.getDate()}`.padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function parseDateInputValue(value: string): Date | null {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (!match) return null;
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const parsed = new Date(year, month - 1, day);
+  parsed.setHours(0, 0, 0, 0);
+
+  if (
+    parsed.getFullYear() !== year ||
+    parsed.getMonth() !== month - 1 ||
+    parsed.getDate() !== day
+  ) {
+    return null;
+  }
+
+  return parsed;
+}
+
+function getDeadlineBounds() {
+  const minDate = new Date();
+  minDate.setHours(0, 0, 0, 0);
+
+  const maxDate = new Date(minDate);
+  maxDate.setMonth(maxDate.getMonth() + DEADLINE_MAX_MONTHS_AHEAD);
+  maxDate.setHours(0, 0, 0, 0);
+
+  return {
+    minDate,
+    maxDate,
+    minDateInput: formatDateInputValue(minDate),
+    maxDateInput: formatDateInputValue(maxDate),
+  };
+}
 
 // ── Shared helpers ────────────────────────────────────────────────────────────
 
@@ -92,19 +138,36 @@ function ErrLine({ msg }: { msg?: string }) {
   );
 }
 
-function validate(data: ReturnType<typeof useJobPosting>['data']) {
+function validate(
+  data: ReturnType<typeof useJobPosting>['data'],
+  deadlineBounds: ReturnType<typeof getDeadlineBounds>,
+) {
   const errors: Record<string, string> = {};
   if (!data.title.trim()) {
     errors.title = data.jdRole === 'Custom Role' ? 'Job title is required' : 'Please select a job role template';
   }
   if (!data.category)                 errors.category    = 'Please select a category';
   if (!data.workMode)                 errors.workMode    = 'Please select a work mode';
-  if (!data.deadline)                 errors.deadline    = 'Please select an application deadline';
+  if (!data.deadline) {
+    errors.deadline = 'Please select an application deadline';
+  } else {
+    const parsedDeadline = parseDateInputValue(data.deadline);
+    if (!parsedDeadline) {
+      errors.deadline = 'Please select a valid date';
+    } else if (parsedDeadline.getTime() < deadlineBounds.minDate.getTime()) {
+      errors.deadline = 'Application deadline cannot be in the past';
+    } else if (parsedDeadline.getTime() > deadlineBounds.maxDate.getTime()) {
+      errors.deadline = `Application deadline must be on or before ${deadlineBounds.maxDateInput}`;
+    }
+  }
   if ((data.workMode === 'On-site' || data.workMode === 'Hybrid') && !data.location.trim()) {
     errors.location = 'Location is required for On-site and Hybrid roles';
   }
   if (!data.jobType)                  errors.jobType     = 'Please select a job type';
   if (!extractText(data.description)) errors.description = 'Job description is required';
+  if (data.niceToHave.length > NICE_TO_HAVE_MAX_CHARS) {
+    errors.niceToHave = `Nice to Have must be ${NICE_TO_HAVE_MAX_CHARS} characters or fewer`;
+  }
   if (
     !data.undisclosedSalary &&
     data.salaryMin &&
@@ -125,6 +188,8 @@ export function Step1Details() {
   const [jdApplied, setJdApplied]   = useState(false);
 
   const descTextLen = extractText(data.description).length;
+  const deadlineBounds = useMemo(() => getDeadlineBounds(), []);
+  const niceToHaveLength = data.niceToHave.length;
 
   // ── JD Template logic ────────────────────────────────────────────────────
   const availableRoles = useMemo(
@@ -147,7 +212,7 @@ export function Step1Details() {
     });
     setJdApplied(true);
     setTimeout(() => setJdApplied(false), 3000);
-  }, [matchedTemplate, updateData, data.title]);
+  }, [matchedTemplate, updateData]);
 
   const handleSeniorityChange = useCallback((val: string) => {
     updateData({ seniority: val, jdRole: '' });
@@ -166,7 +231,7 @@ export function Step1Details() {
     CURRENCIES.find((c) => c.value === data.currency)?.symbol ?? data.currency;
 
   const handleNext = () => {
-    const newErrors = validate(data);
+    const newErrors = validate(data, deadlineBounds);
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       const firstKey = Object.keys(newErrors)[0];
@@ -207,6 +272,48 @@ export function Step1Details() {
 
   const salaryInputCls =
     'w-full pl-8 pr-3 py-2.5 border rounded-lg bg-transparent text-sm outline-none transition-all focus:ring-1 focus:ring-[var(--db-primary)] focus:border-[var(--db-primary)]';
+
+  const handleDeadlineChange = useCallback((value: string) => {
+    updateData({ deadline: value });
+    setErrors((prev) => {
+      const next = { ...prev };
+      if (!value) {
+        delete next.deadline;
+        return next;
+      }
+
+      const parsedDeadline = parseDateInputValue(value);
+      if (!parsedDeadline) {
+        next.deadline = 'Please select a valid date';
+      } else if (parsedDeadline.getTime() < deadlineBounds.minDate.getTime()) {
+        next.deadline = 'Application deadline cannot be in the past';
+      } else if (parsedDeadline.getTime() > deadlineBounds.maxDate.getTime()) {
+        next.deadline = `Application deadline must be on or before ${deadlineBounds.maxDateInput}`;
+      } else {
+        delete next.deadline;
+      }
+      return next;
+    });
+  }, [deadlineBounds, updateData]);
+
+  const handleNiceToHaveChange = useCallback((value: string) => {
+    if (value.length > NICE_TO_HAVE_MAX_CHARS) {
+      updateData({ niceToHave: value.slice(0, NICE_TO_HAVE_MAX_CHARS) });
+      setErrors((prev) => ({
+        ...prev,
+        niceToHave: `Nice to Have is limited to ${NICE_TO_HAVE_MAX_CHARS} characters`,
+      }));
+      return;
+    }
+
+    updateData({ niceToHave: value });
+    setErrors((prev) => {
+      if (!prev.niceToHave) return prev;
+      const next = { ...prev };
+      delete next.niceToHave;
+      return next;
+    });
+  }, [updateData]);
 
   return (
     <div className="w-full flex flex-col gap-6 pb-12">
@@ -636,12 +743,16 @@ export function Step1Details() {
           <input
             type="date"
             value={data.deadline}
-            onChange={(e) => updateData({ deadline: e.target.value })}
+            onChange={(e) => handleDeadlineChange(e.target.value)}
             className="grc-input"
             style={{ ...MONO }}
-            min={new Date().toISOString().slice(0, 10)}
+            min={deadlineBounds.minDateInput}
+            max={deadlineBounds.maxDateInput}
             aria-invalid={!!errors.deadline}
           />
+          <p className="text-[10px]" style={{ ...MONO, color: 'var(--db-text-muted)' }}>
+            Choose a date from {deadlineBounds.minDateInput} to {deadlineBounds.maxDateInput}
+          </p>
           <ErrLine msg={errors.deadline} />
         </div>
       </SectionCard>
@@ -699,7 +810,7 @@ export function Step1Details() {
 
       {/* ── Section 8: Nice to Have ── */}
       <SectionCard>
-        <div className="flex items-center justify-between">
+        <div id="field-niceToHave" className="flex items-center justify-between">
           <SectionTitle>Nice to Have</SectionTitle>
           <span
             className="text-[10px] px-2 py-0.5 rounded border"
@@ -713,14 +824,26 @@ export function Step1Details() {
           className="w-full p-4 bg-transparent outline-none resize-y min-h-[110px] text-sm rounded-lg border transition-all focus:ring-1 focus:ring-[var(--db-primary)] focus:border-[var(--db-primary)]"
           style={{
             backgroundColor: 'transparent',
-            borderColor: 'var(--db-border)',
+            borderColor: errors.niceToHave ? '#f87171' : 'var(--db-border)',
             color: 'var(--db-text)',
             lineHeight: '1.65',
           }}
           placeholder="Optional skills, soft skills, or familiarity with specific tools (e.g. ServiceNow GRC, OneTrust, Workiva)…"
           value={data.niceToHave}
-          onChange={(e) => updateData({ niceToHave: e.target.value })}
+          onChange={(e) => handleNiceToHaveChange(e.target.value)}
         />
+        <div className="flex items-center justify-between mt-1">
+          <ErrLine msg={errors.niceToHave} />
+          <span
+            className="text-[10px] tabular-nums"
+            style={{
+              ...MONO,
+              color: niceToHaveLength >= NICE_TO_HAVE_MAX_CHARS ? '#f87171' : 'var(--db-text-muted)',
+            }}
+          >
+            {niceToHaveLength}/{NICE_TO_HAVE_MAX_CHARS}
+          </span>
+        </div>
       </SectionCard>
 
       {/* ── Footer actions ── */}

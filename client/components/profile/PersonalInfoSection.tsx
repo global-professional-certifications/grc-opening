@@ -1,8 +1,6 @@
 import React, { useState } from "react";
 import type { ProfileFormData } from "./types";
 
-const MONO = { fontFamily: "'JetBrains Mono', monospace" };
-
 const BASE_INPUT: React.CSSProperties = {
   width: "100%",
   background: "var(--db-surface)",
@@ -27,6 +25,15 @@ const LABEL_STYLE: React.CSSProperties = {
   display: "block",
 };
 
+const ERROR_STYLE: React.CSSProperties = {
+  color: "var(--db-error, #ef4444)",
+  fontSize: "0.75rem",
+  fontWeight: 600,
+  marginTop: 6,
+};
+
+const PROFESSIONAL_TITLE_REGEX = /^(?!.*[-&,/()]{2,})(?!.*\s{2,})[A-Za-z0-9&(),./ -]{2,100}$/;
+
 interface FieldProps {
   label: string;
   value: string;
@@ -34,9 +41,12 @@ interface FieldProps {
   type?: string;
   placeholder?: string;
   colSpan?: boolean;
+  maxLength?: number;
+  error?: string;
+  onBlur?: () => void;
 }
 
-function Field({ label, value, onChange, type = "text", placeholder, colSpan }: FieldProps) {
+function Field({ label, value, onChange, type = "text", placeholder, colSpan, maxLength, error, onBlur }: FieldProps) {
   const [focused, setFocused] = useState(false);
 
   return (
@@ -47,16 +57,27 @@ function Field({ label, value, onChange, type = "text", placeholder, colSpan }: 
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
+        maxLength={maxLength}
         onFocus={() => setFocused(true)}
-        onBlur={() => setFocused(false)}
+        onBlur={() => {
+          setFocused(false);
+          onBlur?.();
+        }}
         style={{
           ...BASE_INPUT,
-          borderColor: focused ? "var(--db-primary)" : "var(--db-border)",
-          boxShadow: focused
+          borderColor: error
+            ? "var(--db-error, #ef4444)"
+            : focused
+            ? "var(--db-primary)"
+            : "var(--db-border)",
+          boxShadow: error
+            ? "0 0 0 4px rgba(239, 68, 68, 0.12), inset 0 2px 4px rgba(0,0,0,0.02)"
+            : focused
             ? "0 0 0 4px var(--db-primary-10), inset 0 2px 4px rgba(0,0,0,0.02)"
             : BASE_INPUT.boxShadow,
         }}
       />
+      {error && <p style={ERROR_STYLE}>{error}</p>}
     </div>
   );
 }
@@ -69,7 +90,12 @@ interface Props {
   onChange: (updates: Partial<ProfileFormData>) => void;
 }
 
+interface PersonalInfoErrors {
+  professionalTitle?: string;
+}
+
 export function PersonalInfoSection({ data, onChange }: Props) {
+  const [errors, setErrors] = useState<PersonalInfoErrors>({});
   const fullName = `${data.firstName} ${data.lastName}`.trim();
 
   function handleFullNameChange(v: string) {
@@ -78,6 +104,38 @@ export function PersonalInfoSection({ data, onChange }: Props) {
       firstName: parts[0] ?? "",
       lastName: parts.slice(1).join(" ") ?? "",
     });
+  }
+
+  function sanitizeProfessionalTitle(value: string) {
+    let next = value;
+
+    // Remove unsupported special characters
+    next = next.replace(/[^A-Za-z0-9&(),./ -]/g, "");
+
+    // Remove leading spaces and collapse repeated spaces
+    next = next.replace(/^\s+/, "").replace(/\s{2,}/g, " ");
+
+    // Prevent repeated punctuation sequences
+    next = next.replace(/([&,./()-]){2,}/g, "$1");
+
+    return next.slice(0, 100);
+  }
+
+  function validateProfessionalTitle(value: string) {
+    const trimmed = value.trim();
+    if (trimmed.length === 0) return "Professional title is required";
+    if (trimmed.length < 2) return "Professional title must be at least 2 characters";
+    if (!PROFESSIONAL_TITLE_REGEX.test(trimmed)) return "Please enter a valid professional title";
+    return undefined;
+  }
+
+  function handleProfessionalTitleChange(v: string) {
+    const value = sanitizeProfessionalTitle(v);
+    onChange({ professionalTitle: value });
+    setErrors((prev) => ({
+      ...prev,
+      professionalTitle: validateProfessionalTitle(value),
+    }));
   }
 
   return (
@@ -100,15 +158,18 @@ export function PersonalInfoSection({ data, onChange }: Props) {
           </h3>
         </div>
         <button
-          onClick={() => onChange({
-            firstName: "",
-            lastName: "",
-            professionalTitle: "",
-            email: "",
-            phone: "",
-            location: "",
-            linkedInUrl: ""
-          })}
+          onClick={() => {
+            onChange({
+              firstName: "",
+              lastName: "",
+              professionalTitle: "",
+              email: "",
+              phone: "",
+              location: "",
+              linkedInUrl: "",
+            });
+            setErrors({});
+          }}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors"
           style={{
             color: "var(--db-error, #ef4444)",
@@ -129,11 +190,20 @@ export function PersonalInfoSection({ data, onChange }: Props) {
           onChange={handleFullNameChange}
           placeholder="Sarah Jenkins"
         />
+
         <Field
           label="Professional Title"
           value={data.professionalTitle}
-          onChange={(v) => onChange({ professionalTitle: v })}
           placeholder="Lead Compliance Auditor"
+          maxLength={100}
+          onChange={handleProfessionalTitleChange}
+          onBlur={() =>
+            setErrors((prev) => ({
+              ...prev,
+              professionalTitle: validateProfessionalTitle(data.professionalTitle),
+            }))
+          }
+          error={errors.professionalTitle}
         />
         <Field
           label="Email Address"

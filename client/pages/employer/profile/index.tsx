@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
+import { Country, State } from "country-state-city";
 import { EmployerDashboardLayout } from "../../../components/layout/EmployerDashboardLayout";
 import { useDashboardTheme } from "../../../contexts/DashboardThemeContext";
 import { apiFetch } from "../../../lib/api";
@@ -15,6 +16,66 @@ import { SocialLinksSection } from "../../../components/employer/profile/SocialL
 import { MONO, SYNE } from "../../../components/employer/profile/shared";
 
 const STORAGE_KEY = "grc_employer_profile";
+
+interface EmployerProfileApiShape {
+  companyName?: string | null;
+  industry?: string | null;
+  companySize?: string | null;
+  foundedYear?: string | null;
+  website?: string | null;
+  tagline?: string | null;
+  description?: string | null;
+  contactName?: string | null;
+  contactEmail?: string | null;
+  phone?: string | null;
+  contactPhoneCode?: string | null;
+  address?: string | null;
+  city?: string | null;
+  state?: string | null;
+  stateCode?: string | null;
+  country?: string | null;
+  countryCode?: string | null;
+  linkedInUrl?: string | null;
+  twitterUrl?: string | null;
+  otherUrl?: string | null;
+  logoUrl?: string | null;
+}
+
+function resolveCountryCode(countryCode?: string | null, countryName?: string | null): string {
+  const normalizedCode = (countryCode ?? "").trim().toUpperCase();
+  if (normalizedCode && Country.getCountryByCode(normalizedCode)) {
+    return normalizedCode;
+  }
+
+  const normalizedName = (countryName ?? "").trim().toLowerCase();
+  if (!normalizedName) return "";
+
+  const matchedCountry = Country.getAllCountries().find(
+    (country) => country.name.trim().toLowerCase() === normalizedName
+  );
+  return matchedCountry?.isoCode ?? "";
+}
+
+function resolveStateCode(
+  stateCode?: string | null,
+  stateName?: string | null,
+  countryCode?: string
+): string {
+  if (!countryCode) return "";
+
+  const normalizedCode = (stateCode ?? "").trim().toUpperCase();
+  if (normalizedCode && State.getStateByCodeAndCountry(normalizedCode, countryCode)) {
+    return normalizedCode;
+  }
+
+  const normalizedName = (stateName ?? "").trim().toLowerCase();
+  if (!normalizedName) return "";
+
+  const matchedState = State.getStatesOfCountry(countryCode).find(
+    (state) => state.name.trim().toLowerCase() === normalizedName
+  );
+  return matchedState?.isoCode ?? "";
+}
 
 // Skeleton
 function SkeletonBlock({ className }: { className: string }) {
@@ -398,9 +459,11 @@ function UnsavedBar({
 }
 
 // Save toast
-function SaveToast({ visible }: { visible: boolean }) {
+function SaveToast({ visible, message }: { visible: boolean; message: string }) {
   return (
     <div
+      role="status"
+      aria-live="polite"
       className="fixed top-6 right-6 z-50 flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-300"
       style={{
         background: "var(--db-card)",
@@ -418,7 +481,7 @@ function SaveToast({ visible }: { visible: boolean }) {
       >
         check_circle
       </span>
-      Profile saved successfully
+      {message}
     </div>
   );
 }
@@ -434,6 +497,7 @@ export default function EmployerProfilePage() {
   const [hasEverSaved, setHasEverSaved] = useState(false);
   const logoInputRef = useRef<HTMLInputElement>(null);
   const firstSectionRef = useRef<HTMLDivElement>(null);
+  const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { theme } = useDashboardTheme();
   void theme;
@@ -444,8 +508,17 @@ export default function EmployerProfilePage() {
 
   // Load from API on mount, fall back to localStorage cache
   useEffect(() => {
-    apiFetch<{ profile: any }>("/profile/employer")
+    apiFetch<{ profile: EmployerProfileApiShape }>("/profile/employer")
       .then(({ profile: p }) => {
+        const countryCode = resolveCountryCode(p.countryCode, p.country);
+        const stateCode = resolveStateCode(p.stateCode, p.state, countryCode);
+        const resolvedCountry = p.country ?? Country.getCountryByCode(countryCode)?.name ?? "";
+        const resolvedState =
+          p.state ??
+          (countryCode && stateCode
+            ? State.getStateByCodeAndCountry(stateCode, countryCode)?.name ?? ""
+            : "");
+
         const mapped: EmployerProfileData = {
           companyName: p.companyName ?? "",
           industry: p.industry ?? "",
@@ -460,10 +533,10 @@ export default function EmployerProfilePage() {
           contactPhoneCode: p.contactPhoneCode ?? "+1",
           address: p.address ?? "",
           city: p.city ?? "",
-          state: p.state ?? "",
-          stateCode: "",
-          country: p.country ?? "",
-          countryCode: p.countryCode ?? "",
+          state: resolvedState,
+          stateCode,
+          country: resolvedCountry,
+          countryCode,
           linkedInUrl: p.linkedInUrl ?? "",
           twitterUrl: p.twitterUrl ?? "",
           otherUrl: p.otherUrl ?? "",
@@ -484,10 +557,23 @@ export default function EmployerProfilePage() {
           const cached = localStorage.getItem(STORAGE_KEY);
           if (cached) {
             const parsed = JSON.parse(cached) as EmployerProfileData;
-            setFormData(parsed);
-            setOriginal(parsed);
+            const countryCode = resolveCountryCode(parsed.countryCode, parsed.country);
+            const stateCode = resolveStateCode(parsed.stateCode, parsed.state, countryCode);
+            const hydratedParsed: EmployerProfileData = {
+              ...parsed,
+              countryCode,
+              country: parsed.country || Country.getCountryByCode(countryCode)?.name || "",
+              stateCode,
+              state:
+                parsed.state ||
+                (countryCode && stateCode
+                  ? State.getStateByCodeAndCountry(stateCode, countryCode)?.name || ""
+                  : ""),
+            };
+            setFormData(hydratedParsed);
+            setOriginal(hydratedParsed);
             setHasEverSaved(true);
-            if (parsed.logoUrl) setLogoImage(parsed.logoUrl);
+            if (hydratedParsed.logoUrl) setLogoImage(hydratedParsed.logoUrl);
           }
         } catch { /* ignore */ }
       })
@@ -509,11 +595,30 @@ export default function EmployerProfilePage() {
     };
   }, []);
 
+  useEffect(() => {
+    return () => {
+      if (toastTimerRef.current) {
+        clearTimeout(toastTimerRef.current);
+      }
+    };
+  }, []);
+
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const handleChange = useCallback((updates: Partial<EmployerProfileData>) => {
     setFormData((prev) => ({ ...prev, ...updates }));
   }, []);
+
+  function showSaveToast() {
+    if (toastTimerRef.current) {
+      clearTimeout(toastTimerRef.current);
+    }
+    setToastVisible(true);
+    toastTimerRef.current = setTimeout(() => {
+      setToastVisible(false);
+      toastTimerRef.current = null;
+    }, 3000);
+  }
 
   function handleLogoChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -631,11 +736,17 @@ export default function EmployerProfilePage() {
       setOriginal(finalData);
       setFormData(finalData);
       setHasEverSaved(true);
-      setToastVisible(true);
-      setTimeout(() => setToastVisible(false), 3000);
-    } catch (err: any) {
-      const msg = err?.data?.details || err?.message || "Failed to save. Please try again.";
-      setErrors({ companyName: msg });
+      showSaveToast();
+    } catch (err: unknown) {
+      const details =
+        typeof err === "object" &&
+        err !== null &&
+        "data" in err &&
+        typeof (err as { data?: { details?: unknown } }).data?.details === "string"
+          ? (err as { data?: { details?: string } }).data?.details
+          : null;
+      const fallback = err instanceof Error ? err.message : null;
+      setErrors({ companyName: details || fallback || "Failed to save. Please try again." });
     } finally {
       setSaving(false);
     }
@@ -648,7 +759,7 @@ export default function EmployerProfilePage() {
   return (
     <EmployerDashboardLayout>
       {/* Save toast */}
-      <SaveToast visible={toastVisible} />
+      <SaveToast visible={toastVisible} message="Profile saved successfully" />
 
       {/* Page header */}
       <header className="flex flex-wrap items-start justify-between gap-4">

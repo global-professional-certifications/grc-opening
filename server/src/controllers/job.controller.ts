@@ -2,6 +2,8 @@ import { Request, Response } from 'express';
 import { PrismaClient, JobStatus, WorkMode, ApplicationStatus } from '@prisma/client';
 
 const prisma = new PrismaClient();
+const MAX_DEADLINE_MONTHS_AHEAD = 2;
+const MAX_NICE_TO_HAVE_CHARS = 1000;
 
 // Jaccard similarity on word token sets (case-insensitive)
 function jaccardSimilarity(a: string, b: string): number {
@@ -51,6 +53,20 @@ function startOfToday(): Date {
   return d;
 }
 
+function maxAllowedDeadlineDate(): Date {
+  const d = startOfToday();
+  d.setMonth(d.getMonth() + MAX_DEADLINE_MONTHS_AHEAD);
+  d.setHours(23, 59, 59, 999);
+  return d;
+}
+
+function formatDateOnly(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 function parseDateOnlyToEndOfDay(value: unknown): Date | null {
   if (typeof value !== 'string') return null;
   const trimmed = value.trim();
@@ -64,13 +80,17 @@ function parseDateOnlyToEndOfDay(value: unknown): Date | null {
     const day = Number(m[3]);
     if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) return null;
     const dt = new Date(year, month - 1, day, 23, 59, 59, 999);
+    if (
+      dt.getFullYear() !== year ||
+      dt.getMonth() !== month - 1 ||
+      dt.getDate() !== day
+    ) {
+      return null;
+    }
     if (Number.isNaN(dt.getTime())) return null;
     return dt;
   }
-
-  const dt = new Date(trimmed);
-  if (Number.isNaN(dt.getTime())) return null;
-  return dt;
+  return null;
 }
 
 function applicationWindowLabel(deadline: Date | null): string {
@@ -114,6 +134,12 @@ export const createJob = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
+    const normalizedNiceToHave = typeof niceToHave === 'string' ? niceToHave.trim() : '';
+    if (normalizedNiceToHave.length > MAX_NICE_TO_HAVE_CHARS) {
+      res.status(400).json({ error: `Nice to Have must be ${MAX_NICE_TO_HAVE_CHARS} characters or fewer` });
+      return;
+    }
+
     const parsedDeadline = parseDateOnlyToEndOfDay(deadline);
     if (!parsedDeadline) {
       res.status(400).json({ error: 'Deadline is required (YYYY-MM-DD)' });
@@ -121,6 +147,13 @@ export const createJob = async (req: Request, res: Response): Promise<void> => {
     }
     if (parsedDeadline.getTime() < startOfToday().getTime()) {
       res.status(400).json({ error: 'Deadline must be today or later' });
+      return;
+    }
+    const maxDeadline = maxAllowedDeadlineDate();
+    if (parsedDeadline.getTime() > maxDeadline.getTime()) {
+      res.status(400).json({
+        error: `Deadline must be within ${MAX_DEADLINE_MONTHS_AHEAD} months (on or before ${formatDateOnly(maxDeadline)})`,
+      });
       return;
     }
 
@@ -181,7 +214,7 @@ export const createJob = async (req: Request, res: Response): Promise<void> => {
         jobType:          jobType         ?? null,
         seniority:        seniority       ?? null,
         experience:       experience      ?? null,
-        niceToHave:       niceToHave      ?? null,
+        niceToHave:       normalizedNiceToHave || null,
         currency:         currency        ?? 'USD',
         undisclosedSalary: undisclosedSalary === true || undisclosedSalary === 'true',
         salaryMin:        (!undisclosedSalary && salaryMin) ? parseInt(salaryMin) : null,
@@ -231,6 +264,12 @@ export const updateJob = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
+    const normalizedNiceToHave = typeof niceToHave === 'string' ? niceToHave.trim() : '';
+    if (normalizedNiceToHave.length > MAX_NICE_TO_HAVE_CHARS) {
+      res.status(400).json({ error: `Nice to Have must be ${MAX_NICE_TO_HAVE_CHARS} characters or fewer` });
+      return;
+    }
+
     const workModeKey = String(workMode ?? '').toUpperCase().replace('-', '_');
     const workModeMap: Record<string, WorkMode> = {
       'REMOTE': WorkMode.REMOTE,
@@ -253,6 +292,15 @@ export const updateJob = async (req: Request, res: Response): Promise<void> => {
       res.status(400).json({ error: 'Deadline must be today or later' });
       return;
     }
+    if (parsedDeadline) {
+      const maxDeadline = maxAllowedDeadlineDate();
+      if (parsedDeadline.getTime() > maxDeadline.getTime()) {
+        res.status(400).json({
+          error: `Deadline must be within ${MAX_DEADLINE_MONTHS_AHEAD} months (on or before ${formatDateOnly(maxDeadline)})`,
+        });
+        return;
+      }
+    }
 
     const job = await prisma.$transaction(async (tx) => {
       await tx.jobCertification.deleteMany({ where: { jobId: id } });
@@ -267,9 +315,7 @@ export const updateJob = async (req: Request, res: Response): Promise<void> => {
           jobType:          jobType         ?? null,
           seniority:        seniority       ?? null,
           experience:       experience      ?? null,
-          responsibilities: responsibilities ?? null,
-          qualifications:   qualifications  ?? null,
-          niceToHave:       niceToHave      ?? null,
+          niceToHave:       normalizedNiceToHave || null,
           currency:         currency        ?? 'USD',
           undisclosedSalary: undisclosed,
           salaryMin:        (!undisclosed && salaryMin) ? parseInt(salaryMin) : null,
