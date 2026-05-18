@@ -43,6 +43,8 @@ export function CandidateForm({ currentRole = "job_seeker" }: { currentRole?: "j
   const [errors, setErrors] = useState<Partial<Fields>>({});
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   function set(key: keyof Fields, value: string) {
     const next = { ...fields, [key]: value };
@@ -95,41 +97,118 @@ export function CandidateForm({ currentRole = "job_seeker" }: { currentRole?: "j
     <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-3" style={{ fontFamily: "'Poppins', sans-serif" }}>
 
       <ModernInput
-        label="Full Name" placeholder="John Doe" id="fullName"
+        label="Full Name"
+        placeholder="John Doe"
+        id="fullName"
         icon="person"
-        value={fields.fullName} onChange={e => set("fullName", e.target.value)}
+        maxLength={100}
+        value={fields.fullName}
+        onChange={(e) => {
+          // Allowing only alphabets and spaces
+          const sanitizedValue = e.target.value
+            .replace(/[^A-Za-z\s]/g, "")
+            .replace(/\s+/g, " ");
+
+          set("fullName", sanitizedValue);
+        }}
         error={errors.fullName}
       />
 
       <ModernInput
-        label="Email Address" type="email" placeholder="name@email.com" id="email"
+        label="Email Address"
+        type="email"
+        placeholder="name@email.com"
+        id="email"
         icon="mail"
-        value={fields.email} onChange={e => set("email", e.target.value)}
+        maxLength={254} // RFC standard maximum email length
+        value={fields.email}
+        onChange={(e) => {
+          // Trim spaces and normalize lowercase
+          let value = e.target.value.trim().toLowerCase();
+          const emailRegex =
+            /^(?!.*\.\.)(?!.*\.$)[A-Za-z0-9._%-]{1,64}@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}$/;
+
+          // Remove all internal spaces
+          value = value.replace(/\s/g, "");
+
+          set("email", value);
+
+          // Live validation
+          if (value && !emailRegex.test(value)) {
+            setErrors((prev: any) => ({
+              ...prev,
+              email: "Please enter a valid email address",
+            }));
+          } else {
+            setErrors((prev: any) => ({
+              ...prev,
+              email: "",
+            }));
+          }
+        }}
         error={errors.email}
       />
 
       <ModernInput
-        label="Phone Number" type="tel" placeholder="+1 234 567 8900" id="phone"
+        label="Phone Number"
+        type="tel"
+        placeholder="+12345678900"
+        id="phone"
         icon="phone"
-        value={fields.phone} onChange={e => set("phone", e.target.value)}
+        maxLength={16}
+        value={fields.phone}
+        onChange={(e) => {
+          let value = e.target.value;
+
+          // Removing all characters except digits and "+"
+          value = value.replace(/[^\d+]/g, "");
+
+          // Ensuring "+" appears only at the beginning
+          if (value.includes("+")) {
+            value = "+" + value.replace(/\+/g, "").replace(/^\+/, "");
+          }
+
+          // Limiting of total digits to 15 (E.164 standard)
+          const digitsOnly = value.replace(/\D/g, "").slice(0, 15);
+
+          // Reconstruction of final value
+          value = value.startsWith("+")
+            ? `+${digitsOnly}`
+            : digitsOnly;
+
+          set("phone", value);
+        }}
         error={errors.phone}
       />
-
+      
       <div className="flex flex-col gap-2">
         <ModernInput
-          label="Password" type="password" id="password"
+          label="Password"
+          type={showPassword ? "text" : "password"}
+          id="password"
           icon="lock"
-          value={fields.password} onChange={e => set("password", e.target.value)}
+          value={fields.password}
+          onChange={(e) => set("password", e.target.value)}
           error={errors.password}
+
+          rightIcon={showPassword ? "visibility_off" : "visibility"}
+          onRightIconClick={() => setShowPassword(!showPassword)}
         />
+
         <PasswordStrength password={fields.password} />
       </div>
 
       <ModernInput
-        label="Confirm Password" type="password" id="confirmPassword"
+        label="Confirm Password"
+        type={showConfirmPassword ? "text" : "password"}
+        id="confirmPassword"
         icon="lock"
-        value={fields.confirmPassword} onChange={e => set("confirmPassword", e.target.value)}
+        value={fields.confirmPassword}
+        onChange={(e) => set("confirmPassword", e.target.value)}
         error={errors.confirmPassword}
+
+        rightIcon={showConfirmPassword ? "visibility_off" : "visibility"}
+        onRightIconClick={() => setShowConfirmPassword(!showConfirmPassword)}
       />
 
       <button

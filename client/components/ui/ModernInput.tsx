@@ -6,9 +6,11 @@ interface ModernInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   error?: string;
   hint?: string;
   rightElement?: React.ReactNode;
+  rightIcon?: string;
+  onRightIconClick?: () => void;
 }
 
-export function ModernInput({ label, icon, error, hint, id, rightElement, ...props }: ModernInputProps) {
+export function ModernInput({ label, icon, error, hint, id, rightElement, rightIcon, onRightIconClick, ...props }: ModernInputProps) {
   const [focused, setFocused] = React.useState(false);
   const errorId = id ? `${id}-error` : undefined;
 
@@ -43,19 +45,33 @@ export function ModernInput({ label, icon, error, hint, id, rightElement, ...pro
           className={`
             w-full transition-all duration-300 outline-none
             text-[14.5px] font-medium leading-relaxed text-gray-900 placeholder:text-gray-400
-            ${icon ? "pl-11" : "pl-4"} pr-4 py-2.5
+            ${icon ? "pl-11" : "pl-4"} ${rightIcon || rightElement ? "pr-11" : "pr-4"} py-2.5
             bg-[#f9fafb] hover:bg-white focus:bg-white
             rounded-xl
             border border-gray-200
-            ${error 
-              ? "border-red-500 focus:border-red-500 focus:ring-4 focus:ring-red-500/10" 
+            ${error
+              ? "border-red-500 focus:border-red-500 focus:ring-4 focus:ring-red-500/10"
               : "focus:border-[#3a1292] focus:ring-4 focus:ring-[#3a1292]/10 shadow-sm hover:shadow-md"
             }
           `}
           style={{ fontFamily: "'Poppins', sans-serif" }}
           {...props}
         />
-        {rightElement && (
+        {rightIcon && (
+          <button
+            type="button"
+            onClick={onRightIconClick}
+            tabIndex={-1}
+            aria-label={rightIcon === "visibility" ? "Hide password" : "Show password"}
+            className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center w-7 h-7 rounded-md transition-colors hover:bg-gray-100"
+            style={{ color: "#94a3b8" }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: 20 }}>
+              {rightIcon}
+            </span>
+          </button>
+        )}
+        {!rightIcon && rightElement && (
           <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center">
             {rightElement}
           </div>

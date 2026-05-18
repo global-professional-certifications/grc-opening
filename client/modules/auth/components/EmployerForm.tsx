@@ -40,6 +40,8 @@ export function EmployerForm({ currentRole = "employer" }: { currentRole?: "job_
   const [errors, setErrors] = useState<Partial<Fields>>({});
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   function set(key: keyof Fields, value: string) {
     const next = { ...fields, [key]: value };
@@ -90,35 +92,161 @@ export function EmployerForm({ currentRole = "employer" }: { currentRole?: "job_
   return (
     <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-3" style={{ fontFamily: "'Poppins', sans-serif" }}>
 
+
+
+
+
+
       <ModernInput
-        label="Company Name" placeholder="e.g. Acme GRC Solutions" id="companyName"
+        label="Company Name"
+        placeholder="e.g. Acme GRC Solutions"
+        id="companyName"
         icon="business"
-        value={fields.companyName} onChange={e => set("companyName", e.target.value)}
+        maxLength={100}
+        value={fields.companyName}
+        onChange={(e) => {
+          let value = e.target.value;
+          const companyNameRegex =
+            /^(?!.*[&'.,()\-]{2,})(?!.*\s{2,})[A-Za-z0-9&'.,()\- ]{2, 100}$/;
+          // Remove unsupported special characters
+          value = value.replace(
+            /[^A-Za-z0-9&'.,()\- ]/g,
+            ""
+          );
+
+          // Remove leading spaces immediately
+          value = value.replace(/^\s+/, "");
+
+          // Normalize multiple spaces to single space
+          value = value.replace(/\s{2,}/g, " ");
+
+          // Prevent repeated garbage symbols like &&&& or ----
+          value = value.replace(
+            /([&'.,()\-]){2,}/g,
+            "$1"
+          );
+
+          // Enforce maximum length
+          value = value.slice(0, 100);
+
+          set("companyName", value);
+
+          const trimmedValue = value.trim();
+
+          // Validation
+          if (trimmedValue.length === 0) {
+            setErrors((prev: any) => ({
+              ...prev,
+              companyName: "Company name is required",
+            }));
+          } else if (trimmedValue.length < 2) {
+            setErrors((prev: any) => ({
+              ...prev,
+              companyName:
+                "Company name must be at least 2 characters",
+            }));
+          } else if (
+            !companyNameRegex.test(trimmedValue)
+          ) {
+            setErrors((prev: any) => ({
+              ...prev,
+              companyName:
+                "Please enter a valid company name",
+            }));
+          } else {
+            setErrors((prev: any) => ({
+              ...prev,
+              companyName: "",
+            }));
+          }
+        }}
+        onBlur={() => {
+          // Trim trailing spaces on blur
+          set(
+            "companyName",
+            fields.companyName.trim()
+          );
+        }}
         error={errors.companyName}
       />
 
+
+
       <ModernInput
-        label="Work Email" type="email" placeholder="hr@company.com" id="workEmail"
+        label="Work Email"
+        type="email"
+        placeholder="hr@company.com"
+        id="workEmail"
         icon="alternate_email"
-        value={fields.workEmail} onChange={e => set("workEmail", e.target.value)}
+        maxLength={254} // RFC standard maximum email length
+        value={fields.workEmail}
+        onChange={(e) => {
+          const workEmailRegex =
+            /^(?!.*\.\.)(?!.*\.$)[A-Za-z0-9._%-]{1, 64}@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}$/;
+          let value = e.target.value;
+
+          // Trim leading/trailing spaces
+          value = value.trim();
+
+          // Normalize lowercase
+          value = value.toLowerCase();
+
+          // Remove all internal spaces
+          value = value.replace(/\s/g, "");
+
+          // Enforce max length
+          value = value.slice(0, 254);
+
+          set("workEmail", value);
+
+          // Validation
+          if (value.length === 0) {
+            setErrors((prev: any) => ({
+              ...prev,
+              workEmail: "Work email is required",
+            }));
+          } else if (!workEmailRegex.test(value)) {
+            setErrors((prev: any) => ({
+              ...prev,
+              workEmail:
+                "Please enter a valid work email address",
+            }));
+          } else {
+            setErrors((prev: any) => ({
+              ...prev,
+              workEmail: "",
+            }));
+          }
+        }}
+        onBlur={() => {
+          // Final trim normalization on blur
+          set(
+            "workEmail",
+            fields.workEmail.trim().toLowerCase()
+          );
+        }}
         error={errors.workEmail}
       />
 
       <div className="flex flex-col gap-2">
         <ModernInput
-          label="Password" type="password" id="empPassword"
+          label="Password" type={showPassword ? "text" : "password"} id="empPassword"
           icon="lock"
           value={fields.password} onChange={e => set("password", e.target.value)}
           error={errors.password}
+          rightIcon={showPassword ? "visibility_off" : "visibility"}
+          onRightIconClick={() => setShowPassword(!showPassword)}
         />
         <PasswordStrength password={fields.password} />
       </div>
 
       <ModernInput
-        label="Confirm Password" type="password" id="confirmPassword"
+        label="Confirm Password" type={showConfirmPassword ? "text" : "password"} id="confirmPassword"
         icon="lock"
         value={fields.confirmPassword} onChange={e => set("confirmPassword", e.target.value)}
         error={errors.confirmPassword}
+        rightIcon={showConfirmPassword ? "visibility_off" : "visibility"}
+        onRightIconClick={() => setShowConfirmPassword(!showConfirmPassword)}
       />
 
       <button
